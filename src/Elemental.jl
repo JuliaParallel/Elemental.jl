@@ -1,17 +1,17 @@
 module Elemental
 
-const libEl = "/opt/lib/libEl"
-
 using MPI
+
+const libEl = "/Users/jacobbolewski/Julia/Elemental/build/libEl"
 
 type DistSparseMatrix{T} <: AbstractMatrix{T}
 	obj::Ptr{Void}
 end
 
-function DistSparseMatrix(::Type{Float64}, comm::MPI.Comm = MPI.COMM_WORLD)
-	obj = Ptr{Void}[0]
-	ret = ccall((:ElDistSparseMatrixCreate_d, libEl), Cuint, (Ptr{Void}, Ptr{Cint}), &obj, &comm)
-	return obj[1]
+function DistSparseMatrix(::Type{Float64}, comm::MPI.Comm=MPI.COMM_WORLD)
+	obj = Ref{Ptr{Void}}(C_NULL)
+	ret = ccall((:ElDistSparseMatrixCreate_d, libEl), Cuint, (Ref{Ptr{Void}}, Cint), obj, comm.val)
+	return obj[]
 end
 
 end # module
