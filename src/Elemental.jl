@@ -55,6 +55,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint, 
                 (Ref{Ptr{Void}}, Cint),
                 obj, comm.val)
+            err == 0 || error("something is wrong here!")
             return DistSparseMatrix{$elty}(obj[])
         end
 
@@ -68,13 +69,15 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixDestroy_", ext)), libEl), Cuint,
                 (Ptr{Void},),
                 A.obj)
-            err
+            err == 0 || error("something is wrong here!")
+            return 0
         end
 
         function resize{$elty}(A::DistSparseMatrix{$elty}, height::Integer, width::Integer)
             err = ccall(($(string("ElDistSparseMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt), 
                 A.obj, height, width)
+            err == 0 || error("something is wrong here!")
             return A
         end
 
@@ -83,6 +86,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixLocalHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}), 
                 A.obj, i)
+            err == 0 || error("something is wrong here!")
             return i[]
         end
 
@@ -90,6 +94,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixReserve_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt), 
                 A.obj, numEntries)
+            err == 0 || error("something is wrong here!")
             return nothing
         end
 
@@ -98,6 +103,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}), 
                 A.obj, iLoc, i)
+            err == 0 || error("something is wrong here!")
             return i[]
         end
 
@@ -105,6 +111,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty), 
                 A.obj, localRow, col, value)
+            err == 0 || error("something is wrong here!")
             return nothing
         end
 
@@ -112,6 +119,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixMakeConsistent_", ext)), libEl), Cuint,
                 (Ptr{Void},), 
                 A.obj)
+            err == 0 || error("something is wrong here!")
             return nothing
         end
 
@@ -120,6 +128,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}), 
                 A.obj, i)
+            err == 0 || error("something is wrong here!")
             return i[]
         end
 
@@ -128,6 +137,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixWidth_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}), 
                 A.obj, i)
+            err == 0 || error("something is wrong here!")
             return i[]
         end
 
@@ -137,6 +147,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{Cint}), 
                 A.obj, rcm)
+            err == 0 || error("something is wrong here!")
             return cm
         end
     end
@@ -167,6 +178,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint, 
                 (Ref{Ptr{Void}}, Cint),
                 obj, comm.val)
+            err == 0 || error("something is wrong here!")
             return DistMultiVec{$elty}(obj[])
         end
 
@@ -192,6 +204,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             err = ccall(($(string("ElGaussianDistMultiVec_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty, $relty), 
                 A.obj, m, n, mean, stddev)
+            err == 0 || error("something is wrong here!")
             return nothing
         end
     end
@@ -208,6 +221,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             err = ccall(($(string("ElNrm2DistMultiVec_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{$relty}),
                 x.obj, nm)
+            err == 0 || error("something is wrong here!")
             return nm[]
         end
     end
@@ -233,6 +247,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElRegQSDCtrlDefault_", ext)), libEl), Cuint, 
                 (Ptr{RegQSDCtrl{$elty}},),
                 &obj)
+            err == 0 || error("something is wrong here!")
             return obj 
         end
     end
@@ -254,6 +269,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint, 
                 (Ptr{IPFLineSearchCtrl{$elty}},),
                  &obj)
+            err == 0 || error("something is wrong here!")
             return obj 
         end
     end
@@ -279,6 +295,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint, 
                 (Ptr{LPAffineIPFCtrl{$elty}},),
                  &obj)
+            err == 0 || error("something is wrong here!")
             return obj 
         end
     end
@@ -306,6 +323,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint, 
                 (Ptr{LPAffineMehrotraCtrl{$elty}},),
                 &obj)
+            err == 0 || error("something is wrong here!")
             return obj
         end
     end
@@ -326,6 +344,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint, 
                 (Ptr{LPAffineCtrl{$elty}},),
                 &obj)
+            err == 0 || error("something is wrong here!")
             return obj
         end
     end
@@ -458,6 +477,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElLAVDistSparse_", ext)), libEl), Cuint, 
                 (Ptr{Void}, Ptr{Void}, Ptr{Void}),
                 A.obj, b.obj, x.obj)
+            err == 0 || error("something is wrong here!")
             return x
         end
 
@@ -466,6 +486,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElLAVXDistSparse_", ext)), libEl), Cuint, 
                 (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{LPAffineCtrl{$elty}}),
                 A.obj, b.obj, x.obj, &ctrl)
+            err == 0 || error("something is wrong here!")
             return x
         end
     end
