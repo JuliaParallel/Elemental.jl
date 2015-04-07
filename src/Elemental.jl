@@ -1,8 +1,7 @@
 module Elemental
 
 using MPI
-
-import Base: size
+import Base: A_mul_B!, copy, copy!, similar, size
 
 include("../deps/deps.jl")
 
@@ -22,21 +21,37 @@ using64 = Cint[0]
 err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
 const ElInt = using64[1] == 1 ? Int64 : Int32
 
-# function Init()
-#     err = ccall((:ElInitialize, libEl), Cint,
-#         (Ptr{Cint}, Ptr{Ptr{Void}}),
-#         &0, &C_NULL)
-# end
+function Init()
+    err = ccall((:ElInitialize, libEl), Cint, 
+        (Ptr{Cint}, Ptr{Ptr{Void}}),
+        &0, &C_NULL)
+    err == 0 || error("something is wrong here!")
+    return nothing
+end
 
-# function Initialized()
-#     active = Cint[0]
-#     err = ccall((:ElInitialized, libEl), Cuint, (Ptr{Cint},), active)
-#     return active[1] == 1
-# end
+function Initialized()
+    active = Cint[0]
+    err = ccall((:ElInitialized, libEl), Cuint, (Ptr{Cint},), active)
+    err == 0 || error("something is wrong here!")
+    return active[1] == 1
+end
 
+function Finalize()
+    err = ccall((:ElFinalize, libEl), Cint, 
+        (),
+        )
+    err == 0 || error("something is wrong here!")
+    return nothing
+end
+
+# core/types.h
+const EL_NORMAL = Cint(0)
+const EL_TRANSPOSE = Cint(1)
+const EL_ADJOINT = Cint(2)
 
 function __init__()
     MPI.Init()
+    Init()
     # @show MPI.Comm_rank(MPI.COMM_WORLD)
     # Init()
     # @show Initialized()
@@ -190,10 +205,22 @@ for (elty, ext) in ((:Float32, :s),
         #         obj, comm.val)
         #     return DistMultiVec{$elty}(obj[])
         # end
+        function height(x::DistMultiVec{$elty})
+            i = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint, 
+                (Ptr{Void}, Ref{Cint}),
+                x.obj, i)
+            err == 0 || error("something is wrong here!")
+            return i[]
+        end
+        
+
     end
 end
 
-size(x::DistMultiVec) = (5,)
+eltype{T}(x::DistMultiVec{T}) = T
+size(x::DistMultiVec) = (Int(height(x)),)
+similar{T}(x::DistMultiVec{T}, cm = MPI.COMM_WORLD) = DistMultiVec(T, cm)
 
 # matrices.h
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
@@ -211,7 +238,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     end
 end
 
-# blas_like/
+# blas_like/level1.h
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
@@ -225,11 +252,54 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             err == 0 || error("something is wrong here!")
             return nm[]
         end
+
+        function copy!(src::DistMultiVec{$elty}, dest::DistMultiVec{$elty})
+            err = ccall(($(string("ElCopyDistMultiVec_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ptr{Void}),
+                src.obj, dest.obj)
+            err == 0 || error("something is wrong here!")
+            dest
+        end
+    end
+end
+copy(A::DistMultiVec) = copy!(A, similar(A))
+
+# blas_like/level1.h
+for (elty, relty, ext) in ((:Float32, :Float32, :s),
+                           (:Float64, :Float64, :d), 
+                           (:Complex64, :Float32, :c),
+                           (:Complex128, :Float64, :z))
+    @eval begin
+        function A_mul_B!(α::$elty, A::DistSparseMatrix{$elty}, x::DistMultiVec{$elty}, β::$elty, y::DistMultiVec{$elty})
+            err = ccall(($(string("ElSparseMultiplyDist_", ext)), libEl), Cuint,
+                (Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
+                EL_NORMAL, α, A.obj, x.obj, β, y.obj)
+            err == 0 || error("something is wrong here!")
+            return y
+        end
     end
 end
 
+# lapack_like
+## eucledian_min.h
+for (elty, ext) in ((:Float32, :s),
+                    (:Float64, :d))
+    @eval begin 
+        function leastSquares!(A::DistSparseMatrix{$elty}, B::DistMultiVec{$elty}, X::DistMultiVec{$elty}; orientation::Integer = EL_NORMAL)
+            err = ccall(($(string("ElLeastSquaresDistSparse_", ext)), libEl), Cuint, 
+                (Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                orientation, A.obj, B.obj, X.obj)
+            err == 0 || error("something is wrong here!")
+            return X
+        end
+        function leastSquares(A::DistSparseMatrix{$elty}, B::DistMultiVec{$elty}; orientation::Integer = EL_NORMAL)
+            X = similar(B, comm(A))
+            return leastSquares!(A, B, X, orientation = orientation)
+        end
+    end
+end
 
-# lapack_like/factor.h
+## factor.h
 immutable RegQSDCtrl{T}
     regPrimal::T
     regDual::T
@@ -250,6 +320,31 @@ for (elty, ext) in ((:Float32, :s),
                 &obj)
             err == 0 || error("something is wrong here!")
             return obj
+        end
+    end
+end
+
+# lapack_like/props.h
+for (elty, relty, ext) in ((:Float32, :Float32, :s),
+                           (:Float64, :Float64, :d), 
+                           (:Complex64, :Float32, :c),
+                           (:Complex128, :Float64, :z))
+    @eval begin
+        function maxNorm(x::DistMultiVec{$elty})
+            nm = Ref{$relty}(0)
+            err = ccall(($(string("ElMaxNormDistMultiVec_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{$relty}),
+                x.obj, nm)
+            err == 0 || error("something is wrong here!")
+            return nm[]
+        end
+        function entrywiseNorm(x::DistMultiVec{$elty}, p::Real)
+            nm = Ref{$relty}(0)
+            err = ccall(($(string("ElEntrywiseNormDistMultiVec_", ext)), libEl), Cuint,
+                (Ptr{Void}, $relty, Ref{$relty}),
+                x.obj, p, nm)
+            err == 0 || error("something is wrong here!")
+            return nm[]
         end
     end
 end
@@ -474,8 +569,8 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
 
         function lav(A::DistSparseMatrix{$elty}, b::DistMultiVec{$elty})
-            @show x = DistMultiVec($elty, comm(A))
-            err = ccall(($(string("ElLAVDistSparse_", ext)), libEl), Cuint,
+            x = DistMultiVec($elty, comm(A))
+            err = ccall(($(string("ElLAVDistSparse_", ext)), libEl), Cuint, 
                 (Ptr{Void}, Ptr{Void}, Ptr{Void}),
                 A.obj, b.obj, x.obj)
             err == 0 || error("something is wrong here!")
