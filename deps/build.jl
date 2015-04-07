@@ -1,26 +1,58 @@
-using BinDeps
+const Git = Base.Git
 
-ELEMENTAL_VERSION = "0.86-rc1"
+depdir = dirname(@__FILE__)
 
-@BinDeps.setup
+if !isdir(joinpath(depdir, "src"))
+    mkdir(joinpath(depdir, "src"))
+end
+srcdir = joinpath(depdir, "src", "Elemental")
 
-libEl = library_dependency("libEl")
+if !isdir(joinpath(depdir, "usr"))
+    mkdir(joinpath(depdir, "usr"))
+end
+prefix = joinpath(depdir, "usr")
 
-provides(Sources,
-         URI("https://github.com/elemental/Elemental/archive/$ELEMENTAL_VERSION.tar.gz"),
-         libEl,
-         unpacked_dir="Elemental-$ELEMENTAL_VERSION")
+if !isdir(srcdir)
+    Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
+end
 
-srcdir = joinpath(BinDeps.depsdir(libEl), "src", "Elemental-$ELEMENTAL_VERSION")
+cd(srcdir) do
+    Git.run(`submodule init external/metis`)
+    Git.run(`submodule update external/metis`)
+    Git.run(`submodule init external/kiss_fft`)
+    Git.run(`submodule update external/kiss_fft`)
+end
 
-provides(SimpleBuild,
-    (@build_steps begin
-        GetSources(libEl)
-        @build_steps begin
-            ChangeDirectory(srcdir)
-        end
-    end),
-    libEl, os=:Unix
-)
+Base.check_blas()
+blas = Base.blas_vendor()
 
-@BinDeps.install Dict(:libEl => :libEl)
+cd(srcdir) do
+    builddir = joinpath(depdir, "builds")
+    if isdir(builddir)
+        rm(builddir, recursive=true)
+    end
+    mkdir(builddir)
+
+    mathlib = Libdl.dlpath(BLAS.libblas)
+    blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
+
+    if blas === :openblas || blas === :openblas64
+        blas_suffix = blas === :openblas64 ?  "_64_" : ""
+    else
+        error("Only building Elemental with OpenBLAS is supported at the moment")
+    end
+
+    cd(builddir) do
+        run(`cmake -D CMAKE_INSTALL_PREFIX=$prefix
+                   -D INSTALL_PYTHON_PACKAGE=OFF
+                   -D PYTHON_EXECUTABLE=“”
+                   -D PYTHON_SITE_PACKAGES=“”
+                   -D EL_USE_64BIT_INTS=$blas64
+                   -D MATH_LIBS=$mathlib
+                   -D EL_BLAS_SUFFIX=$blas_suffix
+                   -D EL_LAPACK_SUFFIX=$blas_suffix
+                   $srcdir`)
+        run(`make -j $CPU_CORES`)
+        run(`make install`)
+    end
+end
