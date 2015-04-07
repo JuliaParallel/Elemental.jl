@@ -12,7 +12,7 @@ if !isdir(joinpath(depdir, "usr"))
 end
 prefix = joinpath(depdir, "usr")
 
-if !isdir(srcdir)
+if !isdir(joinpath(srcdir, "Elemental"))
     Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
 end
 

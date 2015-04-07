@@ -1,9 +1,10 @@
 module Elemental
 
 using MPI
+
 import Base: size
 
-const libEl = "/Users/andreasnoack/Elemental/build/libEl"
+include("../deps/deps.jl")
 
 # Detech MPI_Comm type
 # commSameSizeAsInteger = Cint[0]
@@ -11,7 +12,7 @@ const libEl = "/Users/andreasnoack/Elemental/build/libEl"
 # if commSameSizeAsInteger[1] == 1
 #     const MPI_COMM_WORLD = Ref{Cint}(0)
 #     err = ccall((:ElMPICommWorld, libEl), Cuint, (Ptr{Cint},), MPI_COMM_WORLD)
-# else 
+# else
 #     const MPI_COMM_WORLD = Ptr{Void}(0)
 #     err = ccall((:ElMPICommWorld, libEl), Cuint, (Ptr{Void},), MPI_COMM_WORLD)
 # end
@@ -22,7 +23,7 @@ err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
 const ElInt = using64[1] == 1 ? Int64 : Int32
 
 # function Init()
-#     err = ccall((:ElInitialize, libEl), Cint, 
+#     err = ccall((:ElInitialize, libEl), Cint,
 #         (Ptr{Cint}, Ptr{Ptr{Void}}),
 #         &0, &C_NULL)
 # end
@@ -46,13 +47,13 @@ type DistSparseMatrix{T} <: AbstractMatrix{T}
 end
 
 for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d), 
+                    (:Float64, :d),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
         function DistSparseMatrix(::Type{$elty}, comm = MPI.COMM_WORLD)
             obj = Ref{Ptr{Void}}(C_NULL)
-            err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, Cint),
                 obj, comm.val)
             err == 0 || error("something is wrong here!")
@@ -75,7 +76,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function resize{$elty}(A::DistSparseMatrix{$elty}, height::Integer, width::Integer)
             err = ccall(($(string("ElDistSparseMatrixResize_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt), 
+                (Ptr{Void}, ElInt, ElInt),
                 A.obj, height, width)
             err == 0 || error("something is wrong here!")
             return A
@@ -84,7 +85,7 @@ for (elty, ext) in ((:Float32, :s),
         function localHeight{$elty}(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixLocalHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}), 
+                (Ptr{Void}, Ref{ElInt}),
                 A.obj, i)
             err == 0 || error("something is wrong here!")
             return i[]
@@ -92,7 +93,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function reserve{$elty}(A::DistSparseMatrix{$elty}, numEntries::Integer)
             err = ccall(($(string("ElDistSparseMatrixReserve_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt), 
+                (Ptr{Void}, ElInt),
                 A.obj, numEntries)
             err == 0 || error("something is wrong here!")
             return nothing
@@ -101,7 +102,7 @@ for (elty, ext) in ((:Float32, :s),
         function globalRow{$elty}(A::DistSparseMatrix{$elty}, iLoc::Integer)
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, Ref{ElInt}), 
+                (Ptr{Void}, ElInt, Ref{ElInt}),
                 A.obj, iLoc, i)
             err == 0 || error("something is wrong here!")
             return i[]
@@ -109,7 +110,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function queueLocalUpdate{$elty}(A::DistSparseMatrix{$elty}, localRow::Integer, col::Integer, value::$elty)
             err = ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, $elty), 
+                (Ptr{Void}, ElInt, ElInt, $elty),
                 A.obj, localRow, col, value)
             err == 0 || error("something is wrong here!")
             return nothing
@@ -117,7 +118,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function makeConsistent{$elty}(A::DistSparseMatrix{$elty})
             err = ccall(($(string("ElDistSparseMatrixMakeConsistent_", ext)), libEl), Cuint,
-                (Ptr{Void},), 
+                (Ptr{Void},),
                 A.obj)
             err == 0 || error("something is wrong here!")
             return nothing
@@ -126,7 +127,7 @@ for (elty, ext) in ((:Float32, :s),
         function height{$elty}(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}), 
+                (Ptr{Void}, Ref{ElInt}),
                 A.obj, i)
             err == 0 || error("something is wrong here!")
             return i[]
@@ -135,7 +136,7 @@ for (elty, ext) in ((:Float32, :s),
         function width{$elty}(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixWidth_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}), 
+                (Ptr{Void}, Ref{ElInt}),
                 A.obj, i)
             err == 0 || error("something is wrong here!")
             return i[]
@@ -145,7 +146,7 @@ for (elty, ext) in ((:Float32, :s),
             cm = MPI.COMM_WORLD
             rcm = Ref{Cint}(cm.val)
             err = ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{Cint}), 
+                (Ptr{Void}, Ref{Cint}),
                 A.obj, rcm)
             err == 0 || error("something is wrong here!")
             return cm
@@ -169,13 +170,13 @@ type DistMultiVec{T} <: AbstractVector{T}
 end
 
 for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d), 
+                    (:Float64, :d),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
         function DistMultiVec(::Type{$elty}, comm = MPI.COMM_WORLD)
             obj = Ref{Ptr{Void}}(C_NULL)
-            err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, Cint),
                 obj, comm.val)
             err == 0 || error("something is wrong here!")
@@ -184,7 +185,7 @@ for (elty, ext) in ((:Float32, :s),
 
         # function DistMultiVec(::Type{$elty}, m::Integer, n::Integer, comm = MPI.COMM_WORLD)
         #     obj = Ref{Ptr{Void}}(C_NULL)
-        #     err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint, 
+        #     err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
         #         (Ref{Ptr{Void}}, Cint),
         #         obj, comm.val)
         #     return DistMultiVec{$elty}(obj[])
@@ -196,13 +197,13 @@ size(x::DistMultiVec) = (5,)
 
 # matrices.h
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
-                           (:Float64, :Float64, :d), 
+                           (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
     @eval begin
         function gaussian(A::DistMultiVec{$elty}, m::Integer, n::Integer, mean::$elty = zero($elty), stddev::$relty = one($relty))
             err = ccall(($(string("ElGaussianDistMultiVec_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, $elty, $relty), 
+                (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                 A.obj, m, n, mean, stddev)
             err == 0 || error("something is wrong here!")
             return nothing
@@ -212,7 +213,7 @@ end
 
 # blas_like/
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
-                           (:Float64, :Float64, :d), 
+                           (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
     @eval begin
@@ -241,14 +242,14 @@ immutable RegQSDCtrl{T}
 end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
-    @eval begin 
+    @eval begin
         function RegQSDCtrl(::Type{$elty})
             obj = RegQSDCtrl{$elty}(0, 0, 0, 0, 0, 0, 0, 0)
-            err = ccall(($(string("ElRegQSDCtrlDefault_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElRegQSDCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{RegQSDCtrl{$elty}},),
                 &obj)
             err == 0 || error("something is wrong here!")
-            return obj 
+            return obj
         end
     end
 end
@@ -266,11 +267,11 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
         function IPFLineSearchCtrl(::Type{$elty})
             obj = IPFLineSearchCtrl{$elty}(0, 0, 0, 0, 0)
-            err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{IPFLineSearchCtrl{$elty}},),
                  &obj)
             err == 0 || error("something is wrong here!")
-            return obj 
+            return obj
         end
     end
 end
@@ -292,11 +293,11 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
         function LPAffineIPFCtrl(::Type{$elty})
             obj = LPAffineIPFCtrl{$elty}(0, 0, 0, 0, 0, RegQSDCtrl($elty), IPFLineSearchCtrl($elty), 0, 0, 0)
-            err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineIPFCtrl{$elty}},),
                  &obj)
             err == 0 || error("something is wrong here!")
-            return obj 
+            return obj
         end
     end
 end
@@ -320,7 +321,7 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
         function LPAffineMehrotraCtrl(::Type{$elty})
             obj = LPAffineMehrotraCtrl{$elty}(0, 0, 0, 0, 0, RegQSDCtrl($elty), 0, 0, 0, 0, 0, 0)
-            err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineMehrotraCtrl{$elty}},),
                 &obj)
             err == 0 || error("something is wrong here!")
@@ -341,7 +342,7 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
         function LPAffineCtrl(::Type{$elty})
             obj = LPAffineCtrl{$elty}(0, LPAffineIPFCtrl($elty), LPAffineMehrotraCtrl($elty))
-            err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineCtrl{$elty}},),
                 &obj)
             err == 0 || error("something is wrong here!")
@@ -362,14 +363,14 @@ end
 #     progress::Cint
 # end
 # for (elty, ext) in ((:Float64, :d),)
-#     @eval begin 
+#     @eval begin
 #         function RegQSDCtrl(::Type{$elty})
 #             obj = RegQSDCtrl64(0, 0, 0, 0, 0, 0, 0, 0)
 #             oref = Ref{RegQSDCtrl64}(obj)
-#             err = ccall(($(string("ElRegQSDCtrlDefault_", ext)), libEl), Cuint, 
+#             err = ccall(($(string("ElRegQSDCtrlDefault_", ext)), libEl), Cuint,
 #                 (Ref{RegQSDCtrl64},),
 #                 oref)
-#             return oref[] 
+#             return oref[]
 #         end
 #     end
 # end
@@ -387,10 +388,10 @@ end
 #         function IPFLineSearchCtrl(::Type{$elty})
 #             obj = IPFLineSearchCtrl64(0, 0, 0, 0, 0)
 #             oref = Ref{IPFLineSearchCtrl64}(obj)
-#             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint, 
+#             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint,
 #                 (Ref{IPFLineSearchCtrl64},),
 #                  oref)
-#             return oref[] 
+#             return oref[]
 #         end
 #     end
 # end
@@ -412,7 +413,7 @@ end
 #         function LPAffineIPFCtrl(::Type{$elty})
 #             obj = LPAffineIPFCtrl64(0, 0, 0, 0, 0, RegQSDCtrl($elty), IPFLineSearchCtrl($elty), 0, 0, 0)
 #             oref = Ref{LPAffineIPFCtrl64}(obj)
-#             err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint, 
+#             err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint,
 #                 (Ref{LPAffineIPFCtrl64},),
 #                  oref)
 #             return oref[]
@@ -439,7 +440,7 @@ end
 #         function LPAffineMehrotraCtrl(::Type{$elty})
 #             obj = LPAffineMehrotraCtrl64(0, 0, 0, 0, 0, RegQSDCtrl($elty), 0, 0, 0, 0, 0, 0)
 #             oref = Ref{LPAffineMehrotraCtrl64}(obj)
-#             err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint, 
+#             err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint,
 #                 (Ref{LPAffineMehrotraCtrl64},),
 #                 oref)
 #             return oref[]
@@ -459,7 +460,7 @@ end
 #         function LPAffineCtrl(::Type{$elty})
 #             obj = LPAffineCtrl64(0, LPAffineIPFCtrl($elty), LPAffineMehrotraCtrl($elty))
 #             oref = Ref{LPAffineCtrl64}(obj)
-#             err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint, 
+#             err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint,
 #                 (Ref{LPAffineCtrl64},),
 #                 oref)
 #             return oref[]
@@ -474,7 +475,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function lav(A::DistSparseMatrix{$elty}, b::DistMultiVec{$elty})
             @show x = DistMultiVec($elty, comm(A))
-            err = ccall(($(string("ElLAVDistSparse_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElLAVDistSparse_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ptr{Void}, Ptr{Void}),
                 A.obj, b.obj, x.obj)
             err == 0 || error("something is wrong here!")
@@ -483,7 +484,7 @@ for (elty, ext) in ((:Float32, :s),
 
         function lav(A::DistSparseMatrix{$elty}, b::DistMultiVec{$elty}, ctrl::LPAffineCtrl{$elty})
             x = DistMultiVec($elty, comm(A))
-            err = ccall(($(string("ElLAVXDistSparse_", ext)), libEl), Cuint, 
+            err = ccall(($(string("ElLAVXDistSparse_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{LPAffineCtrl{$elty}}),
                 A.obj, b.obj, x.obj, &ctrl)
             err == 0 || error("something is wrong here!")
