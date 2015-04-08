@@ -1,5 +1,9 @@
 const Git = Base.Git
 
+@windows_only begin
+    error("Elemental only works on Unix Platforms")
+end
+
 depdir = dirname(@__FILE__)
 
 if !isdir(joinpath(depdir, "src"))
