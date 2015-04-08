@@ -39,12 +39,7 @@ cd(srcdir) do
 
     mathlib = Libdl.dlpath(BLAS.libblas)
     blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
-
-    if blas === :openblas || blas === :openblas64
-        blas_suffix = blas === :openblas64 ?  "_64_" : ""
-    else
-        error("Only building Elemental with OpenBLAS is supported at the moment")
-    end
+    blas_suffix = blas === :openblas64 ? "_64_" : ""
 
     cd(builddir) do
         run(`cmake -D CMAKE_INSTALL_PREFIX=$prefix
