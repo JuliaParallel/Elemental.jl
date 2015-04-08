@@ -15,8 +15,7 @@ const ElInt = ElIntType()
 
 function Init()
     err = ccall((:ElInitialize, libEl), Cint,
-        (Ptr{Cint}, Ptr{Ptr{Void}}),
-        &0, &C_NULL)
+        (Ref{Cint}, Ref{Ptr{Void}}), Ref(zero(Cint)), Ref(C_NULL))
     err == 0 || error("something is wrong here!")
     return nothing
 end
