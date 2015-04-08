@@ -6,7 +6,7 @@ import Base: A_mul_B!, copy, copy!, similar, size
 include("../deps/deps.jl")
 
 # Detect Elemental integer size
-function ELIntType()
+function ElIntType()
     using64 = Cint[0]
     err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
     return using64[1] == 1 ? Int64 : Int32
