@@ -6,12 +6,15 @@ import Base: A_mul_B!, copy, copy!, similar, size
 include("../deps/deps.jl")
 
 # Detect Elemental integer size
-using64 = Cint[0]
-err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
-const ElInt = using64[1] == 1 ? Int64 : Int32
+function ELIntType()
+    using64 = Cint[0]
+    err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
+    return using64[1] == 1 ? Int64 : Int32
+end
+const ElInt = ElIntType()
 
 function Init()
-    err = ccall((:ElInitialize, libEl), Cint, 
+    err = ccall((:ElInitialize, libEl), Cint,
         (Ptr{Cint}, Ptr{Ptr{Void}}),
         &0, &C_NULL)
     err == 0 || error("something is wrong here!")
@@ -26,9 +29,7 @@ function Initialized()
 end
 
 function Finalize()
-    err = ccall((:ElFinalize, libEl), Cint, 
-        (),
-        )
+    err = ccall((:ElFinalize, libEl), Cint, ())
     err == 0 || error("something is wrong here!")
     return nothing
 end
