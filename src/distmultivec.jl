@@ -24,14 +24,14 @@ for (elty, ext) in ((:Float32, :s),
         #     return DistMultiVec{$elty}(obj[])
         # end
         function height(x::DistMultiVec{$elty})
-            i = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint, 
+            i = Ref{ElInt}(zero($elty))
+            err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{Cint}),
                 x.obj, i)
             err == 0 || error("something is wrong here!")
             return i[]
         end
-        
+
 
     end
 end
