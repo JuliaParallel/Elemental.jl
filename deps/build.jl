@@ -52,6 +52,7 @@ cd(srcdir) do
                    -D PYTHON_EXECUTABLE=“”
                    -D PYTHON_SITE_PACKAGES=“”
                    -D EL_USE_64BIT_INTS=$blas64
+                   -D EL_USE_64BIT_BLAS_INTS=$blas64
                    -D MATH_LIBS=$mathlib
                    -D EL_BLAS_SUFFIX=$blas_suffix
                    -D EL_LAPACK_SUFFIX=$blas_suffix
