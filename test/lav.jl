@@ -58,12 +58,12 @@ function stackedFD2D(n0, n1)
     end
     return A
 end
+
 A = stackedFD2D(n0, n1)
-@show size(A)
 
 b = El.DistMultiVec(Float64)
 
-El.gaussian(b, 2*n0*n1, 1)
+El.gaussian!(b, 2*n0*n1, 1)
 
 # if display
     # show(IO, A)

@@ -38,11 +38,17 @@ function __init__()
     Init()
 end
 
+abstract ElementalMatrix{T} <: AbstractMatrix{T}
+
 include("types.jl")
+include("grid.jl")
+include("sparsematrix.jl")
+include("distmatrix.jl")
 include("distsparsematrix.jl")
 include("distmultivec.jl")
 include("matrices.jl")
 include("blas_like/level1.jl")
+include("blas_like/level2.jl")
 include("blas_like/level3.jl")
 include("lapack_like/eucledian_min.jl")
 include("lapack_like/factor.jl")

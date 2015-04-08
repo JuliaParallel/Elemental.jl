@@ -1,4 +1,4 @@
-type DistMultiVec{T} <: AbstractVector{T}
+type DistMultiVec{T} <: ElementalMatrix{T}
     obj::Ptr{Void}
 end
 

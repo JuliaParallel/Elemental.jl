@@ -1,4 +1,4 @@
-type DistSparseMatrix{T} <: AbstractMatrix{T}
+type DistSparseMatrix{T} <: ElementalMatrix{T}
     obj::Ptr{Void}
 end
 
