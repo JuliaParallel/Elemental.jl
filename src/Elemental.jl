@@ -21,10 +21,10 @@ function Init()
 end
 
 function Initialized()
-    active = Cint[0]
-    err = ccall((:ElInitialized, libEl), Cuint, (Ptr{Cint},), active)
+    active = Ref(zero(Cint))
+    err = ccall((:ElInitialized, libEl), Cuint, (Ref{Cint},), active)
     err == 0 || error("something is wrong here!")
-    return active[1] == 1
+    return active[] == 1
 end
 
 function Finalize()
