@@ -44,8 +44,8 @@ cd(srcdir) do
     cd(builddir) do
         run(`cmake -D CMAKE_INSTALL_PREFIX=$prefix
                    -D INSTALL_PYTHON_PACKAGE=OFF
-                   -D PYTHON_EXECUTABLE=“”
-                   -D PYTHON_SITE_PACKAGES=“”
+                   -D PYTHON_EXECUTABLE=""
+                   -D PYTHON_SITE_PACKAGES=""
                    -D EL_USE_64BIT_INTS=$blas64
                    -D EL_USE_64BIT_BLAS_INTS=$blas64
                    -D MATH_LIBS=$mathlib
