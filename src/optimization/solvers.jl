@@ -1,3 +1,9 @@
+const EL_LP_ADMM = Cuint(0)
+const EL_LP_IPF = Cuint(1)
+const EL_LP_IPF_SELFDUAL = Cuint(2)
+const EL_LP_MEHROTRA = Cuint(3)
+const EL_LP_MEHROTRA_SELFDUAL = Cuint(4)
+
 immutable IPFLineSearchCtrl{T}
     gamma::T
     beta::T
@@ -8,8 +14,13 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
     @eval begin
-        function IPFLineSearchCtrl(::Type{$elty})
-            obj = IPFLineSearchCtrl{$elty}(0, 0, 0, 0, 0)
+        function IPFLineSearchCtrl(::Type{$elty};
+                                   gamma=1e-3,
+                                   beta=2,
+                                   psi=100,
+                                   stepRatio=1.5,
+                                   progress::Bool=false)
+            obj = IPFLineSearchCtrl{$elty}(gamma, beta, psi, stepRatio, progress)
             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{IPFLineSearchCtrl{$elty}},),
                  &obj)
@@ -34,8 +45,19 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
     @eval begin
-        function LPAffineIPFCtrl(::Type{$elty})
-            obj = LPAffineIPFCtrl{$elty}(0, 0, 0, 0, 0, RegQSDCtrl($elty), IPFLineSearchCtrl($elty), 0, 0, 0)
+        function LPAffineIPFCtrl(::Type{$elty};
+                                 primalInit::Bool=false,
+                                 dualInit::Bool=false,
+                                 tol=1e-8,
+                                 maxIts=1000,
+                                 centering=0.9,
+                                 qsdCtrl::RegQSDCtrl=RegQSDCtrl($elty),
+                                 lineSearchCtrl::IPFLineSearchCtrl=IPFLineSearchCtrl($elty),
+                                 equilibrate::Bool=false,
+                                 progress::Bool=false,
+                                 time::Bool=false)
+            obj = LPAffineIPFCtrl{$elty}(primalInit, dualInit, tol, maxIts, centering,
+                                         qsdCtrl, lineSearchCtrl, equilibrate, progress, time)
             err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineIPFCtrl{$elty}},),
                  &obj)
@@ -62,8 +84,22 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
     @eval begin
-        function LPAffineMehrotraCtrl(::Type{$elty})
-            obj = LPAffineMehrotraCtrl{$elty}(0, 0, 0, 0, 0, RegQSDCtrl($elty), 0, 0, 0, 0, 0, 0)
+        function LPAffineMehrotraCtrl(::Type{$elty};
+                                      primalInit::Bool=false,
+                                      dualInit::Bool=false,
+                                      tol=1e-8,
+                                      maxIts=100,
+                                      maxStepRatio=0.99,
+                                      qsdCtrl::RegQSDCtrl=RegQSDCtrl($elty),
+                                      outerEquil::Bool=true,
+                                      innerEquil::Bool=true,
+                                      scaleTwoNorm::Bool=true,
+                                      basisSize=15,
+                                      progress::Bool=false,
+                                      time::Bool=false)
+            obj = LPAffineMehrotraCtrl{$elty}(primalInit, dualInit, tol, maxIts, maxStepRatio,
+                                              qsdCtrl, outerEquil, innerEquil, scaleTwoNorm,
+                                              basisSize, progress, time)
             err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineMehrotraCtrl{$elty}},),
                 &obj)
@@ -82,8 +118,11 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
     @eval begin
-        function LPAffineCtrl(::Type{$elty})
-            obj = LPAffineCtrl{$elty}(0, LPAffineIPFCtrl($elty), LPAffineMehrotraCtrl($elty))
+        function LPAffineCtrl(::Type{$elty};
+                              approach::Cuint=EL_LP_MEHROTRA,
+                              ipfCtrl::LPAffineCtrl=LPAffineCtrl($elty),
+                              mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl($elty))
+            obj = LPAffineCtrl{$elty}(approach, ipfCtrl, mehrotraCtrl)
             err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint,
                 (Ptr{LPAffineCtrl{$elty}},),
                 &obj)

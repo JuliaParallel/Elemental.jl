@@ -68,18 +68,17 @@ El.gaussian!(b, 2*n0*n1, 1)
 # if display
     # show(IO, A)
 # end
-# ctrl = El.LPAffineCtrl(Float64)
-# unsafe_store!(convert(Ptr{Cint}, pointer_from_objref(ctrl.mehrotraCtrl.qsdCtrl.progress)), true, 1)
-# unsafe_store!(convert(Ptr{Cint}, pointer_from_objref(ctrl.mehrotraCtrl.progress)), true, 1)
-# unsafe_store!(convert(Ptr{Cint}, pointer_from_objref(ctrl.mehrotraCtrl.outerEquil)), true, 1)
-# unsafe_store!(convert(Ptr{Cint}, pointer_from_objref(ctrl.mehrotraCtrl.time)), true, 1)
-# ctrl.mehrotraCtrl.progress = true
-# ctrl.mehrotraCtrl.outerEquil = true
-# ctrl.mehrotraCtrl.time = true
-gc()
+ctrl = El.LPAffineCtrl(Float64)
+#=
+            mehrotraCtrl=El.LPAffineMehrotraCtrl(Float64,
+                            qsdCtrl=El.RegQSDCtrl(Float64,progress=true),
+                            progress=true,
+                            outerEquil=true,
+                            time=true))
+=#
+#elapsedLAV = @elapsed x = El.lav(A, b)
+elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
-elapsedLAV = @elapsed x = El.lav(A, b)
-# x = El.lav(A, b, ctrl)
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     println("LAV time: $elapsedLAV seconds")
 end
