@@ -29,16 +29,15 @@ end
 
 Base.check_blas()
 blas = Base.blas_vendor()
+mathlib = Libdl.dlpath(BLAS.libblas)
+blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
+blas_suffix = blas === :openblas64 ? "_64_" : ""
 
 builddir = joinpath(depdir, "builds")
 if isdir(builddir)
     rm(builddir, recursive=true)
 end
 mkdir(builddir)
-
-mathlib = Libdl.dlpath(BLAS.libblas)
-blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
-blas_suffix = blas === :openblas64 ? "_64_" : ""
 
 cd(builddir) do
     run(`cmake -D CMAKE_INSTALL_PREFIX=$prefix
