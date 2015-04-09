@@ -3,8 +3,6 @@ const EL_REG_REFINE_LGMRES = Cuint(1)
 const EL_REG_REFINE_IR = Cuint(2)
 const EL_REG_REFINE_IR_MOD = Cuint(3)
 
-typealias ElFloatType Union(Float64,Float32)
-
 immutable RegQSDCtrl{T<:ElFloatType}
     regPrimal::T
     regDual::T
