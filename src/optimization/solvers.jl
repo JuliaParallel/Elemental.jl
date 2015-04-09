@@ -9,7 +9,7 @@ immutable IPFLineSearchCtrl{T<:ElFloatType}
     beta::T
     psi::T
     stepRatio::T
-    progress::Cint
+    progress::Uint8
 end
 function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
                            gamma=1e-3,
@@ -21,16 +21,16 @@ function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
 end
 
 immutable LPAffineIPFCtrl{T<:ElFloatType}
-    primalInit::Cint
-    dualInit::Cint
+    primalInit::Uint8
+    dualInit::Uint8
     tol::T
     maxIts::Cint
     centering::T
     qsdCtrl::RegQSDCtrl{T}
     lineSearchCtrl::IPFLineSearchCtrl{T}
-    equilibrate::Cint
-    progress::Cint
-    time::Cint
+    equilibrate::Uint8
+    progress::Uint8
+    time::Uint8
 end
 function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
                          primalInit::Bool=false,
@@ -49,18 +49,18 @@ function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
 end
 
 immutable LPAffineMehrotraCtrl{T<:ElFloatType}
-    primalInit::Cint
-    dualInit::Cint
+    primalInit::Uint8
+    dualInit::Uint8
     tol::T
     maxIts::Cint
     maxStepRatio::T
     qsdCtrl::RegQSDCtrl{T}
-    outerEquil::Cint
-    innerEquil::Cint
-    scaleTwoNorm::Cint
+    outerEquil::Uint8
+    innerEquil::Uint8
+    scaleTwoNorm::Uint8
     basisSize::Cint
-    progress::Cint
-    time::Cint
+    progress::Uint8
+    time::Uint8
 end
 function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               primalInit::Bool=false,
@@ -81,13 +81,13 @@ function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                             basisSize, progress, time)
 end
 
-immutable LPAffineCtrl{T}
+immutable LPAffineCtrl{T<:ElFloatType}
     approach::Cuint
     ipfCtrl::LPAffineIPFCtrl{T}
     mehrotraCtrl::LPAffineMehrotraCtrl{T}
 end
 function LPAffineCtrl{T<:ElFloatType}(::Type{T};
-                      approach::Cuint=EL_LP_MEHROTRA,
+                      approach::Cuint=Cuint(4), # EL_LP_MEHROTRA,
                       ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl(T),
                       mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl(T))
     LPAffineCtrl{T}(approach, ipfCtrl, mehrotraCtrl)
