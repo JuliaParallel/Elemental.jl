@@ -19,11 +19,10 @@ for (elty, ext) in ((:Float32, :s),
                                    beta=2,
                                    psi=100,
                                    stepRatio=1.5,
-                                   progress::Bool=false)
+                                   progress=false)
             obj = IPFLineSearchCtrl{$elty}(gamma, beta, psi, stepRatio, progress)
             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint,
-                (Ptr{IPFLineSearchCtrl{$elty}},),
-                 &obj)
+                (Ref{IPFLineSearchCtrl{$elty}},), Ref(obj))
             err == 0 || error("something is wrong here!")
             return obj
         end
