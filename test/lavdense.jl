@@ -9,14 +9,14 @@ display = true
 worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
 
 function rectang(height::Integer, width::Integer)
-    A = Elemental.DistMatrix()
-    Elemental.uniform!(A, height, width)
+    A = El.DistMatrix()
+    El.uniform!(A, height, width)
     return A
 end
 
 A = rectang(m, n)
-b = Elemental.DistMatrix()
-Elemental.gaussian!(b, m, 1)
+b = El.DistMatrix()
+El.gaussian!(b, m, 1)
 
 # if display
     # Elemental.Display(A, "A")
@@ -27,7 +27,7 @@ Elemental.gaussian!(b, m, 1)
 # ctrl.mehrotraCtrl.progress = True
 
 # timeLAV = @elapsed x = Elemental.lav(A, b, ctrl)
-timeLAV = @elapsed x = Elemental.lav(A, b)
+timeLAV = @elapsed x = El.lav(A, b)
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     println("LAV time: $timeLAV seconds")
 end
@@ -35,8 +35,8 @@ end
 # if display
     # Elemental.Display( x, "x" )
 
-bTwoNorm = Elemental.nrm2(b)
-bInfNorm = Elemental.maxNorm(b)
+bTwoNorm = El.nrm2(b)
+bInfNorm = El.maxNorm(b)
 
 r = copy(b)
 A_mul_B!(-1.0, A, x, 1., r)
@@ -45,8 +45,8 @@ A_mul_B!(-1.0, A, x, 1., r)
     # Elemental.Display(r, "r")
 # end
 
-rTwoNorm = Elemental.nrm2(r)
-rOneNorm = Elemental.entrywiseNorm(r, 1.0)
+rTwoNorm = El.nrm2(r)
+rOneNorm = El.entrywiseNorm(r, 1.0)
 if worldRank == 0
     println("|| b ||_2       = $bTwoNorm")
     println("|| b ||_oo      = $bInfNorm")
@@ -54,23 +54,23 @@ if worldRank == 0
     println("|| A x - b ||_1 = $rOneNorm")
 end
 
-timeLS = @elapsed xLS = Elemental.leastSquares(A, b)
+timeLS = @elapsed xLS = El.leastSquares(A, b)
 
 if worldRank == 0
     println("LS time: $timeLS seconds")
 end
 # if display
-    # Elemental.Display(xLS, "x_{LS}")
+    # El.Display(xLS, "x_{LS}")
 # end
 
 rLS = copy(b)
 A_mul_B!(-1.0, A, xLS, 1.0, rLS)
 
 # if display:
-    # Elemental.Display(rLS, "A x_{LS} - b")
+    # El.Display(rLS, "A x_{LS} - b")
 # end
-rLSTwoNorm = Elemental.nrm2(rLS)
-rLSOneNorm = Elemental.entrywiseNorm(rLS, 1.0)
+rLSTwoNorm = El.nrm2(rLS)
+rLSOneNorm = El.entrywiseNorm(rLS, 1.0)
 if worldRank == 0
     println("|| A x_{LS} - b ||_2 = $rLSTwoNorm")
     println("|| A x_{LS} - b ||_1 = $rLSOneNorm")
@@ -78,6 +78,6 @@ end
 
 # Require the user to press a button before the figures are closed
 # commSize = El.mpi.Size( El.mpi.COMM_WORLD() )
-Elemental.Finalize()
+El.Finalize()
 # if commSize == 1:
 #   raw_input('Press Enter to exit')
