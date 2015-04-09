@@ -19,12 +19,12 @@ for (elty, ext) in ((:Float32, :s),
                                    beta=2,
                                    psi=100,
                                    stepRatio=1.5,
-                                   progress=false)
-            obj = IPFLineSearchCtrl{$elty}(gamma, beta, psi, stepRatio, progress)
+                                   progress::Bool=false)
+            obj = Ref(IPFLineSearchCtrl{$elty}(gamma, beta, psi, stepRatio, progress))
             err = ccall(($(string("ElIPFLineSearchCtrlDefault_", ext)), libEl), Cuint,
-                (Ref{IPFLineSearchCtrl{$elty}},), Ref(obj))
+                        (Ref{IPFLineSearchCtrl{$elty}},), obj)
             err == 0 || error("something is wrong here!")
-            return obj
+            return obj[]
         end
     end
 end
@@ -55,13 +55,13 @@ for (elty, ext) in ((:Float32, :s),
                                  equilibrate::Bool=false,
                                  progress::Bool=false,
                                  time::Bool=false)
-            obj = LPAffineIPFCtrl{$elty}(primalInit, dualInit, tol, maxIts, centering,
-                                         qsdCtrl, lineSearchCtrl, equilibrate, progress, time)
+            obj = Ref(LPAffineIPFCtrl{$elty}(primalInit, dualInit, tol, maxIts,
+                                             centering, qsdCtrl, lineSearchCtrl,
+                                             equilibrate, progress, time))
             err = ccall(($(string("ElLPAffineIPFCtrlDefault_", ext)), libEl), Cuint,
-                (Ptr{LPAffineIPFCtrl{$elty}},),
-                 &obj)
+                        (Ref{LPAffineIPFCtrl{$elty}},), obj)
             err == 0 || error("something is wrong here!")
-            return obj
+            return obj[]
         end
     end
 end
@@ -96,14 +96,13 @@ for (elty, ext) in ((:Float32, :s),
                                       basisSize=15,
                                       progress::Bool=false,
                                       time::Bool=false)
-            obj = LPAffineMehrotraCtrl{$elty}(primalInit, dualInit, tol, maxIts, maxStepRatio,
-                                              qsdCtrl, outerEquil, innerEquil, scaleTwoNorm,
-                                              basisSize, progress, time)
+            obj = Ref(LPAffineMehrotraCtrl{$elty}(primalInit, dualInit, tol, maxIts, maxStepRatio,
+                                                  qsdCtrl, outerEquil, innerEquil, scaleTwoNorm,
+                                                  basisSize, progress, time))
             err = ccall(($(string("ElLPAffineMehrotraCtrlDefault_", ext)), libEl), Cuint,
-                (Ptr{LPAffineMehrotraCtrl{$elty}},),
-                &obj)
+                        (Ref{LPAffineMehrotraCtrl{$elty}},), obj)
             err == 0 || error("something is wrong here!")
-            return obj
+            return obj[]
         end
     end
 end
@@ -119,14 +118,13 @@ for (elty, ext) in ((:Float32, :s),
     @eval begin
         function LPAffineCtrl(::Type{$elty};
                               approach::Cuint=EL_LP_MEHROTRA,
-                              ipfCtrl::LPAffineCtrl=LPAffineCtrl($elty),
+                              ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl($elty),
                               mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl($elty))
-            obj = LPAffineCtrl{$elty}(approach, ipfCtrl, mehrotraCtrl)
+            obj = Ref(LPAffineCtrl{$elty}(approach, ipfCtrl, mehrotraCtrl))
             err = ccall(($(string("ElLPAffineCtrlDefault_", ext)), libEl), Cuint,
-                (Ptr{LPAffineCtrl{$elty}},),
-                &obj)
+                        (Ref{LPAffineCtrl{$elty}},), obj)
             err == 0 || error("something is wrong here!")
-            return obj
+            return obj[]
         end
     end
 end
