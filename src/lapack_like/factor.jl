@@ -15,21 +15,17 @@ immutable RegQSDCtrl{T<:ElFloatType}
     restart::Cint
     progress::Cint
 end
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d))
-    @eval begin
-        function RegQSDCtrl(::Type{$elty};
-                            regPrimal=eps($elty)^convert($elty, 0.5),
-                            regDual=eps($elty)^convert($elty, 0.5),
-                            alg=EL_REG_REFINE_FGMRES,
-                            relTol=eps($elty)^convert($elty, 0.5),
-                            relTolRefine=eps($elty)^convert($elty, 0.5),
-                            maxRefineIts=50,
-                            restart=10,
-                            progress::Bool=false)
-            return RegQSDCtrl{$elty}(regPrimal, regDual, alg,
-                                     relTol, relTolRefine, maxRefineIts,
-                                     restart, progress)
-        end
-    end
+function RegQSDCtrl{T<:ElFloatType}(::Type{T};
+                    regPrimal=eps(T)^convert(T, 0.5),
+                    regDual=eps(T)^convert(T, 0.5),
+                    alg=EL_REG_REFINE_FGMRES,
+                    relTol=eps(T)^convert(T, 0.5),
+                    relTolRefine=eps(T)^convert(T, 0.5),
+                    maxRefineIts=50,
+                    restart=10,
+                    progress::Bool=false)
+    RegQSDCtrl{T}(regPrimal, regDual, alg,
+                  relTol, relTolRefine,
+                  maxRefineIts, restart,
+                  progress)
 end

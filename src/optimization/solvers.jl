@@ -4,28 +4,23 @@ const EL_LP_IPF_SELFDUAL = Cuint(2)
 const EL_LP_MEHROTRA = Cuint(3)
 const EL_LP_MEHROTRA_SELFDUAL = Cuint(4)
 
-immutable IPFLineSearchCtrl{T}
+immutable IPFLineSearchCtrl{T<:ElFloatType}
     gamma::T
     beta::T
     psi::T
     stepRatio::T
     progress::Cint
 end
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d))
-    @eval begin
-        function IPFLineSearchCtrl(::Type{$elty};
-                                   gamma=1e-3,
-                                   beta=2,
-                                   psi=100,
-                                   stepRatio=1.5,
-                                   progress::Bool=false)
-            return IPFLineSearchCtrl{$elty}(gamma, beta, psi, stepRatio, progress)
-        end
-    end
+function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
+                           gamma=1e-3,
+                           beta=2,
+                           psi=100,
+                           stepRatio=1.5,
+                           progress::Bool=false)
+    IPFLineSearchCtrl{T}(gamma, beta, psi, stepRatio, progress)
 end
 
-immutable LPAffineIPFCtrl{T}
+immutable LPAffineIPFCtrl{T<:ElFloatType}
     primalInit::Cint
     dualInit::Cint
     tol::T
@@ -37,28 +32,23 @@ immutable LPAffineIPFCtrl{T}
     progress::Cint
     time::Cint
 end
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d))
-    @eval begin
-        function LPAffineIPFCtrl(::Type{$elty};
-                                 primalInit::Bool=false,
-                                 dualInit::Bool=false,
-                                 tol=1e-8,
-                                 maxIts=1000,
-                                 centering=0.9,
-                                 qsdCtrl::RegQSDCtrl=RegQSDCtrl($elty),
-                                 lineSearchCtrl::IPFLineSearchCtrl=IPFLineSearchCtrl($elty),
-                                 equilibrate::Bool=false,
-                                 progress::Bool=false,
-                                 time::Bool=false)
-            return LPAffineIPFCtrl{$elty}(primalInit, dualInit, tol, maxIts,
-                                          centering, qsdCtrl, lineSearchCtrl,
-                                          equilibrate, progress, time)
-        end
-    end
+function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
+                         primalInit::Bool=false,
+                         dualInit::Bool=false,
+                         tol=1e-8,
+                         maxIts=1000,
+                         centering=0.9,
+                         qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
+                         lineSearchCtrl::IPFLineSearchCtrl=IPFLineSearchCtrl(T),
+                         equilibrate::Bool=false,
+                         progress::Bool=false,
+                         time::Bool=false)
+    LPAffineIPFCtrl{T}(primalInit, dualInit, tol, maxIts,
+                       centering, qsdCtrl, lineSearchCtrl,
+                       equilibrate, progress, time)
 end
 
-immutable LPAffineMehrotraCtrl{T}
+immutable LPAffineMehrotraCtrl{T<:ElFloatType}
     primalInit::Cint
     dualInit::Cint
     tol::T
@@ -72,27 +62,23 @@ immutable LPAffineMehrotraCtrl{T}
     progress::Cint
     time::Cint
 end
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d))
-    @eval begin
-        function LPAffineMehrotraCtrl(::Type{$elty};
-                                      primalInit::Bool=false,
-                                      dualInit::Bool=false,
-                                      tol=1e-8,
-                                      maxIts=100,
-                                      maxStepRatio=0.99,
-                                      qsdCtrl::RegQSDCtrl=RegQSDCtrl($elty),
-                                      outerEquil::Bool=true,
-                                      innerEquil::Bool=true,
-                                      scaleTwoNorm::Bool=true,
-                                      basisSize=15,
-                                      progress::Bool=false,
-                                      time::Bool=false)
-            return LPAffineMehrotraCtrl{$elty}(primalInit, dualInit, tol, maxIts, maxStepRatio,
-                                               qsdCtrl, outerEquil, innerEquil, scaleTwoNorm,
-                                               basisSize, progress, time)
-        end
-    end
+function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
+                              primalInit::Bool=false,
+                              dualInit::Bool=false,
+                              tol=1e-8,
+                              maxIts=100,
+                              maxStepRatio=0.99,
+                              qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
+                              outerEquil::Bool=true,
+                              innerEquil::Bool=true,
+                              scaleTwoNorm::Bool=true,
+                              basisSize=15,
+                              progress::Bool=false,
+                              time::Bool=false)
+    LPAffineMehrotraCtrl{T}(primalInit, dualInit, tol, maxIts,
+                            maxStepRatio, qsdCtrl, outerEquil,
+                            innerEquil, scaleTwoNorm,
+                            basisSize, progress, time)
 end
 
 immutable LPAffineCtrl{T}
@@ -100,15 +86,9 @@ immutable LPAffineCtrl{T}
     ipfCtrl::LPAffineIPFCtrl{T}
     mehrotraCtrl::LPAffineMehrotraCtrl{T}
 end
-
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d))
-    @eval begin
-        function LPAffineCtrl(::Type{$elty};
-                              approach::Cuint=EL_LP_MEHROTRA,
-                              ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl($elty),
-                              mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl($elty))
-            return LPAffineCtrl{$elty}(approach, ipfCtrl, mehrotraCtrl)
-        end
-    end
+function LPAffineCtrl{T<:ElFloatType}(::Type{T};
+                      approach::Cuint=EL_LP_MEHROTRA,
+                      ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl(T),
+                      mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl(T))
+    LPAffineCtrl{T}(approach, ipfCtrl, mehrotraCtrl)
 end
