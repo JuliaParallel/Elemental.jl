@@ -68,14 +68,13 @@ El.gaussian!(b, 2*n0*n1, 1)
 # if display
     # show(IO, A)
 # end
-ctrl = El.LPAffineCtrl(Float64)
-#=
+ctrl = El.LPAffineCtrl(Float64,
             mehrotraCtrl=El.LPAffineMehrotraCtrl(Float64,
                             qsdCtrl=El.RegQSDCtrl(Float64,progress=true),
                             progress=true,
                             outerEquil=true,
                             time=true))
-=#
+
 #elapsedLAV = @elapsed x = El.lav(A, b)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
