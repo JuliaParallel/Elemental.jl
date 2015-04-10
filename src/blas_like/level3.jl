@@ -1,5 +1,5 @@
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
-                           (:Float64, :Float64, :d), 
+                           (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
     @eval begin

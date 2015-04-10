@@ -11,7 +11,7 @@ immutable RegQSDCtrl{T<:ElFloatType}
     relTolRefine::T
     maxRefineIts::ElInt
     restart::ElInt
-    progress::Uint8
+    progress::ElBool
 end
 function RegQSDCtrl{T<:ElFloatType}(::Type{T};
                     regPrimal=eps(T)^convert(T, 0.5),

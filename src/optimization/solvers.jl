@@ -9,7 +9,7 @@ immutable IPFLineSearchCtrl{T<:ElFloatType}
     beta::T
     psi::T
     stepRatio::T
-    progress::Uint8
+    progress::ElBool
 end
 function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
                            gamma=1e-3,
@@ -21,16 +21,16 @@ function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
 end
 
 immutable LPAffineIPFCtrl{T<:ElFloatType}
-    primalInit::Uint8
-    dualInit::Uint8
+    primalInit::ElBool
+    dualInit::ElBool
     tol::T
     maxIts::ElInt
     centering::T
     qsdCtrl::RegQSDCtrl{T}
     lineSearchCtrl::IPFLineSearchCtrl{T}
-    equilibrate::Uint8
-    progress::Uint8
-    time::Uint8
+    equilibrate::ElBool
+    progress::ElBool
+    time::ElBool
 end
 function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
                          primalInit::Bool=false,
@@ -49,18 +49,18 @@ function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
 end
 
 immutable LPAffineMehrotraCtrl{T<:ElFloatType}
-    primalInit::Uint8
-    dualInit::Uint8
+    primalInit::ElBool
+    dualInit::ElBool
     tol::T
     maxIts::ElInt
     maxStepRatio::T
     qsdCtrl::RegQSDCtrl{T}
-    outerEquil::Uint8
-    innerEquil::Uint8
-    scaleTwoNorm::Uint8
+    outerEquil::ElBool
+    innerEquil::ElBool
+    scaleTwoNorm::ElBool
     basisSize::ElInt
-    progress::Uint8
-    time::Uint8
+    progress::ElBool
+    time::ElBool
 end
 function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               primalInit::Bool=false,
