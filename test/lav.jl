@@ -75,7 +75,8 @@ ctrl = El.LPAffineCtrl(Float64,
                             outerEquil=true,
                             time=true))
 
-#elapsedLAV = @elapsed x = El.lav(A, b)
+# elapsedLAV = @elapsed x = El.lav(A, b)
+println(ctrl.approach)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0

@@ -24,7 +24,7 @@ immutable LPAffineIPFCtrl{T<:ElFloatType}
     primalInit::Uint8
     dualInit::Uint8
     tol::T
-    maxIts::Cint
+    maxIts::ElInt
     centering::T
     qsdCtrl::RegQSDCtrl{T}
     lineSearchCtrl::IPFLineSearchCtrl{T}
@@ -52,13 +52,13 @@ immutable LPAffineMehrotraCtrl{T<:ElFloatType}
     primalInit::Uint8
     dualInit::Uint8
     tol::T
-    maxIts::Cint
+    maxIts::ElInt
     maxStepRatio::T
     qsdCtrl::RegQSDCtrl{T}
     outerEquil::Uint8
     innerEquil::Uint8
     scaleTwoNorm::Uint8
-    basisSize::Cint
+    basisSize::ElInt
     progress::Uint8
     time::Uint8
 end
@@ -87,7 +87,7 @@ immutable LPAffineCtrl{T<:ElFloatType}
     mehrotraCtrl::LPAffineMehrotraCtrl{T}
 end
 function LPAffineCtrl{T<:ElFloatType}(::Type{T};
-                      approach::Cuint=Cuint(4), # EL_LP_MEHROTRA,
+                      approach::Cuint=EL_LP_MEHROTRA,
                       ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl(T),
                       mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl(T))
     LPAffineCtrl{T}(approach, ipfCtrl, mehrotraCtrl)

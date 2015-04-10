@@ -17,8 +17,8 @@ for (elty, ext) in ((:Float32, :s),
 
             function lav!(A::$matA{$elty}, b::$matb{$elty}, x::$matb{$elty}, ctrl::LPAffineCtrl{$elty})
                 err = ccall(($(string("ElLAVX", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ref{LPAffineCtrl{$elty}}),
-                    A.obj, b.obj, x.obj, Ref(ctrl))
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, LPAffineCtrl{$elty}),
+                    A.obj, b.obj, x.obj, ctrl)
                 err == 0 || error("something is wrong here!")
                 return x
             end

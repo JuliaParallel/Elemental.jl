@@ -9,8 +9,8 @@ immutable RegQSDCtrl{T<:ElFloatType}
     alg::Cuint
     relTol::T
     relTolRefine::T
-    maxRefineIts::Cint
-    restart::Cint
+    maxRefineIts::ElInt
+    restart::ElInt
     progress::Uint8
 end
 function RegQSDCtrl{T<:ElFloatType}(::Type{T};
