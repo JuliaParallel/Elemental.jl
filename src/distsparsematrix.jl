@@ -72,8 +72,8 @@ for (elty, ext) in ((:Float32, :s),
             return nothing
         end
 
-        function makeConsistent{$elty}(A::DistSparseMatrix{$elty})
-            err = ccall(($(string("ElDistSparseMatrixMakeConsistent_", ext)), libEl), Cuint,
+        function processQueues{$elty}(A::DistSparseMatrix{$elty})
+            err = ccall(($(string("ElDistSparseMatrixProcessQueues_", ext)), libEl), Cuint,
                 (Ptr{Void},),
                 A.obj)
             err == 0 || error("something is wrong here!")

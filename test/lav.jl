@@ -54,7 +54,7 @@ function stackedFD2D(n0, n1)
         # The dense last column
         El.queueLocalUpdate(A, sLoc, width - 1, -div(10.0, height))
 
-        El.makeConsistent(A)
+        El.processQueues(A)
     end
     return A
 end
