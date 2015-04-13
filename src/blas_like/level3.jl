@@ -7,7 +7,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             err = ccall(($(string("ElSparseMultiplyDist_", ext)), libEl), Cuint,
                 (Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
                 EL_NORMAL, α, A.obj, x.obj, β, y.obj)
-            err == 0 || error("something is wrong here!")
+            err == 0 || throw(ElError(err))
             return y
         end
     end

@@ -13,7 +13,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
                     x.obj, nm)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return nm[]
             end
         end
@@ -30,7 +30,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, $relty, Ref{$relty}),
                     x.obj, p, nm)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return nm[]
             end
         end

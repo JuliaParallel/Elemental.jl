@@ -12,7 +12,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
                 (Cint, Cint, Ptr{Void}, Ref{Ptr{Void}}),
                 colDist, rowDist, grid.obj, obj)
-            err == 0 || error("something is wrong here!")
+            err == 0 || throw(ElError(err))
             return DistMatrix{$elty}(obj[])
         end
     end
@@ -32,7 +32,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{Ptr{Void}}),
                 A.obj, Ref{Ptr{Void}}(g.obj))
-            err == 0 || error("something is wrong here!")
+            err == 0 || throw(ElError(err))
             return g
         end
     end
