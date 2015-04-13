@@ -29,7 +29,7 @@ function __init__()
     MPI.Init()
     Init()
     atexit() do
-        Finalize()
+        Initialized() && Finalize()
     end
 end
 
