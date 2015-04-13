@@ -5,17 +5,19 @@ import Base: A_mul_B!, copy, copy!, similar, size
 
 include("../deps/deps.jl")
 
+include("error.jl")
+
 function Init()
     err = ccall((:ElInitialize, libEl), Cint,
         (Ref{Cint}, Ref{Ptr{Void}}), Ref(zero(Cint)), Ref(C_NULL))
-    err == 0 || error("something is wrong here!")
+    err == 0 || error("Error Initializing Elemental: $(ErrorString(err))")
     return nothing
 end
 
 function Initialized()
     active = Ref(zero(Cint))
     err = ccall((:ElInitialized, libEl), Cuint, (Ref{Cint},), active)
-    err == 0 || error(ErrorString(err))
+    err == 0 || throw(ElError(err))
     return active[] == 1
 end
 
