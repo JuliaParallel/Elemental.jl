@@ -18,6 +18,8 @@ const ElBool = ElBoolType()
 
 typealias ElFloatType Union(Float64,Float32)
 
+abstract ElementalMatrix{T} <: AbstractMatrix{T}
+
 const EL_MC			= Cint(0)
 const EL_MD			= Cint(1)
 const EL_MR			= Cint(2)

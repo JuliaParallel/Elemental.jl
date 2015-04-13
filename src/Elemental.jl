@@ -30,8 +30,6 @@ function __init__()
     Init()
 end
 
-abstract ElementalMatrix{T} <: AbstractMatrix{T}
-
 include("types.jl")
 include("grid.jl")
 include("sparsematrix.jl")
