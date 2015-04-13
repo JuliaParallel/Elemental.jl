@@ -1,25 +1,19 @@
 immutable ElError <: Exception
-    msg::AbstractString
 end
 
 immutable ElRuntimeError <: Exception
-    msg::AbstractString
 end
 
 immutable ElLogicError <: Exception
-    msg::AbstractString
 end
 
 immutable ElArgumentError <: Exception
-    msg::AbstractString
 end
 
 immutable ElBoundsError <: Exception
-    msg::AbstractString
 end
 
 immutable ElAllocError <: Exception
-    msg::AbstractString
 end
 
 function ElError(code::Integer)
