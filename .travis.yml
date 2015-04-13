@@ -7,3 +7,7 @@ notifications:
   email: false
 before_install:
     sudo apt-get install -q gfortran mpich2 libmpich2-3 libmpich2-dev
+script:
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia -e 'Pkg.clone("MPI"); Pkg.build("MPI")'
+  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental"); Pkg.test("Elemental")'
