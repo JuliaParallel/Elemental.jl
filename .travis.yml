@@ -1,13 +1,9 @@
 language: julia
 os:
   - linux
-  - osx
 julia:
-  - release
   - nightly
 notifications:
   email: false
-# uncomment the following lines to override the default test script
-#script:
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental"); Pkg.test("Elemental"; coverage=true)'
+before_install:
+    sudo apt-get install -q gfortran mpich2 libmpich2-3 libmpich2-dev
