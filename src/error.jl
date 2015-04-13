@@ -31,6 +31,9 @@ function ElError(code::Integer)
         return ElLogicError()
     elseif code == 4
         return ElRuntimeError()
+    elseif code == -1
+        # catchall error code
+        throw(ElError())
     else
         throw(ArgumentError("Unknown Elemental Error Code: $code"))
     end
