@@ -15,13 +15,13 @@ end
 function Initialized()
     active = Ref(zero(Cint))
     err = ccall((:ElInitialized, libEl), Cuint, (Ref{Cint},), active)
-    err == 0 || error("something is wrong here!")
+    err == 0 || error(ErrorString(err))
     return active[] == 1
 end
 
 function Finalize()
     err = ccall((:ElFinalize, libEl), Cint, ())
-    err == 0 || error("something is wrong here!")
+    err == 0 || error("Error Finalizing Elemental: $(ErrorString(err))")
     return nothing
 end
 
