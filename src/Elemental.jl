@@ -28,6 +28,9 @@ end
 function __init__()
     MPI.Init()
     Init()
+    atexit() do
+        Finalize()
+    end
 end
 
 include("types.jl")
