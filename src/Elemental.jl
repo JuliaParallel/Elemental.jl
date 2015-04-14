@@ -8,8 +8,10 @@ include("../deps/deps.jl")
 include("error.jl")
 
 function Init()
+    argc = [zero(Cint)]
+    argv = [Ptr{Cchar}(0)]
     err = ccall((:ElInitialize, libEl), Cint,
-        (Ref{Cint}, Ref{Ptr{Void}}), Ref(zero(Cint)), Ref(C_NULL))
+                (Ptr{Cint}, Ptr{Ptr{Cchar}}), argc, argv)
     err == 0 || error("Error Initializing Elemental: $(ErrorString(err))")
     return nothing
 end
@@ -28,7 +30,6 @@ function Finalize()
 end
 
 function __init__()
-    MPI.Init()
     Init()
     atexit() do
         Initialized() && Finalize()
