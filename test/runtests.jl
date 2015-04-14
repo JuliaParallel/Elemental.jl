@@ -6,7 +6,7 @@ function runtests()
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testfiles = sort(filter(x->x!="runtests.jl", readdir(dirname(@__FILE__))))
     nfail = 0
-    print_with_color(:white, "Running MPI.jl tests\n")
+    print_with_color(:white, "Running Elemental.jl tests\n")
     for f in testfiles
         try
             if success(`mpirun -np $nprocs $exename $f`)
