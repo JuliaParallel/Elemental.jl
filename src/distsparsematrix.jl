@@ -47,10 +47,10 @@ for (elty, ext) in ((:Float32, :s),
             return i[]
         end
 
-        function reserve{$elty}(A::DistSparseMatrix{$elty}, numEntries::Integer)
+        function reserve{$elty}(A::DistSparseMatrix{$elty}, numLocalEntries::Integer, numRemoteEntries::Integer = 0)
             err = ccall(($(string("ElDistSparseMatrixReserve_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt),
-                A.obj, numEntries)
+                (Ptr{Void}, ElInt, ElInt),
+                A.obj, numLocalEntries, numRemoteEntries)
             err == 0 || error("something is wrong here!")
             return nothing
         end
@@ -68,6 +68,14 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty),
                 A.obj, localRow, col, value)
+            err == 0 || error("something is wrong here!")
+            return nothing
+        end
+
+        function queueUpdate{$elty}(A::DistSparseMatrix{$elty}, row::Integer, col::Integer, value::$elty, passive::Bool = true)
+            err = ccall(($(string("ElDistSparseMatrixQueueUpdate_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, $elty, Bool),
+                A.obj, row, col, value, passive)
             err == 0 || error("something is wrong here!")
             return nothing
         end
