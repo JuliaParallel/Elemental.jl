@@ -64,7 +64,6 @@ end
 A = stackedFD2D(n0, n1)
 
 b = El.DistMultiVec(Float64)
-
 El.gaussian!(b, 2*n0*n1, 1)
 
 # if display
