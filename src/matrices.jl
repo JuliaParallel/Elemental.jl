@@ -12,7 +12,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElGaussian", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, mean, stddev)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return A
             end
         end
@@ -27,7 +27,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, center, radius)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return A
             end
         end

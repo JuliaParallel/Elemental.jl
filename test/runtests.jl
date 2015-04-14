@@ -1,5 +1,33 @@
 using Elemental
 using Base.Test
 
-# write your own tests here
-@test 1 == 1
+function runtests()
+    nprocs = min(4, CPU_CORES)
+    exename = joinpath(JULIA_HOME, Base.julia_exename())
+    testfiles = sort(filter(x->x!="runtests.jl", readdir(dirname(@__FILE__))))
+    nfail = 0
+    print_with_color(:white, "Running MPI.jl tests\n")
+    for f in testfiles
+        try
+            if success(`mpirun -np $nprocs $exename $f`)
+                Base.with_output_color(:green,STDOUT) do io
+                    println(io,"\tSUCCESS: $f")
+                end
+            else
+                Base.with_output_color(:red,STDERR) do io
+                    println("\tFAILED: $f")
+                end
+                nfail += 1
+            end
+        catch ex
+            Base.with_output_color(:red,STDERR) do io
+                println(io,"\tError: $f")
+                showerror(io,ex,backtrace())
+            end
+            nfail += 1
+        end
+    end
+    return nfail
+end
+
+exit(runtests())

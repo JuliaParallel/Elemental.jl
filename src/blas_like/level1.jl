@@ -11,7 +11,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElNrm2", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
                     x.obj, nm)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return nm[]
             end
         end
@@ -25,7 +25,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElCopy", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ptr{Void}),
                     src.obj, dest.obj)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ELError(err))
                 dest
             end
         end

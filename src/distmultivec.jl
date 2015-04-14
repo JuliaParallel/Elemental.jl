@@ -12,7 +12,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, Cint),
                 obj, comm.val)
-            err == 0 || error("something is wrong here!")
+            err == 0 || throw(ElError(err))
             return DistMultiVec{$elty}(obj[])
         end
 
@@ -28,7 +28,7 @@ for (elty, ext) in ((:Float32, :s),
             err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{Cint}),
                 x.obj, i)
-            err == 0 || error("something is wrong here!")
+            err == 0 || throw(ElError(err))
             return i[]
         end
 

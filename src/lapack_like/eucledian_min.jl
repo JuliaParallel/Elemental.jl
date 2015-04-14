@@ -10,7 +10,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err = ccall(($(string("ElLeastSquares", sym, ext)), libEl), Cuint,
                     (Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}),
                     orientation, A.obj, B.obj, X.obj)
-                err == 0 || error("something is wrong here!")
+                err == 0 || throw(ElError(err))
                 return X
             end
         end

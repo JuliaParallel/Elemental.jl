@@ -7,6 +7,6 @@ function Grid()
     err = ccall(("ElDefaultGrid", libEl), Cuint,
         (Ref{Ptr{Void}},),
         obj)
-    err == 0 || error("something is wrong here!")
+    err == 0 || throw(ElError(err))
     return Grid(obj[])
 end

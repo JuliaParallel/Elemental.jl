@@ -2,7 +2,7 @@
 function ElIntType()
     using64 = Cint[0]
     err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
-    err == 0 || error("something is wrong here!")
+    err == 0 || throw(ElError(err))
     return using64[1] == 1 ? Int64 : Int32
 end
 const ElInt = ElIntType()
@@ -11,12 +11,14 @@ const ElInt = ElIntType()
 function ElBoolType()
     boolsize = Ref(zero(Cuint))
     err = ccall((:ElSizeOfBool, libEl), Cint, (Ref{Cuint},), boolsize)
-    err == 0 || error("something is wrong here!")
+    err == 0 || throw(ElError(err))
     return boolsize[] == 1 ? Uint8 : Uint32
 end
 const ElBool = ElBoolType()
 
-typealias ElFloatType Union(Float64,Float32)
+typealias ElFloatType Union(Float32,Float64)
+
+abstract ElementalMatrix{T} <: AbstractMatrix{T}
 
 const EL_MC			= Cint(0)
 const EL_MD			= Cint(1)
