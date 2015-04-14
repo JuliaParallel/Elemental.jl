@@ -7,7 +7,7 @@ notifications:
   email: false
 before_install:
   - curl http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr
-  - sudo apt-get install -q gfortran mpich2 libmpich2-3 libmpich2-dev
+  - sudo apt-get install -qq -y gfortran mpich2 libmpich2-3 libmpich2-dev gcc-4.9 g++-4.9 gfortran-4.9 libstdc++-4.9-dev
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone("MPI"); Pkg.build("MPI")'
