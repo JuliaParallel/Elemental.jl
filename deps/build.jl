@@ -20,13 +20,6 @@ if !isdir(srcdir)
     Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
 end
 
-cd(srcdir) do
-    Git.run(`submodule init external/metis`)
-    Git.run(`submodule update external/metis`)
-    Git.run(`submodule init external/kiss_fft`)
-    Git.run(`submodule update external/kiss_fft`)
-end
-
 Base.check_blas()
 blas = Base.blas_vendor()
 mathlib = Libdl.dlpath(BLAS.libblas)
