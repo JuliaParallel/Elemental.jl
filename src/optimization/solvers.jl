@@ -182,27 +182,27 @@ for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
   @eval begin
     function SOCPAffine{$elty}(
-      A::DistSparseMatrix{$elty},    
+      A::DistSparseMatrix{$elty},
       G::DistSparseMatrix{$elty},
       b::DistMultiVec{$elty},
       c::DistMultiVec{$elty},
       h::DistMultiVec{$elty},
-      orders::DistMultiVec{:ElInt},
-      firstInds::DistMultiVec{:ElInt},
-      labels:DistMultiVec{:ElInt};
+      orders::DistMultiVec{ElInt},
+      firstInds::DistMultiVec{ElInt},
+      labels::DistMultiVec{ElInt},
       x::DistMultiVec{$elty},
       y::DistMultiVec{$elty},
       z::DistMultiVec{$elty},
       s::DistMultiVec{$elty},
-      ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))    
+      ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))
       err = ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
         (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          Ptr{Void},Ptr{Void},Ptr{Void},
          Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          SOCPAffineCtrl{$elty}),
-        A.obj, G.obj, b.obj, c.obj, h.obj, 
+        A.obj, G.obj, b.obj, c.obj, h.obj,
         orders.obj, firstInds.obj, labels.obj,
-        x.obj, y.obj, z.obj, s.obj, ctrl) 
+        x.obj, y.obj, z.obj, s.obj, ctrl)
       err == 0 || throw(ElError(err))
       return nothing
     end

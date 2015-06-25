@@ -60,7 +60,7 @@ for (elty, ext) in ((:ElInt, :i),
 
         function processQueues{$elty}(A::DistMultiVec{$elty})
           err = ccall(($(string("ElDistMultiVecProcessQueues_", ext)), libEl), Cuint,
-            (Ptr{Void}), A.obj)
+            (Ptr{Void},), A.obj)
           err == 0 || throw(ElError(err))
           return nothing
         end

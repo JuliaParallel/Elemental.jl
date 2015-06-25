@@ -56,7 +56,7 @@ for (elty, ext) in ((:ElInt, :i),
 
         function processQueues{$elty}(A::DistMatrix{$elty})
           err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
-            (Ptr{Void}), A.obj)
+            (Ptr{Void},), A.obj)
           err == 0 || throw(ElError(err))
           return nothing
         end
