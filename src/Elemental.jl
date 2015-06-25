@@ -8,10 +8,10 @@ include("../deps/deps.jl")
 include("error.jl")
 
 function Init()
-    argc = [zero(Cint)]
-    argv = [Ptr{Cchar}(0)]
+    argc = Cint[0]
+    argv = Vector{ASCIIString}[ASCIIString[""]]
     err = ccall((:ElInitialize, libEl), Cint,
-                (Ptr{Cint}, Ptr{Ptr{Cchar}}), argc, argv)
+                (Ptr{Cint}, Ptr{Ptr{Ptr{UInt8}}}), argc, pointer(argv))
     err == 0 || error("Error Initializing Elemental: $(ErrorString(err))")
     return nothing
 end
