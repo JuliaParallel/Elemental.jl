@@ -2,7 +2,8 @@ type DistMatrix{T} <: ElementalMatrix{T}
 	obj::Ptr{Void}
 end
 
-for (elty, ext) in ((:Float32, :s),
+for (elty, ext) in ((:Integer, :i),
+                    (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),
                     (:Complex128, :z))
@@ -22,7 +23,8 @@ DistMatrix() = DistMatrix(Float64)
 
 similar{T}(A::DistMatrix{T}) = DistMatrix(T) # This might be wrong. Should consider how to extract distributions properties of A
 
-for (elty, ext) in ((:Float32, :s),
+for (elty, ext) in ((:Integer, :i),
+                    (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),
                     (:Complex128, :z))
@@ -34,6 +36,29 @@ for (elty, ext) in ((:Float32, :s),
                 A.obj, Ref{Ptr{Void}}(g.obj))
             err == 0 || throw(ElError(err))
             return g
+        end
+
+        function reserve{$elty}(A::DistMatrix{$elty}, numEntries::Integer)
+            err = ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
+              (Ptr{Void}, ElInt),
+              A.obj, numEntries)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function queueUpdate{$elty}(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
+            err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
+              (Ptr{Void}, ElInt, ElInt, $elty),
+              A.obj, i, j, value)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function processQueues{$elty}(A::DistMatrix{$elty})
+          err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
+            (Ptr{Void}), A.obj)
+          err == 0 || throw(ElError(err))
+          return nothing
         end
     end
 end
