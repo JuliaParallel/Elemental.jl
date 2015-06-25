@@ -2,7 +2,7 @@ type DistMatrix{T} <: ElementalMatrix{T}
 	obj::Ptr{Void}
 end
 
-for (elty, ext) in ((:Integer, :i),
+for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),
@@ -23,7 +23,7 @@ DistMatrix() = DistMatrix(Float64)
 
 similar{T}(A::DistMatrix{T}) = DistMatrix(T) # This might be wrong. Should consider how to extract distributions properties of A
 
-for (elty, ext) in ((:Integer, :i),
+for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),

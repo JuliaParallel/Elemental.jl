@@ -99,6 +99,32 @@ function LPAffineCtrl{T<:ElFloatType}(::Type{T};
     LPAffineCtrl{T}(approach, ipfCtrl, mehrotraCtrl)
 end
 
+for (elty, ext) in ((:Float32, :s),
+                    (:Float64, :d))
+  @eval begin
+    function LPAffine{$elty}(
+      A::DistSparseMatrix{$elty},
+      G::DistSparseMatrix{$elty},
+      b::DistMultiVec{$elty},
+      c::DistMultiVec{$elty},
+      h::DistMultiVec{$elty},
+      x::DistMultiVec{$elty},
+      y::DistMultiVec{$elty},
+      z::DistMultiVec{$elty},
+      s::DistMultiVec{$elty},
+      ctrl::LPAffineCtrl=SOCPAffineCtrl($elty))
+      err = ccall(($(string("ElLPAffine_", ext)), libEl), Cuint,
+        (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
+         Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
+         LPAffineCtrl{$elty}),
+        A.obj, G.obj, b.obj, c.obj, h.obj,
+        x.obj, y.obj, z.obj, s.obj, ctrl)
+      err == 0 || throw(ElError(err))
+      return nothing
+    end
+  end
+end
+
 # Second-Order Cone Programming
 # =============================
 const EL_SOCP_ADMM = Cuint(0)
@@ -152,3 +178,33 @@ function SOCPAffineCtrl{T<:ElFloatType}(::Type{T};
     SOCPAffineCtrl{T}(approach, mehrotraCtrl)
 end
 
+for (elty, ext) in ((:Float32, :s),
+                    (:Float64, :d))
+  @eval begin
+    function SOCPAffine{$elty}(
+      A::DistSparseMatrix{$elty},    
+      G::DistSparseMatrix{$elty},
+      b::DistMultiVec{$elty},
+      c::DistMultiVec{$elty},
+      h::DistMultiVec{$elty},
+      orders::DistMultiVec{:ElInt},
+      firstInds::DistMultiVec{:ElInt},
+      labels:DistMultiVec{:ElInt};
+      x::DistMultiVec{$elty},
+      y::DistMultiVec{$elty},
+      z::DistMultiVec{$elty},
+      s::DistMultiVec{$elty},
+      ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))    
+      err = ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
+        (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
+         Ptr{Void},Ptr{Void},Ptr{Void},
+         Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
+         SOCPAffineCtrl{$elty}),
+        A.obj, G.obj, b.obj, c.obj, h.obj, 
+        orders.obj, firstInds.obj, labels.obj,
+        x.obj, y.obj, z.obj, s.obj, ctrl) 
+      err == 0 || throw(ElError(err))
+      return nothing
+    end
+  end
+end

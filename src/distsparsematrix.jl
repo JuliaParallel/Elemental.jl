@@ -2,7 +2,7 @@ type DistSparseMatrix{T} <: ElementalMatrix{T}
     obj::Ptr{Void}
 end
 
-for (elty, ext) in ((:Integer, :i),
+for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),
