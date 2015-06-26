@@ -3,8 +3,8 @@ const El = Elemental
 
 using MPI
 
-n0 = 50
-n1 = 50
+n0 = 20
+n1 = 20
 display = true
 worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
 
@@ -66,6 +66,11 @@ A = stackedFD2D(n0, n1)
 b = El.DistMultiVec(Float64)
 El.gaussian!(b, 2*n0*n1, 1)
 
+AHeight = El.height(A)
+AWidth = El.width(A)
+bHeight = El.height(b)
+bWidth = El.width(b)
+
 # if display
     # show(IO, A)
 # end
@@ -77,7 +82,6 @@ ctrl = El.LPAffineCtrl(Float64,
                             time=true))
 
 # elapsedLAV = @elapsed x = El.lav(A, b)
-println(ctrl.approach)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0

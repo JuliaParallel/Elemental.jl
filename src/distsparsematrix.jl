@@ -8,13 +8,23 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistSparseMatrix(::Type{$elty}, comm = MPI.COMM_WORLD)
+        function DistSparseMatrix(::Type{$elty}, cm::ElComm)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
-                (Ref{Ptr{Void}}, Cint),
-                obj, comm.val)
+                (Ref{Ptr{Void}}, ElComm),
+                obj, cm)
             err == 0 || throw(ElError(err))
             return DistSparseMatrix{$elty}(obj[])
+        end
+
+        function DistSparseMatrix(::Type{$elty}, cm::MPI.Comm = MPI.COMM_WORLD)
+            cComm = Ref{ElComm}()
+            err = ccall((:ElMPICommF2C, libEl), Cuint,
+              (Cint, Ref{ElComm}),
+              cm.val,cComm)
+            err == 0 || throw(ElError(err))
+
+            return DistSparseMatrix($elty, cComm[])
         end
 
         function DistSparseMatrix(::Type{$elty}, m::Integer, n::Integer, comm = MPI.COMM_WORLD)
@@ -108,13 +118,12 @@ for (elty, ext) in ((:ElInt, :i),
         end
 
         function comm(A::DistSparseMatrix{$elty})
-            cm = MPI.COMM_WORLD
-            rcm = Ref{Cint}(cm.val)
+            cm = Ref{ElComm}()
             err = ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{Cint}),
-                A.obj, rcm)
+                (Ptr{Void}, Ref{ElComm}),
+                A.obj, cm)
             err == 0 || throw(ElError(err))
-            return cm
+            return cm[]
         end
     end
 end

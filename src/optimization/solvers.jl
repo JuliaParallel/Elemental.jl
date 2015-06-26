@@ -19,7 +19,7 @@ function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
                            psi=100,
                            stepRatio=1.5,
                            progress::Bool=false)
-    IPFLineSearchCtrl{T}(gamma, beta, psi, stepRatio, progress)
+    IPFLineSearchCtrl{T}(gamma, beta, psi, stepRatio, ElBool(progress))
 end
 
 immutable LPAffineIPFCtrl{T<:ElFloatType}
@@ -38,8 +38,8 @@ end
 function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
                          primalInit::Bool=false,
                          dualInit::Bool=false,
-                         minTol=eps(T)^0.3,
-                         targetTol=eps(T)^0.5,
+                         minTol=eps(T)^convert(T,0.3),
+                         targetTol=eps(T)^convert(T,0.5),
                          maxIts=1000,
                          centering=0.9,
                          qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
@@ -47,9 +47,9 @@ function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
                          equilibrate::Bool=false,
                          progress::Bool=false,
                          time::Bool=false)
-    LPAffineIPFCtrl{T}(primalInit, dualInit, minTol, targetTol, maxIts,
-                       centering, qsdCtrl, lineSearchCtrl,
-                       equilibrate, progress, time)
+    LPAffineIPFCtrl{T}(ElBool(primalInit), ElBool(dualInit), minTol, targetTol,
+                       maxIts, centering, qsdCtrl, lineSearchCtrl,
+                       ElBool(equilibrate), ElBool(progress), ElBool(time))
 end
 
 immutable LPAffineMehrotraCtrl{T<:ElFloatType}
@@ -70,8 +70,8 @@ end
 function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               primalInit::Bool=false,
                               dualInit::Bool=false,
-                              minTol=eps(T)^0.3,
-                              targetTol=eps(T)^0.5,
+                              minTol=eps(T)^convert(T,0.3),
+                              targetTol=eps(T)^convert(T,0.5),
                               maxIts=100,
                               maxStepRatio=0.99,
                               qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
@@ -81,10 +81,11 @@ function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               basisSize=15,
                               progress::Bool=false,
                               time::Bool=false)
-    LPAffineMehrotraCtrl{T}(primalInit, dualInit, minTol, targetTol, maxIts,
-                            maxStepRatio, qsdCtrl, outerEquil,
-                            innerEquil, scaleTwoNorm,
-                            basisSize, progress, time)
+    LPAffineMehrotraCtrl{T}(ElBool(primalInit), ElBool(dualInit), 
+                            minTol, targetTol, maxIts, maxStepRatio, qsdCtrl, 
+                            ElBool(outerEquil), ElBool(innerEquil), 
+                            ElBool(scaleTwoNorm),
+                            basisSize, ElBool(progress), ElBool(time))
 end
 
 immutable LPAffineCtrl{T<:ElFloatType}
@@ -151,8 +152,8 @@ end
 function SOCPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               primalInit::Bool=false,
                               dualInit::Bool=false,
-                              minTol=eps(T)^0.3,
-                              targetTol=eps(T)^0.5,
+                              minTol=eps(T)^convert(T,0.3),
+                              targetTol=eps(T)^convert(T,0.5),
                               maxIts=100,
                               maxStepRatio=0.99,
                               qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
@@ -162,10 +163,11 @@ function SOCPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
                               basisSize=15,
                               progress::Bool=false,
                               time::Bool=false)
-    SOCPAffineMehrotraCtrl{T}(primalInit, dualInit, minTol, targetTol, maxIts,
-                            maxStepRatio, qsdCtrl, outerEquil,
-                            innerEquil, scaleTwoNorm,
-                            basisSize, progress, time)
+    SOCPAffineMehrotraCtrl{T}(ElBool(primalInit), ElBool(dualInit), 
+                            minTol, targetTol, maxIts,
+                            maxStepRatio, qsdCtrl, ElBool(outerEquil),
+                            ElBool(innerEquil), ElBool(scaleTwoNorm),
+                            basisSize, ElBool(progress), ElBool(time))
 end
 
 immutable SOCPAffineCtrl{T<:ElFloatType}

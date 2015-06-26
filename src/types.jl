@@ -7,14 +7,40 @@ function ElIntType()
 end
 const ElInt = ElIntType()
 
+function ElCommType()
+    sameSizeAsInt = Cint[0]
+    err = ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},), 
+      sameSizeAsInt)
+    err == 0 || throw(ElError(err))
+    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
+end
+const ElComm = ElCommType()
+
+function ElGroupType()
+    sameSizeAsInt = Cint[0]
+    err = ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},), 
+      sameSizeAsInt)
+    err == 0 || throw(ElError(err))
+    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
+end
+const ElGroup = ElGroupType()
+
 # Detect Elemental Bool type
 function ElBoolType()
     boolsize = Ref(zero(Cuint))
-    err = ccall((:ElSizeOfBool, libEl), Cint, (Ref{Cuint},), boolsize)
+    err = ccall((:ElSizeOfCBool, libEl), Cint, (Ref{Cuint},), boolsize)
     err == 0 || throw(ElError(err))
     return boolsize[] == 1 ? Uint8 : Uint32
 end
 const ElBool = ElBoolType()
+
+function ElBool(value::Bool)
+    if value
+      return ElBool(1)
+    else
+      return ElBool(0)
+    end
+end
 
 typealias ElFloatType Union(Float32,Float64)
 

@@ -25,5 +25,5 @@ function RegQSDCtrl{T<:ElFloatType}(::Type{T};
     RegQSDCtrl{T}(regPrimal, regDual, alg,
                   relTol, relTolRefine,
                   maxRefineIts, restart,
-                  progress)
+                  ElBool(progress))
 end

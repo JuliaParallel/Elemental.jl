@@ -19,21 +19,21 @@ b = El.DistMatrix()
 El.gaussian!(b, m, 1)
 
 # if display
-    # Elemental.Display(A, "A")
-    # Elemental.Display(b, "b")
+    # El.Display(A, "A")
+    # El.Display(b, "b")
 # end
 
 # ctrl = El.LPAffineCtrl_d()
 # ctrl.mehrotraCtrl.progress = True
 
-# timeLAV = @elapsed x = Elemental.lav(A, b, ctrl)
+# timeLAV = @elapsed x = El.lav(A, b, ctrl)
 timeLAV = @elapsed x = El.lav(A, b)
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
     println("LAV time: $timeLAV seconds")
 end
 
 # if display
-    # Elemental.Display( x, "x" )
+    # El.Display( x, "x" )
 
 bTwoNorm = El.nrm2(b)
 bInfNorm = El.maxNorm(b)
@@ -42,7 +42,7 @@ r = copy(b)
 A_mul_B!(-1.0, A, x, 1., r)
 
 # if display
-    # Elemental.Display(r, "r")
+    # El.Display(r, "r")
 # end
 
 rTwoNorm = El.nrm2(r)
