@@ -27,10 +27,17 @@ const ElGroup = ElGroupType()
 
 # Detect Elemental Bool type
 function ElBoolType()
-    boolsize = Ref(zero(Cuint))
-    err = ccall((:ElSizeOfCBool, libEl), Cint, (Ref{Cuint},), boolsize)
-    err == 0 || throw(ElError(err))
-    return boolsize[] == 1 ? Uint8 : Uint32
+    # NOTE: Returning Uint8 when C claims that sizeof(bool) is 1 byte leads
+    #       to improperly passed structs to Elemental's C interface. This is
+    #       worth investigating and might be an alignment issue.
+
+    warn("Hardcoding ElBool to Cint")
+    #boolsize = Ref(zero(Cuint))
+    #err = ccall((:ElSizeOfCBool, libEl), Cuint, (Ref{Cuint},), boolsize)
+    #err == 0 || throw(ElError(err))
+    #return boolsize[] == 1 ? Uint8 : Cint
+
+    return Cint
 end
 const ElBool = ElBoolType()
 
