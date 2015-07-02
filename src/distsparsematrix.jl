@@ -130,7 +130,7 @@ for (elty, ext) in ((:ElInt, :i),
         function DistSparseMatrix(::Type{$elty}, DA::DistributedArrays.DArray)
             npr, npc = procs(DA)
             if npr*npc != MPI.Comm_size(MPI.COMM_WORLD)
-              error("Used non MPI.COMM_WORLD DArray for DistSparseMatrix, as procs(DA)=($npr,$npc) is incompatible with MPI.Comm_size(MPI.COMM_WORLD)=${MPI.Comm_size(MPI.COMM_WORLD)}")
+              error("Used non MPI.COMM_WORLD DArray for DistSparseMatrix, as procs(DA)=($npr,$npc) is incompatible with MPI.Comm_size(MPI.COMM_WORLD)=$(MPI.Comm_size(MPI.COMM_WORLD))")
             end
 
             m, n = size(DA) 
