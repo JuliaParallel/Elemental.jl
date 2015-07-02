@@ -72,13 +72,13 @@ for (elty, ext) in ((:ElInt, :i),
                 (Ptr{Void}, ElInt, Ref{ElInt}),
                 A.obj, iLoc, i)
             err == 0 || throw(ElError(err))
-            return i[]
+            return i[]+1
         end
 
         function queueLocalUpdate{$elty}(A::DistSparseMatrix{$elty}, localRow::Integer, col::Integer, value::$elty)
             err = ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty),
-                A.obj, localRow, col, value)
+                A.obj, localRow-1, col-1, value)
             err == 0 || throw(ElError(err))
             return nothing
         end
@@ -86,7 +86,7 @@ for (elty, ext) in ((:ElInt, :i),
         function queueUpdate{$elty}(A::DistSparseMatrix{$elty}, row::Integer, col::Integer, value::$elty, passive::Bool = true)
             err = ccall(($(string("ElDistSparseMatrixQueueUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty, Bool),
-                A.obj, row, col, value, passive)
+                A.obj, row-1, col-1, value, passive)
             err == 0 || error("something is wrong here!")
             return nothing
         end
@@ -128,7 +128,7 @@ for (elty, ext) in ((:ElInt, :i),
 
         # It is assumed that the DArray is distributed over MPI.COMM_WORLD
         function DistSparseMatrix(::Type{$elty}, DA::DistributedArrays.DArray)
-            npr, npc = procs(DA)
+            npr, npc = size(procs(DA))
             if npr*npc != MPI.Comm_size(MPI.COMM_WORLD)
               error("Used non MPI.COMM_WORLD DArray for DistSparseMatrix, as procs(DA)=($npr,$npc) is incompatible with MPI.Comm_size(MPI.COMM_WORLD)=$(MPI.Comm_size(MPI.COMM_WORLD))")
             end
@@ -139,13 +139,13 @@ for (elty, ext) in ((:ElInt, :i),
                 for id in workers()
                   let A = A, DA = DA
                     @async remotecall_fetch(id, () -> begin
-                      rows, cols = DistributedArray.localindexes(DA)
-                      i,j,v = findnz(DistributedArray.localpart(DA))
-                      gi, gc, gv = @show (i.+first(rows), j.+first(cols), v) 
+                      rows, cols = DistributedArrays.localindexes(DA)
+                      i,j,v = findnz(DistributedArrays.localpart(DA))
+                      gi, gj, gv = (i.+(first(rows)-1), j.+(first(cols)-1), v) 
                       numLocal = length(gi)
                       reserve(A,numLocal) 
                       for s=1:numLocal
-                        queueUpdate(A,gi[i],gj[j],v[j])
+                        queueUpdate(A,gi[s],gj[s],v[s])
                       end
                     end)
                   end

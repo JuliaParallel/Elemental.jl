@@ -5,8 +5,23 @@ using MPI
 
 n0 = 20
 n1 = 20
+testNative = false
 display = true
 worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
+worldSize = MPI.Comm_size(MPI.COMM_WORLD)
+if worldRank == 0
+  print("worldSize=$worldSize\n")
+end
+
+@everywhere using DistributedArrays
+
+function randDArray(m,n,sparsity=0.01)
+    DA = DistributedArrays.DArray((m,n)) do I
+        sprandn(length(I[1]), length(I[2]), sparsity)
+    end
+    A = El.DistSparseMatrix(Float64,DA) 
+    return A
+end
 
 function stackedFD2D(n0, n1)
     height = 2*n0*n1
@@ -61,7 +76,11 @@ function stackedFD2D(n0, n1)
     return A
 end
 
-A = stackedFD2D(n0, n1)
+if testNative
+  A = stackedFD2D(n0, n1)
+else
+  A = randDArray(2*n0*n1,n0*n1)
+end
 
 b = El.DistMultiVec(Float64)
 El.gaussian!(b, 2*n0*n1, 1)

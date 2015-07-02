@@ -56,7 +56,7 @@ for (elty, ext) in ((:ElInt, :i),
         function queueUpdate{$elty}(A::DistMultiVec{$elty}, i::Integer, j::Integer, value::$elty)
             err = ccall(($(string("ElDistMultiVecQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
-              A.obj, i, j, value)
+              A.obj, i-1, j-1, value)
             err == 0 || throw(ElError(err))
             return nothing
         end

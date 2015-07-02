@@ -1,8 +1,6 @@
 module Elemental
 
 using MPI
-
-# I am unsure of whether or not this should use @everywhere
 using DistributedArrays
 
 import Base: A_mul_B!, copy, copy!, similar, size
