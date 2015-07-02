@@ -125,6 +125,35 @@ for (elty, ext) in ((:ElInt, :i),
             err == 0 || throw(ElError(err))
             return cm[]
         end
+
+        # It is assumed that the DArray is distributed over MPI.COMM_WORLD
+        function DistSparseMatrix(::Type{$elty}, DA::DistributedArrays.DArray)
+            npr, npc = procs(DA)
+            if npr*npc != MPI.Comm_size(MPI.COMM_WORLD)
+              error("Used non MPI.COMM_WORLD DArray for DistSparseMatrix, as procs(DA)=($npr,$npc) is incompatible with MPI.Comm_size(MPI.COMM_WORLD)=${MPI.Comm_size(MPI.COMM_WORLD)}")
+            end
+
+            m, n = size(DA) 
+            A = DistSparseMatrix($elty, m, n)
+            @sync begin 
+                for id in workers()
+                  let A = A, DA = DA
+                    @async remotecall_fetch(id, () -> begin
+                      rows, cols = DistributedArray.localindexes(DA)
+                      i,j,v = findnz(DistributedArray.localpart(DA))
+                      gi, gc, gv = @show (i.+first(rows), j.+first(cols), v) 
+                      numLocal = length(gi)
+                      reserve(A,numLocal) 
+                      for s=1:numLocal
+                        queueUpdate(A,gi[i],gj[j],v[j])
+                      end
+                    end)
+                  end
+                end
+            end
+            processQueues(A)
+            return A
+        end
     end
 end
 
