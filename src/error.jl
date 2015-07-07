@@ -27,7 +27,7 @@ function ElError(code::Integer)
         return ElRuntimeError()
     elseif code == -1
         # catchall error code
-        throw(ElError())
+        return ElError()
     else
         throw(ArgumentError("Unknown Elemental Error Code: $code"))
     end
