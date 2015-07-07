@@ -70,7 +70,7 @@ for (elty, ext) in ((:ElInt, :i),
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}),
-                A.obj, iLoc, i)
+                A.obj, iLoc-1, i)
             err == 0 || throw(ElError(err))
             return i[]+1
         end

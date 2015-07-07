@@ -32,45 +32,45 @@ function stackedFD2D(n0, n1)
     # 'passive' determines whether or not the process should communicate if the
     # requested global update corresponds to a non-local entry
     passive::Bool = false
-    for sLoc in 0:localHeight - 1
+    for sLoc in 1:localHeight
         s = El.globalRow(A, sLoc)
-        if s < n0*n1
-            x0 = s % n0
-            x1 = div(s, n0)
+        if s <= n0*n1
+            x0 = ((s-1) % n0) + 1
+            x1 = div((s-1), n0) + 1
             El.queueUpdate(A, s, s, 11.0, passive)
-            if x0 > 0
+            if x0 > 1
                 El.queueUpdate(A, s, s - 1, -10.0, passive)
             end
-            if x0 + 1 < n0
+            if x0 < n0
                 El.queueUpdate(A, s, s + 1, 20.0, passive)
             end
-            if x1 > 0
+            if x1 > 1
                 El.queueUpdate(A, s, s - n0, -30.0, passive)
             end
-            if x1 + 1 < n1
+            if x1 < n1
                 El.queueUpdate(A, s, s + n0, 40.0, passive)
             end
         else
             sRel = s - n0*n1
-            x0 = sRel % n0
-            x1 = div(sRel, n0)
+            x0 = ((sRel-1) % n0) + 1
+            x1 = div(sRel-1, n0) + 1
             El.queueUpdate(A, s, sRel, -20.0, passive)
-            if x0 > 0
+            if x0 > 1
                 El.queueUpdate(A, sLoc, sRel - 1, -1.0, passive)
             end
-            if x0 + 1 < n0
+            if x0 < n0
                 El.queueUpdate(A, sLoc, sRel + 1, -2.0, passive)
             end
-            if x1 > 0
+            if x1 > 1
                 El.queueUpdate(A, sLoc, sRel - n0, -3.0, passive)
             end
-            if x1 + 1 < n1
+            if x1 < n1
                 El.queueUpdate(A, sLoc, sRel + n0, 3.0, passive)
             end
         end
 
         # The dense last column
-        El.queueUpdate(A, s, width - 1, -div(10.0, height), passive)
+        El.queueUpdate(A, s, width, -div(10.0, height), passive)
     end
     El.processQueues(A)
     return A
