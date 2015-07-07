@@ -9,7 +9,8 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                        (:DistMatrix, "Dist_"),
                        (:DistMultiVec, "DistMultiVec_"))
         @eval begin
-            function gaussian!(A::$mat{$elty}, m::Integer, n::Integer, mean::$elty = zero($elty), stddev::$relty = one($relty))
+            function gaussian!(A::$mat{$elty}, m::Integer, n::Integer,
+                               mean::$elty = zero($elty), stddev::$relty = one($relty))
                 err = ccall(($(string("ElGaussian", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, mean, stddev)
@@ -24,7 +25,8 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                        (:DistMatrix, "Dist_"),
                        (:DistMultiVec, "DistMultiVec_"))
         @eval begin
-            function uniform!(A::$mat{$elty}, m::Integer, n::Integer, center::$elty = zero($elty), radius::$relty = one($relty))
+            function uniform!(A::$mat{$elty}, m::Integer, n::Integer,
+                              center::$elty = zero($elty), radius::$relty = one($relty))
                 err = ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, center, radius)
