@@ -2,6 +2,9 @@
 # resolve shared libraries in the same directory as the library being loaded,
 # this file now hackily attempts to optionally load libEl's dependencies
 # before requiring that libEl loads
+#
+# NOTE: This behaviour was fixed by Jake Bolewski; the fix will be left
+#       commented out in case of a future regression
 
 macro checked_lib_opt(lib)
     libname = join((lib, Libdl.dlext), ".")
@@ -25,7 +28,7 @@ macro checked_lib(lib)
         const $(esc(lib)) = $libpath
     end
 end
-@checked_lib_opt libmetis
-@checked_lib_opt libparmetis
-@checked_lib_opt libpmrrr
+#@checked_lib_opt libmetis
+#@checked_lib_opt libparmetis
+#@checked_lib_opt libpmrrr
 @checked_lib libEl
