@@ -12,6 +12,7 @@ immutable RegQSDCtrl{T<:ElFloatType}
     maxRefineIts::ElInt
     restart::ElInt
     progress::ElBool
+    time::ElBool
 end
 function RegQSDCtrl{T<:ElFloatType}(::Type{T};
                     regPrimal=eps(T)^convert(T, 0.5),
@@ -21,9 +22,10 @@ function RegQSDCtrl{T<:ElFloatType}(::Type{T};
                     relTolRefine=eps(T)^convert(T, 0.5),
                     maxRefineIts=50,
                     restart=10,
-                    progress::Bool=false)
+                    progress::Bool=false,
+                    time::Bool=false)
     RegQSDCtrl{T}(regPrimal, regDual, alg,
                   relTol, relTolRefine,
                   maxRefineIts, restart,
-                  ElBool(progress))
+                  ElBool(progress),ElBool(time))
 end
