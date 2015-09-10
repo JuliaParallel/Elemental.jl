@@ -2,13 +2,24 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
-    @eval begin
-        function A_mul_B!(α::$elty, A::DistSparseMatrix{$elty}, x::DistMultiVec{$elty}, β::$elty, y::DistMultiVec{$elty})
-            err = ccall(($(string("ElMultiplyDist_", ext)), libEl), Cuint,
-                (Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
-                EL_NORMAL, α, A.obj, x.obj, β, y.obj)
-            err == 0 || throw(ElError(err))
-            return y
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+
+        for (transA, elenumA) in (("", :EL_NORMAL), ("t", :EL_TRANSPOSE), ("c", :EL_ADJOINT))
+            for (transB, elenumB) in (("", :EL_NORMAL), ("t", :EL_TRANSPOSE), ("c", :EL_ADJOINT))
+                f = symbol("A", transA, "_mul_B", transB, "!")
+
+                @eval begin
+                    function ($f)(α::$elty, A::$mat{$elty}, B::$mat{$elty}, β::$elty, C::$mat{$elty})
+                        err = ccall(($(string("ElGemm", sym, ext)), libEl), Cuint,
+                            (Cint, Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
+                            $elenumA, $elenumB, α, A.obj, B.obj, β, C.obj)
+                        err == 0 || throw(ElError(err))
+                        return C
+                    end
+                end
+            end
         end
     end
 end

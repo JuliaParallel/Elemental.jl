@@ -10,15 +10,9 @@ function runtests()
     print_with_color(:white, "Running Elemental.jl tests\n")
     for f in testfiles
         try
-            if success(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
-                Base.with_output_color(:green,STDOUT) do io
-                    println(io,"\tSUCCESS: $f")
-                end
-            else
-                Base.with_output_color(:red,STDERR) do io
-                    println("\tFAILED: $f")
-                end
-                nfail += 1
+            run(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
+            Base.with_output_color(:green,STDOUT) do io
+                println(io,"\tSUCCESS: $f")
             end
         catch ex
             Base.with_output_color(:red,STDERR) do io

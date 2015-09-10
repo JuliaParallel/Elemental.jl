@@ -33,3 +33,15 @@ function RegSolveCtrl{T<:ElFloatType}(::Type{T};
         ElBool(progress),
         ElBool(time))
 end
+
+for (ext, elty) in (("_s", :Float32), ("_d", :Float64), ("_c", :Complex64), ("_z", :Complex128))
+    @eval begin
+        function svdvals(A::DistMatrix{$elty})
+            s = DistMatrix($elty)
+            ccall(($(string("ElSingularValues", ext)), libEl), Void,
+                (Ptr{Void}, Ptr{Void}),
+                A.obj, s.obj)
+            return s
+        end
+    end
+end

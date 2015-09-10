@@ -6,7 +6,7 @@ using MPI
 n0 = 50
 n1 = 50
 testNative = true
-display = true
+display = false
 worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
 worldSize = MPI.Comm_size(MPI.COMM_WORLD)
 if worldRank == 0
@@ -27,7 +27,7 @@ function stackedFD2D(n0, n1)
     height = 2*n0*n1
     width = n0*n1
     A = El.DistSparseMatrix(Float64, height, width)
-    @show localHeight = El.localHeight(A)
+    localHeight = El.localHeight(A)
     El.reserve(A, 6*localHeight)
 
     for sLoc in 1:localHeight
@@ -88,9 +88,9 @@ AWidth = El.width(A)
 bHeight = El.height(b)
 bWidth = El.width(b)
 
-# if display
-    # show(IO, A)
-# end
+if display
+    show(IO, A)
+end
 ctrl = El.LPAffineCtrl(Float64,
             mehrotraCtrl = El.MehrotraCtrl(Float64,
                             solveCtrl = El.RegSolveCtrl(Float64, progress = true),
@@ -98,7 +98,7 @@ ctrl = El.LPAffineCtrl(Float64,
                             outerEquil = true,
                             time = true))
 
-# elapsedLAV = @elapsed x = El.lav(A, b)
+elapsedLAV = @elapsed x = El.lav(A, b)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
 if MPI.Comm_rank(MPI.COMM_WORLD) == 0
@@ -128,8 +128,9 @@ end
 
 rLS = copy(b)
 A_mul_B!(-1.0, A, xLS, 1., rLS)
-# if display
-    # El.Display( rLS, "A x_{LS} - b" )
+if display
+    El.Display( rLS, "A x_{LS} - b" )
+end
 
 rLSTwoNorm = El.nrm2(rLS)
 rLSOneNorm = El.entrywiseNorm(rLS, 1)
