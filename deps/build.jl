@@ -47,4 +47,3 @@ cd(builddir) do
     run(`make -j $CPU_CORES`)
     run(`make install`)
 end
-

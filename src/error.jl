@@ -18,7 +18,7 @@ end
 
 function ElError(code::Integer)
     if code == 1
-        return MemoryError()
+        return OutOfMemoryError()
     elseif code == 2
         return ArgumentError()
     elseif code == 3
