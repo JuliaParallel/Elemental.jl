@@ -31,13 +31,11 @@ function ElBoolType()
     #       to improperly passed structs to Elemental's C interface. This is
     #       worth investigating and might be an alignment issue.
 
-    warn("Hardcoding ElBool to Cint")
-    #boolsize = Ref(zero(Cuint))
-    #err = ccall((:ElSizeOfCBool, libEl), Cuint, (Ref{Cuint},), boolsize)
-    #err == 0 || throw(ElError(err))
-    #return boolsize[] == 1 ? Uint8 : Cint
-
-    return Cint
+    # warn("Hardcoding ElBool to Cint")
+    boolsize = Ref(zero(Cuint))
+    err = ccall((:ElSizeOfCBool, libEl), Cuint, (Ref{Cuint},), boolsize)
+    err == 0 || throw(ElError(err))
+    return boolsize[] == 1 ? UInt8 : Cint
 end
 const ElBool = ElBoolType()
 
@@ -49,7 +47,7 @@ function ElBool(value::Bool)
     end
 end
 
-typealias ElFloatType Union(Float32,Float64)
+typealias ElFloatType Union{Float32,Float64}
 
 abstract ElementalMatrix{T} <: AbstractMatrix{T}
 

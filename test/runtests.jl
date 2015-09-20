@@ -4,12 +4,13 @@ using Base.Test
 function runtests()
     nprocs = min(4, CPU_CORES)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
-    testfiles = sort(filter(x->x!="runtests.jl", readdir(dirname(@__FILE__))))
+    testdir = dirname(@__FILE__)
+    testfiles = sort(filter(x->x!="runtests.jl", readdir(testdir)))
     nfail = 0
     print_with_color(:white, "Running Elemental.jl tests\n")
     for f in testfiles
         try
-            if success(`mpirun -np $nprocs $exename $f`)
+            if success(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
                 Base.with_output_color(:green,STDOUT) do io
                     println(io,"\tSUCCESS: $f")
                 end
