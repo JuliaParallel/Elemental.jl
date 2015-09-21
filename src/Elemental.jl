@@ -3,7 +3,7 @@ module Elemental
 using MPI
 using DistributedArrays
 
-import Base: A_mul_B!, copy, copy!, similar, size
+import Base: A_mul_B!, copy, copy!, print, similar, size
 
 include("../deps/deps.jl")
 
@@ -45,6 +45,7 @@ include("distmatrix.jl")
 include("distsparsematrix.jl")
 include("distmultivec.jl")
 include("matrices.jl")
+include("io.jl")
 include("blas_like/level1.jl")
 include("blas_like/level2.jl")
 include("blas_like/level3.jl")
