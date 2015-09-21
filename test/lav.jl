@@ -3,9 +3,9 @@ const El = Elemental
 
 using MPI
 
-n0 = 20
-n1 = 20
-testNative = false
+n0 = 50
+n1 = 50
+testNative = true
 display = true
 worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
 worldSize = MPI.Comm_size(MPI.COMM_WORLD)
@@ -13,7 +13,7 @@ if worldRank == 0
   print("worldSize=$worldSize\n")
 end
 
-@everywhere using DistributedArrays
+using DistributedArrays
 
 function randDArray(m,n,sparsity=0.01)
     DA = DistributedArrays.DArray((m,n)) do I
@@ -27,50 +27,48 @@ function stackedFD2D(n0, n1)
     height = 2*n0*n1
     width = n0*n1
     A = El.DistSparseMatrix(Float64, height, width)
-    localHeight = El.localHeight(A)
+    @show localHeight = El.localHeight(A)
     El.reserve(A, 6*localHeight)
-    # 'passive' determines whether or not the process should communicate if the
-    # requested global update corresponds to a non-local entry
-    passive::Bool = false
+
     for sLoc in 1:localHeight
         s = El.globalRow(A, sLoc)
         if s <= n0*n1
             x0 = ((s-1) % n0) + 1
             x1 = div((s-1), n0) + 1
-            El.queueUpdate(A, s, s, 11.0, passive)
+            El.queueUpdate(A, s, s, 11.0)
             if x0 > 1
-                El.queueUpdate(A, s, s - 1, -10.0, passive)
+                El.queueUpdate(A, s, s - 1, -10.0)
             end
             if x0 < n0
-                El.queueUpdate(A, s, s + 1, 20.0, passive)
+                El.queueUpdate(A, s, s + 1, 20.0)
             end
             if x1 > 1
-                El.queueUpdate(A, s, s - n0, -30.0, passive)
+                El.queueUpdate(A, s, s - n0, -30.0)
             end
             if x1 < n1
-                El.queueUpdate(A, s, s + n0, 40.0, passive)
+                El.queueUpdate(A, s, s + n0, 40.0)
             end
         else
             sRel = s - n0*n1
             x0 = ((sRel-1) % n0) + 1
             x1 = div(sRel-1, n0) + 1
-            El.queueUpdate(A, s, sRel, -20.0, passive)
+            El.queueUpdate(A, s, sRel, -20.0)
             if x0 > 1
-                El.queueUpdate(A, sLoc, sRel - 1, -1.0, passive)
+                El.queueUpdate(A, s, sRel - 1, -1.0)
             end
             if x0 < n0
-                El.queueUpdate(A, sLoc, sRel + 1, -2.0, passive)
+                El.queueUpdate(A, s, sRel + 1, -2.0)
             end
             if x1 > 1
-                El.queueUpdate(A, sLoc, sRel - n0, -3.0, passive)
+                El.queueUpdate(A, s, sRel - n0, -3.0)
             end
             if x1 < n1
-                El.queueUpdate(A, sLoc, sRel + n0, 3.0, passive)
+                El.queueUpdate(A, s, sRel + n0, 3.0)
             end
         end
 
         # The dense last column
-        El.queueUpdate(A, s, width, -div(10.0, height), passive)
+        El.queueUpdate(A, s, width, -div(10.0, height))
     end
     El.processQueues(A)
     return A
@@ -94,11 +92,11 @@ bWidth = El.width(b)
     # show(IO, A)
 # end
 ctrl = El.LPAffineCtrl(Float64,
-            mehrotraCtrl=El.LPAffineMehrotraCtrl(Float64,
-                            qsdCtrl=El.RegQSDCtrl(Float64,progress=true),
-                            progress=true,
-                            outerEquil=true,
-                            time=true))
+            mehrotraCtrl = El.MehrotraCtrl(Float64,
+                            solveCtrl = El.RegSolveCtrl(Float64, progress = true),
+                            print = true,
+                            outerEquil = true,
+                            time = true))
 
 # elapsedLAV = @elapsed x = El.lav(A, b)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)

@@ -1,103 +1,95 @@
 # Linear Programming
 # ==================
-const EL_LP_ADMM = Cuint(0)
-const EL_LP_IPF = Cuint(1)
-const EL_LP_IPF_SELFDUAL = Cuint(2)
-const EL_LP_MEHROTRA = Cuint(3)
-const EL_LP_MEHROTRA_SELFDUAL = Cuint(4)
+typealias ElLPApproach Cuint
 
-immutable IPFLineSearchCtrl{T<:ElFloatType}
-    gamma::T
-    beta::T
-    psi::T
-    stepRatio::T
-    progress::ElBool
-end
-function IPFLineSearchCtrl{T<:ElFloatType}(::Type{T};
-                           gamma=1e-3,
-                           beta=2,
-                           psi=100,
-                           stepRatio=1.5,
-                           progress::Bool=false)
-    IPFLineSearchCtrl{T}(gamma, beta, psi, stepRatio, ElBool(progress))
-end
+const EL_LP_ADMM = ElLPApproach(0)
+const EL_LP_MEHROTRA = ElLPApproach(1)
 
-immutable LPAffineIPFCtrl{T<:ElFloatType}
-    primalInit::ElBool
-    dualInit::ElBool
-    minTol::T
-    targetTol::T
-    maxIts::ElInt
-    centering::T
-    qsdCtrl::RegQSDCtrl{T}
-    lineSearchCtrl::IPFLineSearchCtrl{T}
-    equilibrate::ElBool
-    progress::ElBool
-    time::ElBool
-end
-function LPAffineIPFCtrl{T<:ElFloatType}(::Type{T};
-                         primalInit::Bool=false,
-                         dualInit::Bool=false,
-                         minTol=eps(T)^convert(T,0.3),
-                         targetTol=eps(T)^convert(T,0.5),
-                         maxIts=1000,
-                         centering=0.9,
-                         qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
-                         lineSearchCtrl::IPFLineSearchCtrl=IPFLineSearchCtrl(T),
-                         equilibrate::Bool=false,
-                         progress::Bool=false,
-                         time::Bool=false)
-    LPAffineIPFCtrl{T}(ElBool(primalInit), ElBool(dualInit), minTol, targetTol,
-                       maxIts, centering, qsdCtrl, lineSearchCtrl,
-                       ElBool(equilibrate), ElBool(progress), ElBool(time))
-end
+typealias ElKKTSystem Cuint
 
-immutable LPAffineMehrotraCtrl{T<:ElFloatType}
+const EL_FULL_KKT = ElKKTSystem(0)
+const EL_AUGMENTED_KKT = ElKKTSystem(1)
+const EL_NORMAL_KKT = ElKKTSystem(2)
+
+immutable MehrotraCtrl{T<:ElFloatType}
     primalInit::ElBool
     dualInit::ElBool
     minTol::T
     targetTol::T
     maxIts::ElInt
     maxStepRatio::T
-    qsdCtrl::RegQSDCtrl{T}
+    system::ElKKTSystem
+    mehrotra::ElBool
+    forceSameStep::ElBool
+    solveCtrl::RegSolveCtrl{T}
+    resolveReg::ElBool
     outerEquil::ElBool
-    innerEquil::ElBool
-    scaleTwoNorm::ElBool
     basisSize::ElInt
-    progress::ElBool
+    print::ElBool
     time::ElBool
+    wSafeMaxNorm::T
+    wMaxLimit::T
+    ruizEquilTol::T
+    ruizMaxIter::ElInt
+    diagEquilTol::T
+    checkResiduals::ElBool
 end
-function LPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
-                              primalInit::Bool=false,
-                              dualInit::Bool=false,
-                              minTol=eps(T)^convert(T,0.3),
-                              targetTol=eps(T)^convert(T,0.5),
-                              maxIts=100,
-                              maxStepRatio=0.99,
-                              qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
-                              outerEquil::Bool=true,
-                              innerEquil::Bool=true,
-                              scaleTwoNorm::Bool=true,
-                              basisSize=15,
-                              progress::Bool=false,
-                              time::Bool=false)
-    LPAffineMehrotraCtrl{T}(ElBool(primalInit), ElBool(dualInit), 
-                            minTol, targetTol, maxIts, maxStepRatio, qsdCtrl, 
-                            ElBool(outerEquil), ElBool(innerEquil), 
-                            ElBool(scaleTwoNorm),
-                            basisSize, ElBool(progress), ElBool(time))
+function MehrotraCtrl{T<:ElFloatType}(::Type{T};
+    primalInit::Bool = false,
+    dualInit::Bool = false,
+    minTol = eps(T)^0.3,
+    targetTol = eps(T)^0.5,
+    maxIts = 1000,
+    maxStepRatio = 0.99,
+    system = EL_FULL_KKT,
+    mehrotra = true,
+    forceSameStep = true,
+    solveCtrl = RegSolveCtrl(T),
+    resolveReg = true,
+    outerEquil::Bool = true,
+    basisSize = 6,
+    print = false,
+    time = false,
+    wSafeMaxNorm = eps(T)^(-0.15),
+    wMaxLimit = eps(T)^(-0.4),
+    ruizEquilTol = eps(T)^(-0.25),
+    ruizMaxIter = 3,
+    diagEquilTol = eps(T)^(-0.15),
+    checkResiduals = false)
+
+    MehrotraCtrl{T}(ElBool(primalInit),
+                    ElBool(dualInit),
+                    T(minTol),
+                    T(targetTol),
+                    ElInt(maxIts),
+                    T(maxStepRatio),
+                    ElKKTSystem(system),
+                    ElBool(mehrotra),
+                    ElBool(forceSameStep),
+                    solveCtrl,
+                    ElBool(resolveReg),
+                    ElBool(outerEquil),
+                    ElInt(basisSize),
+                    ElBool(print),
+                    ElBool(time),
+                    T(wSafeMaxNorm),
+                    T(wMaxLimit),
+                    T(ruizEquilTol),
+                    ElInt(ruizMaxIter),
+                    T(diagEquilTol),
+                    ElBool(checkResiduals))
 end
 
 immutable LPAffineCtrl{T<:ElFloatType}
     approach::Cuint
-    ipfCtrl::LPAffineIPFCtrl{T}
-    mehrotraCtrl::LPAffineMehrotraCtrl{T}
+    mehrotraCtrl::MehrotraCtrl{T}
 end
+
 function LPAffineCtrl{T<:ElFloatType}(::Type{T};
-                      approach::Cuint=EL_LP_MEHROTRA,
-                      ipfCtrl::LPAffineIPFCtrl=LPAffineIPFCtrl(T),
-                      mehrotraCtrl::LPAffineMehrotraCtrl=LPAffineMehrotraCtrl(T))
-    LPAffineCtrl{T}(approach, ipfCtrl, mehrotraCtrl)
+    approach::Cuint = EL_LP_MEHROTRA,
+    mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
+
+    LPAffineCtrl{T}(approach, mehrotraCtrl)
 end
 
 for (elty, ext) in ((:Float32, :s),
@@ -134,49 +126,13 @@ const EL_SOCP_IPF_SELFDUAL = Cuint(2)
 const EL_SOCP_MEHROTRA = Cuint(3)
 const EL_SOCP_MEHROTRA_SELFDUAL = Cuint(4)
 
-immutable SOCPAffineMehrotraCtrl{T<:ElFloatType}
-    primalInit::ElBool
-    dualInit::ElBool
-    minTol::T
-    targetTol::T
-    maxIts::ElInt
-    maxStepRatio::T
-    qsdCtrl::RegQSDCtrl{T}
-    outerEquil::ElBool
-    innerEquil::ElBool
-    scaleTwoNorm::ElBool
-    basisSize::ElInt
-    progress::ElBool
-    time::ElBool
-end
-function SOCPAffineMehrotraCtrl{T<:ElFloatType}(::Type{T};
-                              primalInit::Bool=false,
-                              dualInit::Bool=false,
-                              minTol=eps(T)^convert(T,0.3),
-                              targetTol=eps(T)^convert(T,0.5),
-                              maxIts=100,
-                              maxStepRatio=0.99,
-                              qsdCtrl::RegQSDCtrl=RegQSDCtrl(T),
-                              outerEquil::Bool=true,
-                              innerEquil::Bool=true,
-                              scaleTwoNorm::Bool=true,
-                              basisSize=15,
-                              progress::Bool=false,
-                              time::Bool=false)
-    SOCPAffineMehrotraCtrl{T}(ElBool(primalInit), ElBool(dualInit), 
-                            minTol, targetTol, maxIts,
-                            maxStepRatio, qsdCtrl, ElBool(outerEquil),
-                            ElBool(innerEquil), ElBool(scaleTwoNorm),
-                            basisSize, ElBool(progress), ElBool(time))
-end
-
 immutable SOCPAffineCtrl{T<:ElFloatType}
     approach::Cuint
-    mehrotraCtrl::SOCPAffineMehrotraCtrl{T}
+    mehrotraCtrl::MehrotraCtrl{T}
 end
 function SOCPAffineCtrl{T<:ElFloatType}(::Type{T};
                       approach::Cuint=EL_SOCP_MEHROTRA,
-                      mehrotraCtrl::SOCPAffineMehrotraCtrl=SOCPAffineMehrotraCtrl(T))
+                      mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
     SOCPAffineCtrl{T}(approach, mehrotraCtrl)
 end
 

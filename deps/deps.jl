@@ -28,7 +28,8 @@ macro checked_lib(lib)
         const $(esc(lib)) = $libpath
     end
 end
-#@checked_lib_opt libmetis
-#@checked_lib_opt libparmetis
-#@checked_lib_opt libpmrrr
+@checked_lib_opt libmetis
+@checked_lib_opt libparmetis
+@checked_lib_opt libElSuiteSparse
+@checked_lib_opt libpmrrr
 @checked_lib libEl
