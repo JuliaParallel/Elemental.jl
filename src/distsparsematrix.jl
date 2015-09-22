@@ -8,26 +8,16 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistSparseMatrix(::Type{$elty}, cm::ElComm)
+        function DistSparseMatrix(::Type{$elty}, comm::ElComm = ElMPICommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
-                obj, cm)
+                obj, comm)
             err == 0 || throw(ElError(err))
             return DistSparseMatrix{$elty}(obj[])
         end
 
-        function DistSparseMatrix(::Type{$elty}, cm::MPI.Comm = MPI.COMM_WORLD)
-            cComm = Ref{ElComm}()
-            err = ccall((:ElMPICommF2C, libEl), Cuint,
-              (Cint, Ref{ElComm}),
-              cm.val,cComm)
-            err == 0 || throw(ElError(err))
-
-            return DistSparseMatrix($elty, cComm[])
-        end
-
-        function DistSparseMatrix(::Type{$elty}, m::Integer, n::Integer, comm = MPI.COMM_WORLD)
+        function DistSparseMatrix(::Type{$elty}, m::Integer, n::Integer, comm::ElComm = ElMPICommWorld)
             A = DistSparseMatrix($elty, comm)
             resize(A, m, n)
             return A

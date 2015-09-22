@@ -62,3 +62,11 @@ const EL_CIRC		= Cint(6)
 const EL_NORMAL 	= Cint(0)
 const EL_TRANSPOSE 	= Cint(1)
 const EL_ADJOINT 	= Cint(2)
+
+# Get MPIWorldComm
+function ElMPICommWorldValue()
+    r = Ref{ElComm}(0)
+    ccall((:ElMPICommWorld, libEl), Cuint, (Ref{ElComm},), r)
+    return r[]
+end
+const ElMPICommWorld  = ElMPICommWorldValue()

@@ -8,23 +8,13 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistMultiVec(::Type{$elty}, cm::ElComm)
+        function DistMultiVec(::Type{$elty}, cm::ElComm = ElMPICommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
                 obj, cm)
             err == 0 || throw(ElError(err))
             return DistMultiVec{$elty}(obj[])
-        end
-
-        function DistMultiVec(::Type{$elty}, cm::MPI.Comm = MPI.COMM_WORLD)
-            cComm = Ref{ElComm}()
-            err = ccall((:ElMPICommF2C, libEl), Cuint,
-              (Cint, Ref{ElComm}),
-              cm.val,cComm)
-            err == 0 || throw(ElError(err))
-
-            return DistMultiVec($elty, cComm[])
         end
 
         function height(x::DistMultiVec{$elty})
@@ -72,4 +62,4 @@ end
 
 eltype{T}(x::DistMultiVec{T}) = T
 size(x::DistMultiVec) = (Int(height(x)),)
-similar{T}(x::DistMultiVec{T}, cm = MPI.COMM_WORLD) = DistMultiVec(T, cm)
+similar{T}(x::DistMultiVec{T}, cm = ElMPICommWorld) = DistMultiVec(T, cm)
