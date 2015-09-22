@@ -2,7 +2,7 @@ module Elemental
 
 using DistributedArrays
 
-import Base: A_mul_B!, copy, copy!, print, similar, size
+import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size
 
 include("../deps/deps.jl")
 
@@ -37,12 +37,13 @@ function __init__()
     end
 end
 
-include("types.jl")
-include("grid.jl")
-include("sparsematrix.jl")
-include("distmatrix.jl")
-include("distsparsematrix.jl")
-include("distmultivec.jl")
+include("core/types.jl")
+include("core/matrix.jl")
+include("core/grid.jl")
+include("core/sparsematrix.jl")
+include("core/distmatrix.jl")
+include("core/distsparsematrix.jl")
+include("core/distmultivec.jl")
 include("matrices.jl")
 include("io.jl")
 include("blas_like/level1.jl")
