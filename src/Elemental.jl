@@ -1,6 +1,5 @@
 module Elemental
 
-using MPI
 using DistributedArrays
 
 import Base: A_mul_B!, copy, copy!, print, similar, size

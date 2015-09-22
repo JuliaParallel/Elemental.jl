@@ -4,7 +4,12 @@ os:
   - linux
 
 julia:
+  - 0.4
   - nightly
+
+env:
+  - MPI=mpich2
+  - MPI=openmpi
 
 notifications:
   email: false
