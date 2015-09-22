@@ -76,21 +76,9 @@ function setindex!(A::Matrix, x::Number, i::Integer, j::Integer)
     return unsafe_store!(p, x, li)
 end
 
-function similar{T}(A::Matrix{T})
+similar(A::Matrix) = similar(A, size(A))
+function similar{T}(A::Matrix{T}, sz::Tuple{Int,Int})
     B = Matrix(T)
-    resize!(B, size(A)...)
+    resize!(B, sz...)
     return B
 end
-
-function size(A::Matrix, i::Integer)
-    if i < 1
-        error("dimension out of range")
-    elseif i == 1
-        return Int(height(A))
-    elseif i == 2
-        return Int(width(A))
-    else
-        return 1
-    end
-end
-size(A::Matrix) = (size(A, 1), size(A, 2))
