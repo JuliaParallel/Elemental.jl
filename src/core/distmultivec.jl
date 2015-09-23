@@ -60,6 +60,5 @@ for (elty, ext) in ((:ElInt, :i),
     end
 end
 
-eltype{T}(x::DistMultiVec{T}) = T
-size(x::DistMultiVec) = (Int(height(x)),)
+# size(x::DistMultiVec) = (Int(height(x)),) # We consider everything 2D
 similar{T}(x::DistMultiVec{T}, cm = ElMPICommWorld) = DistMultiVec(T, cm)

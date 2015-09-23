@@ -2,7 +2,9 @@ module Elemental
 
 using DistributedArrays
 
-import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size
+import Base: *
+import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size, svd,
+    svdvals, svdvals!
 
 include("../deps/deps.jl")
 
@@ -52,7 +54,9 @@ include("blas_like/level3.jl")
 include("lapack_like/euclidean_min.jl")
 include("lapack_like/factor.jl")
 include("lapack_like/props.jl")
+include("lapack_like/spectral.jl")
 include("optimization/solvers.jl")
 include("optimization/models.jl")
+include("julia/generic.jl")
 
 end # module

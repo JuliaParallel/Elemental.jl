@@ -9,7 +9,7 @@ const ElInt = ElIntType()
 
 function ElCommType()
     sameSizeAsInt = Cint[0]
-    err = ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},), 
+    err = ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
       sameSizeAsInt)
     err == 0 || throw(ElError(err))
     return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
@@ -18,7 +18,7 @@ const ElComm = ElCommType()
 
 function ElGroupType()
     sameSizeAsInt = Cint[0]
-    err = ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},), 
+    err = ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
       sameSizeAsInt)
     err == 0 || throw(ElError(err))
     return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}

@@ -38,7 +38,25 @@ for (elty, ext) in ((:ElInt, :i),
             return g
         end
 
-        function reserve{$elty}(A::DistMatrix{$elty}, numEntries::Integer)
+        function height(A::DistMatrix{$elty})
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElInt}),
+                A.obj, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
+        end
+
+        function width(A::DistMatrix{$elty})
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElInt}),
+                A.obj, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
+        end
+
+        function reserve(A::DistMatrix{$elty}, numEntries::Integer)
             err = ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt),
               A.obj, numEntries)
@@ -46,7 +64,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function queueUpdate{$elty}(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
+        function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
             err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
               A.obj, i-1, j-1, value)
@@ -54,11 +72,20 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function processQueues{$elty}(A::DistMatrix{$elty})
+        function processQueues(A::DistMatrix{$elty})
           err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
             (Ptr{Void},), A.obj)
           err == 0 || throw(ElError(err))
           return nothing
+        end
+
+        function getindex(A::DistMatrix{$elty}, i::Integer, j::Integer)
+            rv = Ref{$elty}(0)
+            err = ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                A.obj, i - 1, j - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
         end
     end
 end

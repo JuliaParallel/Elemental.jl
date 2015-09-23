@@ -31,7 +31,7 @@ for (elty, ext) in ((:ElInt, :i),
             return 0
         end
 
-        function resize{$elty}(A::DistSparseMatrix{$elty}, height::Integer, width::Integer)
+        function resize(A::DistSparseMatrix{$elty}, height::Integer, width::Integer)
             err = ccall(($(string("ElDistSparseMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
                 A.obj, height, width)
@@ -39,7 +39,7 @@ for (elty, ext) in ((:ElInt, :i),
             return A
         end
 
-        function localHeight{$elty}(A::DistSparseMatrix{$elty})
+        function localHeight(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixLocalHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
@@ -48,7 +48,7 @@ for (elty, ext) in ((:ElInt, :i),
             return i[]
         end
 
-        function reserve{$elty}(A::DistSparseMatrix{$elty}, numLocalEntries::Integer, numRemoteEntries::Integer = 0)
+        function reserve(A::DistSparseMatrix{$elty}, numLocalEntries::Integer, numRemoteEntries::Integer = 0)
             err = ccall(($(string("ElDistSparseMatrixReserve_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
                 A.obj, numLocalEntries, numRemoteEntries)
@@ -56,7 +56,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function globalRow{$elty}(A::DistSparseMatrix{$elty}, iLoc::Integer)
+        function globalRow(A::DistSparseMatrix{$elty}, iLoc::Integer)
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}),
@@ -65,7 +65,7 @@ for (elty, ext) in ((:ElInt, :i),
             return i[]+1
         end
 
-        function queueLocalUpdate{$elty}(A::DistSparseMatrix{$elty}, localRow::Integer, col::Integer, value::$elty)
+        function queueLocalUpdate(A::DistSparseMatrix{$elty}, localRow::Integer, col::Integer, value::$elty)
             err = ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty),
                 A.obj, localRow-1, col-1, value)
@@ -73,7 +73,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function queueUpdate{$elty}(A::DistSparseMatrix{$elty}, row::Integer, col::Integer, value::$elty, passive::Bool = true)
+        function queueUpdate(A::DistSparseMatrix{$elty}, row::Integer, col::Integer, value::$elty, passive::Bool = true)
             err = ccall(($(string("ElDistSparseMatrixQueueUpdate_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, $elty, Bool),
                 A.obj, row-1, col-1, value, passive)
@@ -81,7 +81,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function processQueues{$elty}(A::DistSparseMatrix{$elty})
+        function processQueues(A::DistSparseMatrix{$elty})
             err = ccall(($(string("ElDistSparseMatrixProcessQueues_", ext)), libEl), Cuint,
                 (Ptr{Void},),
                 A.obj)
@@ -89,7 +89,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function height{$elty}(A::DistSparseMatrix{$elty})
+        function height(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
@@ -98,7 +98,7 @@ for (elty, ext) in ((:ElInt, :i),
             return i[]
         end
 
-        function width{$elty}(A::DistSparseMatrix{$elty})
+        function width(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             err = ccall(($(string("ElDistSparseMatrixWidth_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
@@ -123,17 +123,17 @@ for (elty, ext) in ((:ElInt, :i),
               error("Used non MPI.COMM_WORLD DArray for DistSparseMatrix, as procs(DA)=($npr,$npc) is incompatible with MPI.Comm_size(MPI.COMM_WORLD)=$(MPI.Comm_size(MPI.COMM_WORLD))")
             end
 
-            m, n = size(DA) 
+            m, n = size(DA)
             A = DistSparseMatrix($elty, m, n)
-            @sync begin 
+            @sync begin
                 for id in workers()
                   let A = A, DA = DA
                     @async remotecall_fetch(id, () -> begin
                       rows, cols = DistributedArrays.localindexes(DA)
                       i,j,v = findnz(DistributedArrays.localpart(DA))
-                      gi, gj, gv = (i.+(first(rows)-1), j.+(first(cols)-1), v) 
+                      gi, gj, gv = (i.+(first(rows)-1), j.+(first(cols)-1), v)
                       numLocal = length(gi)
-                      reserve(A,numLocal) 
+                      reserve(A,numLocal)
                       for s=1:numLocal
                         queueUpdate(A,gi[s],gj[s],v[s])
                       end
@@ -146,5 +146,3 @@ for (elty, ext) in ((:ElInt, :i),
         end
     end
 end
-
-size(A::DistSparseMatrix) = (Int(height(A)), Int(width(A)))
