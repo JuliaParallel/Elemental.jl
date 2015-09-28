@@ -44,6 +44,6 @@ cd(builddir) do
                -D EL_BLAS_SUFFIX=$blas_suffix
                -D EL_LAPACK_SUFFIX=$blas_suffix
                $srcdir`)
-    run(`make -j 2`)
+    run(`make -j $CPU_CORES`)
     run(`make install`)
 end
