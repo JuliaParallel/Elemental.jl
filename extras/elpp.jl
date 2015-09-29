@@ -77,7 +77,7 @@ queueUpdate{T}(A::AbstractDistMatrix{T}, i::Integer, j::Integer, x) = _queueUpda
 processQueues!(A::AbstractDistMatrix) = icxx"$(A.buf).ProcessQueues();"
 
 _zeros!(A::AbstractDistMatrix, m::ElInt, n::ElInt) = icxx"El::Zeros($(A.buf), $m, $n);"
-zeros!(A::AbstractDistMatrix) = _zeros!(A, ElInt(size(A, 1)), ElInt(size(A, 2)))
+zeros!(A::AbstractDistMatrix, m::Integer = size(A,1), n::Integer = size(A,2)) = _zeros!(A, ElInt(m), ElInt(n))
 
 ### Matrix ###
 
@@ -160,8 +160,7 @@ function toback(A::DArray{Float64,2}, name::Symbol)
         @async remotecall_fetch(A.pids[p], () -> begin
             lA = localpart(A)
             eval(Main, :(AlA = Elpp.DistMatrix{Float64}()))
-            Elpp.resize!(Main.AlA, size(A)...)
-            Elpp.reserve(Main.AlA, length(lA))
+            Elpp.zeros!(Main.AlA, size(A)...)
             for j = 1:size(lA, 2)
                 for i = 1:size(lA, 1)
                     Elpp.queueUpdate(Main.AlA, start(ind[1]) + i - 1, start(ind[2]) + j - 1, lA[i,j])
