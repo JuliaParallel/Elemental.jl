@@ -25,6 +25,7 @@ blas = Base.blas_vendor()
 mathlib = Libdl.dlpath(BLAS.libblas)
 blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
 blas_suffix = blas === :openblas64 ? "_64_" : "_"
+build_procs = (haskey(ENV, "CI") && ENV["CI"] == "true") ? 2 : CPU_CORES
 
 builddir = joinpath(depdir, "builds")
 if isdir(builddir)
@@ -44,6 +45,6 @@ cd(builddir) do
                -D EL_BLAS_SUFFIX=$blas_suffix
                -D EL_LAPACK_SUFFIX=$blas_suffix
                $srcdir`)
-    run(`make -j $CPU_CORES`)
+    run(`make -j $build_procs`)
     run(`make install`)
 end
