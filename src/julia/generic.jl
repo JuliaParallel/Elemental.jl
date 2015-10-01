@@ -20,3 +20,5 @@ size(A::ElementalMatrix) = (size(A, 1), size(A, 2))
 
 # Spectral
 svd(A::ElementalMatrix) = svd!(copy(A))
+svd(A::ElementalMatrix, ctrl::SVDCtrl) = svd!(copy(A), ctrl)
+svdvals(A::ElementalMatrix, ctrl::SVDCtrl) = svdvals!(copy(A), ctrl)
