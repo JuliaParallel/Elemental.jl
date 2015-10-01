@@ -154,21 +154,24 @@ socp(A::DistSparseMatrix, G::DistSparseMatrix, b::DistMultiVec, c::DistMultiVec,
 # DArray stuff
 
 using DistributedArrays
-function toback(A::DArray{Float64,2}, name::Symbol)
+function toback(A::DArray{Float64,2})
+    rs = Array(Any, size(A.chunks))
     for p in eachindex(A.chunks)
         ind = A.indexes[p]
-        @async remotecall_fetch(A.pids[p], () -> begin
+        rs[p] = remotecall(A.pids[p], () -> begin
             lA = localpart(A)
-            eval(Main, :(AlA = Elpp.DistMatrix{Float64}()))
-            Elpp.zeros!(Main.AlA, size(A)...)
+            AlA = Elpp.DistMatrix{Float64}()
+            Elpp.zeros!(AlA, size(A)...)
             for j = 1:size(lA, 2)
                 for i = 1:size(lA, 1)
-                    Elpp.queueUpdate(Main.AlA, start(ind[1]) + i - 1, start(ind[2]) + j - 1, lA[i,j])
+                    Elpp.queueUpdate(AlA, start(ind[1]) + i - 1, start(ind[2]) + j - 1, lA[i,j])
                 end
             end
             Elpp.processQueues!(Main.AlA)
+            AlA
         end)
     end
+    rs
 end
 
 end

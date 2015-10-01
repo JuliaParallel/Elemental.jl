@@ -1,6 +1,6 @@
 module Elemental
 
-using DistributedArrays
+using Compat
 
 import Base: *
 import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size, svd,
@@ -58,5 +58,6 @@ include("lapack_like/spectral.jl")
 include("optimization/solvers.jl")
 include("optimization/models.jl")
 include("julia/generic.jl")
+include("julia/darray.jl")
 
 end # module

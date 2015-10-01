@@ -4,6 +4,21 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
 
+    # Zeros
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"),
+                       (:DistMultiVec, "DistMultiVec_"))
+        @eval begin
+            function zeros!(A::$mat{$elty}, m::Integer, n::Integer)
+                err = ccall(($(string("ElZeros", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt),
+                    A.obj, m, n)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+        end
+    end
+
     # Gaussian
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
