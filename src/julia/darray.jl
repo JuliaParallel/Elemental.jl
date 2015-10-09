@@ -1,10 +1,12 @@
 using DistributedArrays
 
+# FixMe! Right now the MPI workers are deduced from the DArrays, but if a DArray is distributed on fewer workers that what consistutes the MPI world, then this approach will fail.
+
 function toback{S<:StridedMatrix}(A::DArray{Float64,2,S})
     rs = Array(Any, size(A.chunks))
-    for p in eachindex(A.chunks)
+    @sync for p in eachindex(A.chunks)
         ind = A.indexes[p]
-        rs[p] = remotecall(A.pids[p]) do
+        @async rs[p] = remotecall(A.pids[p]) do
             lA = localpart(A)
             AlA = Elemental.DistMatrix(Float64)
             zeros!(AlA, size(A)...)
@@ -18,6 +20,58 @@ function toback{S<:StridedMatrix}(A::DArray{Float64,2,S})
         end
     end
     return rs
+end
+
+function tofront(r::Base.Matrix)
+    tt = [remotecall(() -> typeof(fetch(rr)), rr.where) for rr in r]
+    rType = fetch(tt[1])
+    if rType <: ElementalMatrix
+        tt = [remotecall(() -> size(fetch(rr)), rr.where) for rr in r]
+        mn = fetch(tt[1])
+        A = dzeros(mn, Int[r[i,j].where for i = 1:size(r, 1), j = 1:size(r, 2)], size(r))
+
+        @sync for p in eachindex(r)
+            ind = A.indexes[p]
+            rr = r[p]
+            @async remotecall_wait(r[p].where) do
+                rrr = fetch(rr)
+                lA = localpart(A)
+                for j = 1:size(lA, 2)
+                    for i = 1:size(lA, 1)
+                        queuePull(rrr, start(ind[1]) + i - 1, start(ind[2]) + j - 1)
+                    end
+                end
+                processPullQueue(rrr, lA)
+            end
+        end
+    elseif rType <: Exception
+        throw(fetch(r[1]))
+    else
+        error("Remote type was $rType and is not handled yet")
+    end
+    return A
+end
+
+function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
+    rA = toback(A)
+    rB = toback(B)
+    pidsAB = union(A.pids, B.pids)
+    rvals = Array(Any, length(pidsAB))
+    @sync for i = 1:length(pidsAB)
+        @async rvals[i] = remotecall_wait((t1,t2) -> solve!(fetch(t1), fetch(t2)), pidsAB[i], rA[i], rB[i])
+    end
+    return tofront(reshape(rvals, size(B.chunks)))
+end
+
+function svdvals{T<:BlasFloat}(A::DArray{T,2})
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> svdvals(fetch(t)), rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
 end
 
 for (elty, ext) in ((:ElInt, :i),

@@ -2,7 +2,7 @@ module Elemental
 
 using Compat
 
-import Base: *
+import Base: *, \
 import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size, svd,
     svdvals, svdvals!
 
@@ -54,6 +54,7 @@ include("blas_like/level3.jl")
 include("lapack_like/euclidean_min.jl")
 include("lapack_like/factor.jl")
 include("lapack_like/props.jl")
+include("lapack_like/solve.jl")
 include("lapack_like/spectral.jl")
 include("optimization/solvers.jl")
 include("optimization/models.jl")

@@ -43,6 +43,7 @@ cd(builddir) do
                -D MATH_LIBS=$mathlib
                -D EL_BLAS_SUFFIX=$blas_suffix
                -D EL_LAPACK_SUFFIX=$blas_suffix
+               -D EL_DISABLE_SCALAPACK=ON
                $srcdir`)
     run(`make -j $build_procs`)
     run(`make install`)
