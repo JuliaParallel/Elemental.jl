@@ -38,7 +38,6 @@ cd(builddir) do
                -D INSTALL_PYTHON_PACKAGE=OFF
                -D PYTHON_EXECUTABLE=""
                -D PYTHON_SITE_PACKAGES=""
-               -D EL_DISABLE_SCALAPACK=ON
                -D EL_USE_64BIT_INTS=$blas64
                -D EL_USE_64BIT_BLAS_INTS=$blas64
                -D MATH_LIBS=$mathlib
