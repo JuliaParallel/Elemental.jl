@@ -4,7 +4,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Complex128, :Float64, :z))
 
     # Distributed sparse gemv
-    for (trans, elenum) in (("", :EL_NORMAL), ("t", :EL_TRANSPOSE), ("c", :EL_ADJOINT))
+    for (trans, elenum) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
 
         f = symbol("A", trans, "_mul_B!")
 

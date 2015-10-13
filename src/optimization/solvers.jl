@@ -2,14 +2,14 @@
 # ==================
 typealias ElLPApproach Cuint
 
-const EL_LP_ADMM = ElLPApproach(0)
-const EL_LP_MEHROTRA = ElLPApproach(1)
+const LP_ADMM = ElLPApproach(0)
+const LP_MEHROTRA = ElLPApproach(1)
 
 typealias ElKKTSystem Cuint
 
-const EL_FULL_KKT = ElKKTSystem(0)
-const EL_AUGMENTED_KKT = ElKKTSystem(1)
-const EL_NORMAL_KKT = ElKKTSystem(2)
+const FULL_KKT = ElKKTSystem(0)
+const AUGMENTED_KKT = ElKKTSystem(1)
+const NORMAL_KKT = ElKKTSystem(2)
 
 immutable MehrotraCtrl{T<:ElFloatType}
     primalInit::ElBool
@@ -41,7 +41,7 @@ function MehrotraCtrl{T<:ElFloatType}(::Type{T};
     targetTol = eps(T)^0.5,
     maxIts = 1000,
     maxStepRatio = 0.99,
-    system = EL_FULL_KKT,
+    system = FULL_KKT,
     mehrotra = true,
     forceSameStep = true,
     solveCtrl = RegSolveCtrl(T),
@@ -86,7 +86,7 @@ immutable LPAffineCtrl{T<:ElFloatType}
 end
 
 function LPAffineCtrl{T<:ElFloatType}(::Type{T};
-    approach::Cuint = EL_LP_MEHROTRA,
+    approach::Cuint = LP_MEHROTRA,
     mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
 
     LPAffineCtrl{T}(approach, mehrotraCtrl)
@@ -120,18 +120,18 @@ end
 
 # Second-Order Cone Programming
 # =============================
-const EL_SOCP_ADMM = Cuint(0)
-const EL_SOCP_IPF = Cuint(1)
-const EL_SOCP_IPF_SELFDUAL = Cuint(2)
-const EL_SOCP_MEHROTRA = Cuint(3)
-const EL_SOCP_MEHROTRA_SELFDUAL = Cuint(4)
+const SOCP_ADMM = Cuint(0)
+const SOCP_IPF = Cuint(1)
+const SOCP_IPF_SELFDUAL = Cuint(2)
+const SOCP_MEHROTRA = Cuint(3)
+const SOCP_MEHROTRA_SELFDUAL = Cuint(4)
 
 immutable SOCPAffineCtrl{T<:ElFloatType}
     approach::Cuint
     mehrotraCtrl::MehrotraCtrl{T}
 end
 function SOCPAffineCtrl{T<:ElFloatType}(::Type{T};
-                      approach::Cuint=EL_SOCP_MEHROTRA,
+                      approach::Cuint = SOCP_MEHROTRA,
                       mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
     SOCPAffineCtrl{T}(approach, mehrotraCtrl)
 end
