@@ -67,16 +67,32 @@ for (elty, ext) in ((:ElInt, :i),
         function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
             err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
-              A.obj, i-1, j-1, value)
+              A.obj, i - 1, j - 1, value)
             err == 0 || throw(ElError(err))
             return nothing
         end
 
         function processQueues(A::DistMatrix{$elty})
-          err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
-            (Ptr{Void},), A.obj)
-          err == 0 || throw(ElError(err))
-          return nothing
+            err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function queuePull(A::DistMatrix{$elty}, i::Integer, j::Integer)
+            err = ccall(($(string("ElDistMatrixQueuePull_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt),
+                A.obj, i - 1, j - 1)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
+            err = ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ptr{$elty}),
+                A.obj, buf)
+            err == 0 || throw(ElError(err))
+            return buf
         end
 
         function getindex(A::DistMatrix{$elty}, i::Integer, j::Integer)
