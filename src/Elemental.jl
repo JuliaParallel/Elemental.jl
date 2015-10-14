@@ -6,7 +6,7 @@ import Base: *, \
 import Base: A_mul_B!, copy, copy!, getindex, print, setindex!, similar, size, svd,
     svdvals, svdvals!
 
-include("../deps/deps.jl")
+const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
 
 include("error.jl")
 
