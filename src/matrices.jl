@@ -4,10 +4,21 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                            (:Complex64, :Float32, :c),
                            (:Complex128, :Float64, :z))
 
-    # Zeros
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
                        (:DistMultiVec, "DistMultiVec_"))
+        # Ones
+        @eval begin
+            function ones!(A::$mat{$elty}, m::Integer, n::Integer)
+                err = ccall(($(string("ElOnes", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt),
+                    A.obj, m, n)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+        end
+
+        # Zeros
         @eval begin
             function zeros!(A::$mat{$elty}, m::Integer, n::Integer)
                 err = ccall(($(string("ElZeros", sym, ext)), libEl), Cuint,
@@ -17,12 +28,8 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                 return A
             end
         end
-    end
 
-    # Gaussian
-    for (mat, sym) in ((:Matrix, "_"),
-                       (:DistMatrix, "Dist_"),
-                       (:DistMultiVec, "DistMultiVec_"))
+        # Gaussian
         @eval begin
             function gaussian!(A::$mat{$elty}, m::Integer, n::Integer,
                                mean::$elty = zero($elty), stddev::$relty = one($relty))
@@ -33,12 +40,8 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                 return A
             end
         end
-    end
 
-    # Uniform
-    for (mat, sym) in ((:Matrix, "_"),
-                       (:DistMatrix, "Dist_"),
-                       (:DistMultiVec, "DistMultiVec_"))
+        # Uniform
         @eval begin
             function uniform!(A::$mat{$elty}, m::Integer, n::Integer,
                               center::$elty = zero($elty), radius::$relty = one($relty))

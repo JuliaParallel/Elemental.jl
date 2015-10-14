@@ -28,7 +28,7 @@ function tofront(r::Base.Matrix)
     if rType <: ElementalMatrix
         tt = [remotecall(() -> size(fetch(rr)), rr.where) for rr in r]
         mn = fetch(tt[1])
-        A = dzeros(mn, Int[r[i,j].where for i = 1:size(r, 1), j = 1:size(r, 2)], size(r))
+        A = dzeros(mn, Int[r[i,j].where for i = 1:size(r, 1), j = 1:size(r, 2)])
 
         @sync for p in eachindex(r)
             ind = A.indexes[p]
@@ -61,6 +61,18 @@ function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
         @async rvals[i] = remotecall_wait((t1,t2) -> solve!(fetch(t1), fetch(t2)), pidsAB[i], rA[i], rB[i])
     end
     return tofront(reshape(rvals, size(B.chunks)))
+end
+
+function eigvals{T<:BlasFloat}(A::Hermitian{T,DArray{T,2,Array{T,2}}})
+    rA = toback(A.data)
+    rvals = Array(Any, size(A.data.chunks))
+    uplo = A.uplo == 'U' ? UPPER : LOWER
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> eigvalsHermitian(uplo, fetch(t)), rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
 end
 
 function svdvals{T<:BlasFloat}(A::DArray{T,2})

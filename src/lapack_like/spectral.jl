@@ -24,13 +24,58 @@ function SVDCtrl{T<:ElFloatType}(::Type{T};
         T(tol))
 end
 
-for mattype in ("", "Dist")
-    for (elty, ext) in ((:Float32, :s),
-                        (:Float64, :d),
-                        (:Complex64, :c),
-                        (:Complex128, :z))
+immutable SpectralBox{T}
+    center::Complex{T}
+    realWidth::T
+    imagWidth::T
+end
+
+for (elty, ext) in ((:Float32, :s),
+                    (:Float64, :d),
+                    (:Complex64, :c),
+                    (:Complex128, :z))
+    for mattype in ("", "Dist")
         mat = symbol(mattype, "Matrix")
         @eval begin
+
+            function eigvalsTridiag(d::$mat{real($elty)}, dSub::$mat{$elty}, sort::SortType = ASCENDING)
+                w = $mat(real($elty))
+                err = ccall(($(string("ElHermitianTridiagEig", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    d.obj, dSub.obj, w.obj, sort)
+                err == 0 || throw(ElError(err))
+                return w
+            end
+
+            function eigTridiag(d::$mat{real($elty)}, dSub::$mat{$elty}, sort::SortType = ASCENDING)
+                w = $mat(real($elty))
+                Z = $mat($elty)
+                err = ccall(($(string("ElHermitianTridiagEigPair", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    d.obj, dSub.obj, w.obj, Z.obj, sort)
+                err == 0 || throw(ElError(err))
+                return w, Z
+            end
+
+            function eigvalsHermitian(uplo::UpperOrLower, A::$mat{$elty}, sort::SortType = ASCENDING)
+                w = $mat(real($elty))
+                err = ccall(($(string("ElHermitianEig", mattype, "_", ext)), libEl), Cuint,
+                    (UpperOrLower, Ptr{Void}, Ptr{Void}, SortType),
+                    uplo, A.obj, w.obj, sort)
+                err == 0 || throw(ElError(err))
+                return w
+            end
+
+            function eigHermitian(uplo::UpperOrLower, A::$mat{$elty}, sort::SortType = ASCENDING)
+                w = $mat(real($elty))
+                Z = $mat($elty)
+                err = ccall(($(string("ElHermitianEigPair", mattype, "_", ext)), libEl), Cuint,
+                    (UpperOrLower, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    uplo, A.obj, w.obj, Z.obj, sort)
+                err == 0 || throw(ElError(err))
+                return w, Z
+            end
+
             function svdvals!(A::$mat{$elty})
                 s = $mat(real($elty))
                 err = ccall(($(string("ElSingularValues", mattype, "_", ext)), libEl), Cuint,
@@ -67,6 +112,16 @@ for mattype in ("", "Dist")
                     A.obj, s.obj, V.obj, ctrl)
                 err == 0 || throw(ElError(err))
                 return A, s, V
+            end
+
+            function spectralProtrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt)
+                invNormMap = $mat(real($elty))
+                box = Ref{SpectralBox{real($elty)}}()
+                err = ccall(($(string("ElSpectralPortrait", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}}),
+                    A.obj, invNormMap.obj, realSize, imagSize, box)
+                err == 0 || throw(ElError(err))
+                return invNormMap, box[]
             end
         end
     end

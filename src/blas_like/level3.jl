@@ -6,8 +6,8 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"))
 
-        for (transA, elenumA) in (("", :EL_NORMAL), ("t", :EL_TRANSPOSE), ("c", :EL_ADJOINT))
-            for (transB, elenumB) in (("", :EL_NORMAL), ("t", :EL_TRANSPOSE), ("c", :EL_ADJOINT))
+        for (transA, elenumA) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
+            for (transB, elenumB) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
                 f = symbol("A", transA, "_mul_B", transB, "!")
 
                 @eval begin
