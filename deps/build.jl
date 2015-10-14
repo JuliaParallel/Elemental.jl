@@ -44,7 +44,6 @@ cd(builddir) do
                -D EL_BLAS_SUFFIX=$blas_suffix
                -D EL_LAPACK_SUFFIX=$blas_suffix
                -D CMAKE_INSTALL_RPATH=$prefix/lib
-               -D EL_DISABLE_SCALAPACK=ON
                $srcdir`)
     run(`make -j $build_procs`)
     run(`make install`)
