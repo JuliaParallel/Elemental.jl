@@ -2,13 +2,13 @@ using DistributedArrays
 
 # FixMe! Right now the MPI workers are deduced from the DArrays, but if a DArray is distributed on fewer workers that what consistutes the MPI world, then this approach will fail.
 
-function toback{S<:StridedMatrix}(A::DArray{Float64,2,S})
+function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})
     rs = Array(Any, size(A.chunks))
     @sync for p in eachindex(A.chunks)
         ind = A.indexes[p]
         @async rs[p] = remotecall(A.pids[p]) do
             lA = localpart(A)
-            AlA = Elemental.DistMatrix(Float64)
+            AlA = Elemental.DistMatrix(T)
             zeros!(AlA, size(A)...)
             for j = 1:size(lA, 2)
                 for i = 1:size(lA, 1)
@@ -23,12 +23,28 @@ function toback{S<:StridedMatrix}(A::DArray{Float64,2,S})
 end
 
 function tofront(r::Base.Matrix)
-    tt = [remotecall(() -> typeof(fetch(rr)), rr.where) for rr in r]
+    tt = Array(Any, length(r))
+    for i = 1:length(r)
+        tt[i] = remotecall(r[i].where, r[i]) do t
+            typeof(fetch(t))
+        end
+    end
+
     rType = fetch(tt[1])
     if rType <: ElementalMatrix
-        tt = [remotecall(() -> size(fetch(rr)), rr.where) for rr in r]
-        mn = fetch(tt[1])
-        A = dzeros(mn, Int[r[i,j].where for i = 1:size(r, 1), j = 1:size(r, 2)])
+        for i = 1:length(r)
+            tt[i] = remotecall(r[i].where, r[i]) do t
+                v = fetch(t)
+                size(v), eltype(v)
+            end
+        end
+        sizeAndEltype = fetch(tt[1])
+        if isa(sizeAndEltype, Exception)
+            throw(sizeAndEltype)
+        end
+
+        mn = sizeAndEltype[1]
+        A = dzeros(sizeAndEltype[2], mn, Int[r[i,j].where for i = 1:size(r, 1), j = 1:size(r, 2)])
 
         @sync for p in eachindex(r)
             ind = A.indexes[p]
@@ -86,14 +102,40 @@ function svdvals{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
+function spectralPortrait{T<:BlasFloat}(A::DArray{T,2}, realSize::Integer, imagSize::Integer)
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize))[1], rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
+end
+
+function foxLi{T<:BlasComplex}(::Type{T}, n::Integer, ω::Real)
+    sz = tuple(DistributedArrays.defaultdist((n,n), workers())...)
+    rvals = Array(Any, sz)
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(workers()[sub2ind(sz, i, j)]) do
+                A = Elemental.DistMatrix(T)
+                foxLi!(A, ElInt(n), real(T)(ω))
+            end
+        end
+    end
+    return tofront(rvals)
+end
+foxLi(n::Integer, ω::Real) = foxLi(Complex128, n, ω)
+
+# Andreas: Just saw this one. It is almost identical to the one I wrote above, but I don't think that we can return a Elemental array beacause it has to live on the MPI cluster and cannot live on the "front end".
+# It is assumed that the DArray is distributed over MPI.COMM_WORLD
 for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-# Andreas: Just saw this one. It is almost identical to the one I wrote above, but I don't think that we can return a Elemental array beacause it has to live on the MPI cluster and cannot live on the "front end".
-# It is assumed that the DArray is distributed over MPI.COMM_WORLD
         function DistSparseMatrix(::Type{$elty}, DA::DistributedArrays.DArray)
             npr, npc = size(procs(DA))
             if npr*npc != MPI.Comm_size(MPI.COMM_WORLD)

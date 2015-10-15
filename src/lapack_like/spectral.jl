@@ -114,7 +114,7 @@ for (elty, ext) in ((:Float32, :s),
                 return A, s, V
             end
 
-            function spectralProtrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt)
+            function spectralPortrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt)
                 invNormMap = $mat(real($elty))
                 box = Ref{SpectralBox{real($elty)}}()
                 err = ccall(($(string("ElSpectralPortrait", mattype, "_", ext)), libEl), Cuint,

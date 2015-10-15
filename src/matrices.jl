@@ -52,5 +52,18 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                 return A
             end
         end
+
+        if elty == :Complex64 || elty == :Complex128
+            # Uniform
+            @eval begin
+                function foxLi!(A::$mat{$elty}, n::Integer, omega::$relty)
+                    err = ccall(($(string("ElFoxLi", sym, ext)), libEl), Cuint,
+                        (Ptr{Void}, ElInt, $relty),
+                        A.obj, n, omega)
+                    err == 0 || throw(ElError(err))
+                    return A
+                end
+            end
+        end
     end
 end
