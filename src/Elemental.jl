@@ -3,8 +3,8 @@ module Elemental
 using Compat
 
 import Base: *, \
-import Base: A_mul_B!, copy, copy!, eltype, getindex, print, setindex!, similar, size, svd,
-    svdvals, svdvals!
+import Base: copy, copy!, countnz, dot, eltype, fill!, getindex, length, print, setindex!, similar, size
+import Base.LinAlg: A_mul_B!, Ac_mul_B!, axpy!, norm, scale!, svd, svdvals, svdvals!
 
 const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
 
