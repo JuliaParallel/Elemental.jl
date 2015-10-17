@@ -7,8 +7,27 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
                        (:DistMultiVec, "DistMultiVec_"))
-        # Ones
         @eval begin
+            # Bernoulli
+            function bernoulli!(A::$mat{$elty}, m::Integer, n::Integer)
+                err = ccall(($(string("ElBernoulli", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt),
+                    A.obj, m, n)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+
+            # Gaussian
+            function gaussian!(A::$mat{$elty}, m::Integer, n::Integer,
+                               mean::Number = 0, stddev::Number = 1)
+                err = ccall(($(string("ElGaussian", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
+                    A.obj, m, n, mean, stddev)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+
+            # Ones
             function ones!(A::$mat{$elty}, m::Integer, n::Integer)
                 err = ccall(($(string("ElOnes", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt),
@@ -16,10 +35,18 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
                 err == 0 || throw(ElError(err))
                 return A
             end
-        end
 
-        # Zeros
-        @eval begin
+            # Uniform
+            function uniform!(A::$mat{$elty}, m::Integer, n::Integer,
+                              center::Number = 0, radius::Number = 1)
+                err = ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
+                    A.obj, m, n, center, radius)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+
+            # Zeros
             function zeros!(A::$mat{$elty}, m::Integer, n::Integer)
                 err = ccall(($(string("ElZeros", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt),
@@ -29,34 +56,10 @@ for (elty, relty, ext) in ((:Integer, :Integer, :i),
             end
         end
 
-        # Gaussian
-        @eval begin
-            function gaussian!(A::$mat{$elty}, m::Integer, n::Integer,
-                               mean::$elty = zero($elty), stddev::$relty = one($relty))
-                err = ccall(($(string("ElGaussian", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
-                    A.obj, m, n, mean, stddev)
-                err == 0 || throw(ElError(err))
-                return A
-            end
-        end
-
-        # Uniform
-        @eval begin
-            function uniform!(A::$mat{$elty}, m::Integer, n::Integer,
-                              center::$elty = zero($elty), radius::$relty = one($relty))
-                err = ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
-                    A.obj, m, n, center, radius)
-                err == 0 || throw(ElError(err))
-                return A
-            end
-        end
-
         if elty == :Complex64 || elty == :Complex128
             # Uniform
             @eval begin
-                function foxLi!(A::$mat{$elty}, n::Integer, omega::$relty)
+                function foxLi!(A::$mat{$elty}, n::Integer, omega::Real)
                     err = ccall(($(string("ElFoxLi", sym, ext)), libEl), Cuint,
                         (Ptr{Void}, ElInt, $relty),
                         A.obj, n, omega)
