@@ -1,3 +1,176 @@
+# Sign
+# TODO: Move this to ./funcs.jl
+typedef ElSignScaling Cuint
+const SIGN_SCALE_NONE = ElSignScaling(0)
+const SIGN_SCALE_DET  = ElSignScaling(1)
+const SIGN_SCALE_FROB = ElSignScaling(2)
+
+immutable SignCtrl{T<:ElFloatType}
+    maxIts::ElInt
+    tol::T
+    power::T
+    scaling::ElSignScaling
+    progress::ElBool
+end
+function SignCtrl{T<:ElFloatType}(::Type{T};
+    maxIts = 100,
+    tol = 0,
+    power = 1,
+    scaling = SIGN_SCALE_FROB,
+    progress::Bool = false)
+    SignCtrl(ElInt(maxIts),
+        T(tol),
+        T(power),
+        ElSignScaling(scaling),
+        ElBool(progress))
+end
+
+# Schur
+immutable HessQRCtrl{T<:ElFloatType}
+    distAED::ElBool     
+    blockHeight::ElInt
+    blockWidth::ElInt
+end
+function HessQRCtrl{T<:ElFloatType}(::Type{T};
+    distAED::Bool = false,
+    blockHeight = 32,
+    blockWidth = 32)
+    HessQRCtrl(ElBool(distAED),ElInt(blockHeight),ElInt(blockWidth))
+end
+
+immutable SDCCtrl{T<:ElFloatType}
+    cutoff::ElInt
+    maxInnerIts::ElInt
+    maxOuterIts::ElInt
+    tol::T
+    spreadFactor::T
+    random::ElBool
+    progress::ElBool
+    signCtrl::SignCtrl{T}
+end
+function SDCCtrl{T<:ElFloatType}(::Type{T};
+    cutoff = 256,
+    maxInnerIts = 2,
+    maxOuterIts = 10,
+    tol = 0,
+    spreadFactor = 1e-6,
+    random::Bool = true,
+    progress::Bool = false,
+    signCtrl = SignCtrl(T))
+    SDCCtrl(ElInt(cutoff),
+        ElInt(maxInnerIts),
+        ElInt(maxOuterIts),
+        T(tol),
+        T(spreadFactor),
+        ElBool(random),
+        ElBool(progress),
+        signCtrl)
+end 
+
+immutable SchurCtrl{T<:ElFloatType}
+    useSDC::ElBool
+    qrCtrl::HessQRCtrl
+    sdcCtrl::SDCCtrl{T}
+end
+function SchurCtrl{T<:ElFloatType}(::Type{T};
+    useSDC::Bool = false, 
+    qrCtrl::HessQRCtrl = HessQRCtrl(),
+    sdcCtrl::SDCCtrl{T} = SDCCtrl(T))
+    SchurCtrl(ElBool(useSDC),
+        qrCtrl,
+        sdcCtrl)
+end
+
+# Pseueospectra
+typedef ElFileFormat Cuint
+const AUTO          = ElFileFormat(0)
+const ASCII         = ElFileFormat(1)
+const ASCII_MATLAB  = ElFileFormat(2)
+const BINARY        = ElFileFormat(3)
+const BINARY_FLAT   = ElFileFormat(4)
+const BMP           = ElFileFormat(5)
+const JPG           = ElFileFormat(6)
+const JPEG          = ElFileFormat(7)
+const MATRIX_MARKET = ElFileFormat(8)
+const PNG           = ElFileFormat(9)
+const PPM           = ElFileFormat(10)
+const XBM           = ElFileFormat(11)
+const XPM           = ElFileFormat(12)
+
+immutable SnapshotCtrl
+    realSize::ElInt    
+    imagSize::ElInt
+    imgSaveFreq::ElInt
+    numSaveFreq::ElInt
+    imgDispFreq::ElInt
+    imgSaveCount::ElInt
+    numSaveCount::ElInt
+    imgDispCount::ElInt
+    imgBase::c_char_p
+    numBase::c_char_p
+    imgFormat::ElFileFormat
+    numFormat::ElFileFormat
+    itCounts::ElBool
+end
+
+typedef ElPseudospecNorm Cuint
+const PS_TWO_NORM = ElPseudospecNorm(0)
+const PS_ONE_NORM = ElPseudospecNorm(1)
+
+immutable PseudospecCtrl{T<:ElFloatType}
+    norm::ElPseudospecNorm
+    blockWidth::ElInt
+    schur::ElBool
+    forceComplexSchur::ElBool
+    forceComplexPs::ElBool
+    schurCtrl::SchurCtrl{T}
+    maxIts::ElInt
+    tol::T
+    deflate::ElBool 
+    arnoldi::ElBool
+    basisSize::ElInt
+    reorthog::ElBool
+    progress::ElBool
+    snapCtrl::SnapshotCtrl
+end
+function PseudospecCtrl{T<:ElFloatType}(::Type{T};
+    norm = PS_TWO_NORM,
+    blockWidth = 10,
+    schur::Bool = true,
+    forceComplexSchur::Bool = false,  
+    forceComplexPs::Bool = false,
+    schurCtrl = SchurCtrl(T),
+    maxIts = 50,
+    tol = 1e-6, 
+    deflate::Bool = true,
+    arnoldi::Bool = true,
+    basisSize = 10,
+    reorthog::Bool = true,
+    progress::Bool = false,
+    snapCtrl = SnapshotCtrl())
+     
+    PseudospecCtrl(ElPseudospecNorm(norm),
+        ElInt(blockWidth),
+        ElBool(schur), 
+        ElBool(forceComplexSchur),
+        ElBool(forceComplexPs),
+        schurCtrl,
+        ElInt(maxIts),
+        T(tol),
+        ElBool(deflate), 
+        ElBool(arnoldi),
+        ElInt(basisSize),
+        ElBool(reorthog),
+        ElBool(progress),
+        snapCtrl)
+end
+
+immutable SpectralBox{T}
+    center::Complex{T}
+    realWidth::T
+    imagWidth::T
+end
+
 # SVD
 immutable SVDCtrl{T<:ElFloatType}
     seqQR::ElBool
@@ -22,12 +195,6 @@ function SVDCtrl{T<:ElFloatType}(::Type{T};
         ElBool(thresholded),
         ElBool(relative),
         T(tol))
-end
-
-immutable SpectralBox{T}
-    center::Complex{T}
-    realWidth::T
-    imagWidth::T
 end
 
 for (elty, ext) in ((:Float32, :s),
@@ -114,12 +281,12 @@ for (elty, ext) in ((:Float32, :s),
                 return A, s, V
             end
 
-            function spectralPortrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt)
+            function spectralPortrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt; psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
                 invNormMap = $mat(real($elty))
                 box = Ref{SpectralBox{real($elty)}}()
-                err = ccall(($(string("ElSpectralPortrait", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}}),
-                    A.obj, invNormMap.obj, realSize, imagSize, box)
+                err = ccall(($(string("ElSpectralPortraitX", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}},PseudospecCtrl{T}),
+                    A.obj, invNormMap.obj, realSize, imagSize, box, psCtrl)
                 err == 0 || throw(ElError(err))
                 return invNormMap, box[]
             end
