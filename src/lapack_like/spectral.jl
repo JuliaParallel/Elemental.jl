@@ -120,8 +120,8 @@ function SnapshotCtrl(realSize=0,
     imgSaveCount=0,
     numSaveCount=0,
     imgDispCount=0,
-    imgBase::Cstring=Cstring("ps"),
-    numBase::Cstring=Cstring("ps"),
+    imgBase::ByteString="ps",
+    numBase::ByteString="ps",
     imgFormat=PNG,
     numFormat=ASCII_MATLAB, 
     itCounts::Bool=true)
@@ -133,8 +133,8 @@ function SnapshotCtrl(realSize=0,
         Cint(imgSaveCount),
         Cint(numSaveCount),
         Cint(imgDispCount),
-        Cstring(imgBase),
-        Cstring(numBase),
+        Cstring(symbol(imgBase)),
+        Cstring(symbol(numBase)),
         ElFileFormat(imgFormat),
         ElFileFormat(numFormat),
         ElBool(itCounts))
@@ -311,7 +311,7 @@ for (elty, ext) in ((:Float32, :s),
                 invNormMap = $mat(real($elty))
                 box = Ref{SpectralBox{real($elty)}}()
                 err = ccall(($(string("ElSpectralPortraitX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}},PseudospecCtrl{$elty}),
+                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}},PseudospecCtrl{real($elty)}),
                     A.obj, invNormMap.obj, realSize, imagSize, box, psCtrl)
                 err == 0 || throw(ElError(err))
                 return invNormMap, box[]
