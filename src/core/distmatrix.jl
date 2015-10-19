@@ -21,8 +21,6 @@ end
 
 DistMatrix() = DistMatrix(Float64)
 
-similar{T}(A::DistMatrix{T}) = DistMatrix(T) # This might be wrong. Should consider how to extract distributions properties of A
-
 for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
@@ -103,5 +101,24 @@ for (elty, ext) in ((:ElInt, :i),
             err == 0 || throw(ElError(err))
             return rv[]
         end
+
+        function resize!(A::DistMatrix{$elty}, i::Integer, j::Integer)
+            err = ccall(($(string("ElDistMatrixResize_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt),
+                A.obj, i, j)
+            err == 0 || throw(ElError(err))
+            return A
+        end
     end
+end
+
+countnz(A::DistMatrix) = length(A)
+
+# This might be wrong. Should consider how to extract distributions properties of A
+similar(A::DistMatrix) = similar(A, size(A))
+similar{T}(A::DistMatrix{T}, sz::Tuple{Int,}) = similar(A, (sz[1],1))
+function similar{T}(A::DistMatrix{T}, sz::Tuple{Int,Int})
+    B = DistMatrix(T)
+    resize!(B, sz...)
+    return B
 end

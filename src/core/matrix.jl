@@ -51,7 +51,6 @@ for (elty, ext) in ((:ElInt, :i),
             return rp[]
         end
     end
-
 end
 
 # Julia convenience
@@ -77,8 +76,11 @@ function setindex!(A::Matrix, x::Number, i::Integer, j::Integer)
 end
 
 similar(A::Matrix) = similar(A, size(A))
+similar{T}(A::Matrix{T}, sz::Tuple{Int,}) = similar(A, (sz[1],1))
 function similar{T}(A::Matrix{T}, sz::Tuple{Int,Int})
     B = Matrix(T)
     resize!(B, sz...)
     return B
 end
+
+countnz(A::Matrix) = length(A)
