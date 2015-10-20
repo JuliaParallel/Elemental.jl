@@ -316,6 +316,16 @@ for (elty, ext) in ((:Float32, :s),
                 err == 0 || throw(ElError(err))
                 return invNormMap, box[]
             end
+
+            function spectralWindow(A::$mat{$elty}, center::Complex{real($elty)}, realWidth::real($elty), imagWidth::real($elty), realSize::ElInt, imagSize::ElInt, psCtrl::PseudospecCtrl{real($elty)}=PseudospecCtrl(real($elty)))
+                invNormMap = $mat(real($elty))
+                err = ccall(($(string("ElSpectralWindowX", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, Complex{real($elty)}, real($elty), real($elty), ElInt, ElInt, PseudospecCtrl{real($elty)}),
+                    A.obj, invNormMap.obj, center, realWidth, imagWidth, realSize, imagSize, psCtrl)
+                err == 0 || throw(ElError(err))
+                return invNormMap
+            end
+
         end
     end
 end

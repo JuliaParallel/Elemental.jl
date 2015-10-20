@@ -102,12 +102,45 @@ function svdvals{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
-function spectralPortrait{T<:BlasFloat}(A::DArray{T,2}, realSize::Integer, imagSize::Integer)
+function spectralPortrait{T<:BlasReal}(A::DArray{T,2}, realSize::Integer, imagSize::Integer, psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
     rvals = Array(Any, size(A.chunks))
     @sync for j = 1:size(rvals, 2)
         for i = 1:size(rvals, 1)
-            @async rvals[i,j] = remotecall_wait(t -> spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize))[1], rA[i,j].where, rA[i,j])
+            @async rvals[i,j] = remotecall_wait(t -> spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1], rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
+end
+
+function spectralPortrait{T<:BlasReal}(A::DArray{Complex{T},2}, realSize::Integer, imagSize::Integer, psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1], rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
+end
+
+function spectralWindow{T<:BlasReal}(A::DArray{T,2}, center::Complex{T}, realWidth::T, imagWidth::T, realSize::Integer, imagSize::Integer, psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> spectralWindow(fetch(t), center, realWidth, imagWidth, ElInt(realSize), ElInt(imagSize), psCtrl), rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
+end
+
+function spectralWindow{T<:BlasReal}(A::DArray{Complex{T},2}, center::Complex{T}, realWidth::T, imagWidth::T, realSize::Integer, imagSize::Integer, psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> spectralWindow(fetch(t), center, realWidth, imagWidth, ElInt(realSize), ElInt(imagSize), psCtrl), rA[i,j].where, rA[i,j])
         end
     end
     return tofront(rvals)
