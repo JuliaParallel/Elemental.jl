@@ -23,9 +23,9 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             end
 
             function dot(x::$mat{$elty}, y::$mat{$elty})
-                rval = Ref{$relty}(0)
+                rval = Ref{$elty}(0)
                 err = ccall(($(string("ElDot", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ref{$relty}),
+                    (Ptr{Void}, Ptr{Void}, Ref{$elty}),
                     x.obj, y.obj, rval)
                 err == 0 || throw(ElError(err))
                 return rval[]
