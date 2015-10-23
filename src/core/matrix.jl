@@ -75,12 +75,10 @@ function setindex!(A::Matrix, x::Number, i::Integer, j::Integer)
     return unsafe_store!(p, x, li)
 end
 
-similar(A::Matrix) = similar(A, size(A))
-similar{T}(A::Matrix{T}, sz::Tuple{Int,}) = similar(A, (sz[1],1))
-function similar{T}(A::Matrix{T}, sz::Tuple{Int,Int})
-    B = Matrix(T)
-    resize!(B, sz...)
-    return B
+function similar{T}(::Matrix, ::Type{T}, sz::Tuple{Int,Int})
+    A = Matrix(T)
+    resize!(A, sz...)
+    return A
 end
 
 countnz(A::Matrix) = length(A)

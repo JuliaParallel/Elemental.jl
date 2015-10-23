@@ -43,6 +43,14 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
+        function resize!{$elty}(A::DistMultiVec{$elty}, m::Integer, n::Integer)
+            err = ccall(($(string("ElDistMultiVecResize_", ext)), libEl), Cuint,
+              (Ptr{Void}, ElInt, ElInt),
+              A.obj, ElInt(m), ElInt(n))
+            err == 0 || throw(ElError(err))
+            return A
+        end
+
         function queueUpdate{$elty}(A::DistMultiVec{$elty}, i::Integer, j::Integer, value::$elty)
             err = ccall(($(string("ElDistMultiVecQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
@@ -61,4 +69,8 @@ for (elty, ext) in ((:ElInt, :i),
 end
 
 # size(x::DistMultiVec) = (Int(height(x)),) # We consider everything 2D
-similar{T}(x::DistMultiVec{T}, cm = ElMPICommWorld) = DistMultiVec(T, cm)
+function similar{T}(::DistMultiVec, ::Type{T}, sz::Tuple{Int,Int}, cm = ElMPICommWorld)
+    A = DistMultiVec(T, cm)
+    resize!(A, sz...)
+    return A
+end
