@@ -1,5 +1,3 @@
-using DistributedArrays
-
 # FixMe! Right now the MPI workers are deduced from the DArrays, but if a DArray is distributed on fewer workers that what consistutes the MPI world, then this approach will fail.
 
 function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})

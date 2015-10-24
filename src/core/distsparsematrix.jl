@@ -19,7 +19,7 @@ for (elty, ext) in ((:ElInt, :i),
 
         function DistSparseMatrix(::Type{$elty}, m::Integer, n::Integer, comm::ElComm = ElMPICommWorld)
             A = DistSparseMatrix($elty, comm)
-            resize(A, m, n)
+            resize!(A, m, n)
             return A
         end
 
@@ -31,7 +31,7 @@ for (elty, ext) in ((:ElInt, :i),
             return 0
         end
 
-        function resize(A::DistSparseMatrix{$elty}, height::Integer, width::Integer)
+        function resize!(A::DistSparseMatrix{$elty}, height::Integer, width::Integer = 1) # to mimic vector behavior
             err = ccall(($(string("ElDistSparseMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
                 A.obj, height, width)

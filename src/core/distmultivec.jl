@@ -43,7 +43,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function resize!{$elty}(A::DistMultiVec{$elty}, m::Integer, n::Integer)
+        function resize!{$elty}(A::DistMultiVec{$elty}, m::Integer, n::Integer = 1) # to mimic vector behavior
             err = ccall(($(string("ElDistMultiVecResize_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt),
               A.obj, ElInt(m), ElInt(n))
@@ -69,7 +69,7 @@ for (elty, ext) in ((:ElInt, :i),
 end
 
 # size(x::DistMultiVec) = (Int(height(x)),) # We consider everything 2D
-function similar{T}(::DistMultiVec, ::Type{T}, sz::Tuple{Int,Int}, cm = ElMPICommWorld)
+function similar{T}(::DistMultiVec, ::Type{T}, sz::Dims, cm = ElMPICommWorld)
     A = DistMultiVec(T, cm)
     resize!(A, sz...)
     return A
