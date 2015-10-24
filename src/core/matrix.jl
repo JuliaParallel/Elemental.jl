@@ -16,7 +16,7 @@ for (elty, ext) in ((:ElInt, :i),
             return Matrix{$elty}(obj[])
         end
 
-        function resize!(A::Matrix{$elty}, i::Integer, j::Integer)
+        function resize!(A::Matrix{$elty}, i::Integer, j::Integer = 1) # to mimic vector behavior
             err = ccall(($(string("ElMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
                 A.obj, i, j)
@@ -75,7 +75,7 @@ function setindex!(A::Matrix, x::Number, i::Integer, j::Integer)
     return unsafe_store!(p, x, li)
 end
 
-function similar{T}(::Matrix, ::Type{T}, sz::Tuple{Int,Int})
+function similar{T}(::Matrix, ::Type{T}, sz::Dims)
     A = Matrix(T)
     resize!(A, sz...)
     return A

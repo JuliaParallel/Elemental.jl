@@ -102,7 +102,7 @@ for (elty, ext) in ((:ElInt, :i),
             return rv[]
         end
 
-        function resize!(A::DistMatrix{$elty}, i::Integer, j::Integer)
+        function resize!(A::DistMatrix{$elty}, i::Integer, j::Integer = 1) # to mimic vector behavior
             err = ccall(($(string("ElDistMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
                 A.obj, i, j)
@@ -115,8 +115,27 @@ end
 countnz(A::DistMatrix) = length(A)
 
 # This might be wrong. Should consider how to extract distributions properties of A
-function similar{T}(::DistMatrix, ::Type{T}, sz::Tuple{Int,Int})
+function similar{T}(::DistMatrix, ::Type{T}, sz::Dims)
     A = DistMatrix(T)
     resize!(A, sz...)
     return A
+end
+
+# This might be terrible inefficient
+function hcat{T}(x::Vector{DistMatrix{T}})
+    l    = length(x)
+    if l == 0
+        throw(ArgumentError("cannot flatten empty vector"))
+    else
+        x1   = x[1]
+        m, n = size(x1, 1), size(x1, 2)
+        B    = similar(x1, eltype(x1), (m, l*n))
+        for j = 1:l
+            for i = 1:m
+                queueUpdate(B, i, j, x[j][i])
+            end
+        end
+        processQueues(B)
+        return B
+    end
 end
