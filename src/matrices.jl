@@ -1,4 +1,4 @@
-for (elty, relty, ext) in ((:Integer, :Integer, :i),
+for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                            (:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),

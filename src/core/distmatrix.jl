@@ -115,10 +115,8 @@ end
 countnz(A::DistMatrix) = length(A)
 
 # This might be wrong. Should consider how to extract distributions properties of A
-similar(A::DistMatrix) = similar(A, size(A))
-similar{T}(A::DistMatrix{T}, sz::Tuple{Int,}) = similar(A, (sz[1],1))
-function similar{T}(A::DistMatrix{T}, sz::Tuple{Int,Int})
-    B = DistMatrix(T)
-    resize!(B, sz...)
-    return B
+function similar{T}(::DistMatrix, ::Type{T}, sz::Tuple{Int,Int})
+    A = DistMatrix(T)
+    resize!(A, sz...)
+    return A
 end
