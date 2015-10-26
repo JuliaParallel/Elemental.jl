@@ -47,7 +47,7 @@ function ElBool(value::Bool)
     end
 end
 
-using Base.LinAlg: BlasFloat, BlasComplex
+using Base.LinAlg: BlasFloat, BlasReal, BlasComplex
 typealias ElFloatType Union{Float32,Float64} # TODO: Maybe just use BlasReal here
 
 abstract ElementalMatrix{T} <: AbstractMatrix{T}
