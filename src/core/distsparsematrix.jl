@@ -8,19 +8,13 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistSparseMatrix(::Type{$elty}, comm::ElComm = ElMPICommWorld)
+        function DistSparseMatrix(::Type{$elty}, comm::ElComm = CommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
                 obj, comm)
             err == 0 || throw(ElError(err))
             return DistSparseMatrix{$elty}(obj[])
-        end
-
-        function DistSparseMatrix(::Type{$elty}, m::Integer, n::Integer, comm::ElComm = ElMPICommWorld)
-            A = DistSparseMatrix($elty, comm)
-            resize!(A, m, n)
-            return A
         end
 
         function destroy(A::DistSparseMatrix)
@@ -117,3 +111,11 @@ for (elty, ext) in ((:ElInt, :i),
         end
     end
 end
+
+# The other constructors don't have a version with dimensions. Should they, or should this one go?
+function DistSparseMatrix{T}(::Type{T}, m::Integer, n::Integer, comm::ElComm = CommWorld)
+    A = DistSparseMatrix(T, comm)
+    resize!(A, m, n)
+    return A
+end
+

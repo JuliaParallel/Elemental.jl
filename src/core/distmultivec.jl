@@ -8,7 +8,7 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistMultiVec(::Type{$elty}, cm::ElComm = ElMPICommWorld)
+        function DistMultiVec(::Type{$elty}, cm::ElComm = CommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
@@ -69,7 +69,7 @@ for (elty, ext) in ((:ElInt, :i),
 end
 
 # size(x::DistMultiVec) = (Int(height(x)),) # We consider everything 2D
-function similar{T}(::DistMultiVec, ::Type{T}, sz::Dims, cm = ElMPICommWorld)
+function similar{T}(::DistMultiVec, ::Type{T}, sz::Dims, cm::ElComm = CommWorld)
     A = DistMultiVec(T, cm)
     resize!(A, sz...)
     return A

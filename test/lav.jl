@@ -19,7 +19,7 @@ function randDArray(m,n,sparsity=0.01)
     DA = DistributedArrays.DArray((m,n)) do I
         sprandn(length(I[1]), length(I[2]), sparsity)
     end
-    A = El.DistSparseMatrix(Float64,DA) 
+    A = El.DistSparseMatrix{Float64}(DA)
     return A
 end
 

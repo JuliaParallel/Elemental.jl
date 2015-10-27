@@ -3,8 +3,9 @@ module Elemental
 using Compat
 using DistributedArrays
 
-import Base: *, \
-import Base: copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, length, print, setindex!, similar, size
+import Base: *, \, Ac_mul_B
+import Base: convert, copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, length, pointer,
+    print, setindex!, similar, size
 import Base.LinAlg: A_mul_B!, Ac_mul_B!, axpy!, norm, scale!, svd, svdvals, svdvals!
 
 const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))

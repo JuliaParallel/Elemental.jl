@@ -79,9 +79,9 @@ const LOWER = Cint(0)
 const UPPER = Cint(1)
 
 # Get MPIWorldComm
-function ElMPICommWorldValue()
+function CommWorldValue()
     r = Ref{ElComm}(0)
     ccall((:ElMPICommWorld, libEl), Cuint, (Ref{ElComm},), r)
     return r[]
 end
-const ElMPICommWorld  = ElMPICommWorldValue()
+const CommWorld = CommWorldValue()

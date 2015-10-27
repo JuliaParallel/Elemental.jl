@@ -2,7 +2,7 @@ type Grid
 	obj::Ptr{Void}
 end
 
-function Grid()
+function convert(::Type{Grid})
 	obj = Ref{Ptr{Void}}(C_NULL)
     err = ccall(("ElDefaultGrid", libEl), Cuint,
         (Ref{Ptr{Void}},),
