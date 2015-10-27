@@ -16,17 +16,7 @@ for (elty, ext) in ((:ElInt, :i),
             err == 0 || throw(ElError(err))
             return DistMatrix{$elty}(obj[])
         end
-    end
-end
 
-DistMatrix() = DistMatrix(Float64)
-
-for (elty, ext) in ((:ElInt, :i),
-                    (:Float32, :s),
-                    (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
-    @eval begin
         function Grid(A::DistMatrix{$elty})
             g = Grid()
             err = ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
@@ -74,7 +64,7 @@ for (elty, ext) in ((:ElInt, :i),
             err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
                 (Ptr{Void},), A.obj)
             err == 0 || throw(ElError(err))
-            return nothing
+            return A
         end
 
         function queuePull(A::DistMatrix{$elty}, i::Integer, j::Integer)
@@ -112,6 +102,9 @@ for (elty, ext) in ((:ElInt, :i),
     end
 end
 
+DistMatrix() = DistMatrix(Float64)
+
+# Julia convenience
 countnz(A::DistMatrix) = length(A)
 
 # This might be wrong. Should consider how to extract distributions properties of A
@@ -119,6 +112,18 @@ function similar{T}(::DistMatrix, ::Type{T}, sz::Dims)
     A = DistMatrix(T)
     resize!(A, sz...)
     return A
+end
+
+function getindex(A::DistMatrix, iInd::Colon, jInd::UnitRange)
+    B = DistMatrix(eltype(A))
+    zeros!(B, size(A, 1), length(jInd))
+    for j = jInd
+        for i = 1:size(A, 1)
+            queueUpdate(B, i, j, A[i,j])
+        end
+    end
+    processQueues(B)
+    return B
 end
 
 # This might be terrible inefficient
@@ -129,7 +134,8 @@ function hcat{T}(x::Vector{DistMatrix{T}})
     else
         x1   = x[1]
         m, n = size(x1, 1), size(x1, 2)
-        B    = similar(x1, eltype(x1), (m, l*n))
+        B    = DistMatrix(T)
+        zeros!(B, m, l*n)
         for j = 1:l
             for i = 1:m
                 queueUpdate(B, i, j, x[j][i])

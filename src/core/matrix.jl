@@ -16,6 +16,15 @@ for (elty, ext) in ((:ElInt, :i),
             return Matrix{$elty}(obj[])
         end
 
+        function getindex(A::Matrix{$elty}, i::Integer, j::Integer)
+            x = Ref{$elty}(0)
+            err = ccall(($(string("ElMatrixGet_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                A.obj, i - 1, j - 1, x)
+            err == 0 || throw(ElError(err))
+            return x[]
+        end
+
         function resize!(A::Matrix{$elty}, i::Integer, j::Integer = 1) # to mimic vector behavior
             err = ccall(($(string("ElMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
@@ -50,30 +59,22 @@ for (elty, ext) in ((:ElInt, :i),
             err == 0 || throw(ElError(err))
             return rp[]
         end
+
+        function setindex!(A::Matrix{$elty}, x::Number, i::Integer, j::Integer)
+            err = ccall(($(string("ElMatrixSet_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, $elty),
+                A.obj, i - 1, j - 1, x)
+            err == 0 || throw(ElError(err))
+            return A
+        end
     end
 end
+
+Matrix() = Matrix(Float64)
 
 # Julia convenience
 
-function getindex(A::Matrix, i::Integer, j::Integer)
-    m, n = size(A)
-    p = lockedBuffer(A)
-    li = j + n*(i - 1)
-    if i < 1 || j < 1 || li > m*n
-        throw(BoundsError(A, (i,j)))
-    end
-    return unsafe_load(p, li)
-end
-
-function setindex!(A::Matrix, x::Number, i::Integer, j::Integer)
-    m, n = size(A)
-    p = lockedBuffer(A)
-    li = j + n*(i - 1)
-    if i < 1 || j < 1 || li > m*n
-        throw(BoundsError(A, (i,j)))
-    end
-    return unsafe_store!(p, x, li)
-end
+pointer(A::Matrix) = lockedBuffer(A)
 
 function similar{T}(::Matrix, ::Type{T}, sz::Dims)
     A = Matrix(T)
