@@ -9,10 +9,10 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                        (:DistMultiVec, "DistMultiVec_"))
         @eval begin
             # Bernoulli
-            function bernoulli!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1)
+            function bernoulli!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1, p::Real = 0.5)
                 err = ccall(($(string("ElBernoulli", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt),
-                    A.obj, m, n)
+                    (Ptr{Void}, ElInt, ElInt, Float64),
+                    A.obj, m, n, Float64(p))
                 err == 0 || throw(ElError(err))
                 return A
             end
@@ -70,3 +70,43 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
         end
     end
 end
+
+for (elty, relty, ext) in ((:Float32, :Float32, :s),
+                           (:Float64, :Float64, :d),
+                           (:Complex64, :Float32, :c),
+                           (:Complex128, :Float64, :z))
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"),
+                       (:SparseMatrix, "Sparse_"),
+                       (:DistSparseMatrix, "DistSparse_"))
+        @eval begin
+            # Helmholtz
+            function helmholtz!(A::$mat{$elty}, nx::Integer, shift::Number)
+                err = ccall(($(string("ElHelmholtz1D", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, $elty),
+                    A.obj, nx, shift)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+
+            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, shift::Number)
+                err = ccall(($(string("ElHelmholtz2D", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt, $elty),
+                    A.obj, nx, ny, shift)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+
+            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, nz::Integer, shift::Number)
+                err = ccall(($(string("ElHelmholtz3D", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt, ElInt, ElInt, $elty),
+                    A.obj, nx, ny, nz, shift)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+        end
+    end
+end
+
+

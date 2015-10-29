@@ -5,7 +5,7 @@ using DistributedArrays
 
 import Base: *, \, Ac_mul_B
 import Base: convert, copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, length, pointer,
-    print, setindex!, similar, size
+    print, setindex!, showarray, similar, size
 import Base.LinAlg: A_mul_B!, Ac_mul_B!, axpy!, norm, scale!, svd, svdvals, svdvals!
 
 const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
@@ -42,6 +42,7 @@ function __init__()
 end
 
 include("core/types.jl")
+include("mpi.jl")
 include("core/matrix.jl")
 include("core/grid.jl")
 include("core/sparsematrix.jl")

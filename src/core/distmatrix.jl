@@ -26,6 +26,15 @@ for (elty, ext) in ((:ElInt, :i),
             return g
         end
 
+        function comm(A::DistMatrix{$elty})
+            cm = Ref{ElComm}()
+            err = ccall(($(string("ElDistMatrixDistComm_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElComm}),
+                A.obj, cm)
+            err == 0 || throw(ElError(err))
+            return cm[]
+        end
+
         function height(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             err = ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
@@ -138,7 +147,10 @@ function hcat{T}(x::Vector{DistMatrix{T}})
         zeros!(B, m, l*n)
         for j = 1:l
             for i = 1:m
-                queueUpdate(B, i, j, x[j][i])
+                xji = x[j][i]
+                if MPI.commRank(comm(B)) == 0
+                    queueUpdate(B, i, j, xji)
+                end
             end
         end
         processQueues(B)

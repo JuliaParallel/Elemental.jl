@@ -75,9 +75,9 @@ function stackedFD2D(n0, n1)
 end
 
 if testNative
-  A = stackedFD2D(n0, n1)
+    A = stackedFD2D(n0, n1)
 else
-  A = randDArray(2*n0*n1,n0*n1)
+    A = randDArray(2*n0*n1,n0*n1)
 end
 
 b = El.DistMultiVec(Float64)
