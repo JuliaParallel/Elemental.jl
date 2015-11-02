@@ -16,8 +16,8 @@ end
 
 size(A::ElementalMatrix) = (size(A, 1), size(A, 2))
 
-(*){T<:ElementalMatrix}(A::T, B::T)      = A_mul_B!(1.0, A, B, 0.0, similar(A, (size(A, 1), size(B, 2))))
-Ac_mul_B{T<:ElementalMatrix}(A::T, B::T) = Ac_mul_B!(1.0, A, B, 0.0, similar(A, (size(A, 2), size(B, 2))))
+(*){T<:ElementalMatrix}(A::T, B::T)      = A_mul_B!(one(eltype(A)), A, B, zero(eltype(A)), similar(A, (size(A, 1), size(B, 2))))
+Ac_mul_B{T<:ElementalMatrix}(A::T, B::T) = Ac_mul_B!(one(eltype(A)), A, B, zero(eltype(A)), similar(A, (size(A, 2), size(B, 2))))
 
 # Spectral
 svd(A::ElementalMatrix) = svd!(copy(A))
