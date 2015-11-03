@@ -7,6 +7,7 @@ Al = convert(Array, A)
 B = drandn(50,10)
 Bl = convert(Array, B)
 
+@test inv(Al) ≈ inv(A)
 @test Al\Bl ≈ A\B
 @test logdet(Al'Al) ≈ logdet(A'A)
 @test svdvals(Al) ≈ Elemental.svdvals(A)

@@ -104,7 +104,19 @@ function svdvals{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
-# Right now this is dangerous because Elemental aborts if the matrix is not Hermitian
+function inv!{T<:BlasFloat}(A::DArray{T,2})
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(t -> inverse!(fetch(t)), rA[i,j].where, rA[i,j])
+        end
+    end
+    return tofront(rvals)
+end
+
+inv{T<:BlasFloat}(A::DArray{T,2}) = inv!(copy(A))
+
 function logdet{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
     rvals = Array(Any, size(A.chunks))
