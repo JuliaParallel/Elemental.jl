@@ -32,6 +32,21 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
+        end
+    end
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+        @eval begin
+
+            function infinityNorm(A::$mat{$elty})
+                rval = Ref{$relty}(0)
+                err = ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, Ref{$relty}),
+                    A.obj, rval)
+                err == 0 || throw(ElError(err))
+                return rval[]
+            end
 
             function oneNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
@@ -41,12 +56,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
-        end
-    end
 
-    for (mat, sym) in ((:Matrix, "_"),
-                       (:DistMatrix, "Dist_"))
-        @eval begin
             function safeHPDDeterminant(uplo::UpperOrLower, A::$mat{$elty})
                 rval = Ref{SafeProduct{$relty}}()
                 err = ccall(($(string("ElSafeHPDDeterminant", sym, ext)), libEl), Cuint,
@@ -55,15 +65,37 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
+
+            function twoNorm(A::$mat{$elty})
+                rval = Ref{$relty}(0)
+                err = ccall(($(string("ElTwoNorm", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, Ref{$relty}),
+                    A.obj, rval)
+                err == 0 || throw(ElError(err))
+                return rval[]
+            end
+
+            function zeroNorm(A::$mat{$elty})
+                rval = Ref{ElInt}(0)
+                err = ccall(($(string("ElZeroNorm", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, Ref{ElInt}),
+                    A.obj, rval)
+                err == 0 || throw(ElError(err))
+                return rval[]
+            end
         end
     end
 end
 
+countnz(A::Union{Matrix,DistMatrix}) = Int(zeroNorm(A))
+
 function norm(A::ElementalMatrix, p::Real)
     if p == 1
         return oneNorm(A)
+    elseif p == 2
+        return twoNorm(A)
     elseif p == Inf
-        return maxNorm(A)
+        return infinityNorm(A)
     else
         throw(ArgumentError("value of p not supported yet"))
     end

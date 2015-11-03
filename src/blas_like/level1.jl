@@ -61,4 +61,3 @@ end
 
 copy(A::ElementalMatrix) = copy!(A, similar(A))
 length(A::ElementalMatrix) = prod(size(A))
-norm(x::ElementalMatrix) = nrm2(x)

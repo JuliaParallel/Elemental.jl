@@ -5,7 +5,7 @@ function runtests_mpirun()
     nprocs = min(4, CPU_CORES)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
-    testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "generic.jl"]
+    testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl"]
     nfail = 0
     print_with_color(:white, "Running Elemental.jl tests\n")
     for f in testfiles
