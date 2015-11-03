@@ -35,6 +35,42 @@ for (elty, ext) in ((:ElInt, :i),
             return cm[]
         end
 
+        function get(A::DistMatrix{$elty}, i::Integer, j::Integer)
+            rv = Ref{$elty}(0)
+            err = ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                A.obj, i - 1, j - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
+        end
+
+        function getLocal(A::DistMatrix{$elty}, i::Integer, j::Integer)
+            rv = Ref{$elty}(0)
+            err = ccall(($(string("ElDistMatrixGetLocal_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                A.obj, i - 1, j - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
+        end
+
+        function globalCol(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixGlobalCol_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[] + 1
+        end
+
+        function globalRow(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixGlobalRow_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[] + 1
+        end
+
         function height(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             err = ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
@@ -44,29 +80,30 @@ for (elty, ext) in ((:ElInt, :i),
             return rv[]
         end
 
-        function width(A::DistMatrix{$elty})
+        function localHeight(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
+            err = ccall(($(string("ElDistMatrixLocalHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
                 A.obj, rv)
             err == 0 || throw(ElError(err))
             return rv[]
         end
 
-        function reserve(A::DistMatrix{$elty}, numEntries::Integer)
-            err = ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
-              (Ptr{Void}, ElInt),
-              A.obj, numEntries)
+        function localWidth(A::DistMatrix{$elty})
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixLocalWidth_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElInt}),
+                A.obj, rv)
             err == 0 || throw(ElError(err))
-            return nothing
+            return rv[]
         end
 
-        function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
-            err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
-              (Ptr{Void}, ElInt, ElInt, $elty),
-              A.obj, i - 1, j - 1, value)
+        function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
+            err = ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ptr{$elty}),
+                A.obj, buf)
             err == 0 || throw(ElError(err))
-            return nothing
+            return buf
         end
 
         function processQueues(A::DistMatrix{$elty})
@@ -84,19 +121,27 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
-            err = ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ptr{$elty}),
-                A.obj, buf)
+        function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
+            err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
+              (Ptr{Void}, ElInt, ElInt, $elty),
+              A.obj, i - 1, j - 1, value)
             err == 0 || throw(ElError(err))
-            return buf
+            return nothing
         end
 
-        function getindex(A::DistMatrix{$elty}, i::Integer, j::Integer)
-            rv = Ref{$elty}(0)
-            err = ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
-                A.obj, i - 1, j - 1, rv)
+        function reserve(A::DistMatrix{$elty}, numEntries::Integer)
+            err = ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
+              (Ptr{Void}, ElInt),
+              A.obj, numEntries)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function width(A::DistMatrix{$elty})
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElInt}),
+                A.obj, rv)
             err == 0 || throw(ElError(err))
             return rv[]
         end
@@ -113,8 +158,13 @@ end
 
 DistMatrix() = DistMatrix(Float64)
 
-# Julia convenience
+#########################
+### Julia convenience ###
+#########################
 countnz(A::DistMatrix) = length(A)
+
+# Do I want to provide this function? It's an invitation to be slow
+getindex(A::DistMatrix, i::Integer, j::Integer) = get(A, i, j)
 
 # This might be wrong. Should consider how to extract distributions properties of A
 function similar{T}(::DistMatrix, ::Type{T}, sz::Dims)
@@ -135,7 +185,7 @@ function getindex(A::DistMatrix, iInd::Colon, jInd::UnitRange)
     return B
 end
 
-# This might be terrible inefficient
+# FixMe! Should this one handle vectors of matrices?
 function hcat{T}(x::Vector{DistMatrix{T}})
     l    = length(x)
     if l == 0
@@ -143,17 +193,21 @@ function hcat{T}(x::Vector{DistMatrix{T}})
     else
         x1   = x[1]
         m, n = size(x1, 1), size(x1, 2)
-        B    = DistMatrix(T)
-        zeros!(B, m, l*n)
+        if n != 1
+            throw(ArgumentError("elements has to be vectors, i.e. the second dimension has to have size one"))
+        end
+        A    = DistMatrix(T)
+        zeros!(A, m, l*n)
         for j = 1:l
-            for i = 1:m
-                xji = x[j][i]
-                if MPI.commRank(comm(B)) == 0
-                    queueUpdate(B, i, j, xji)
+            xj = x[j]
+            for k = 1:localWidth(xj)
+                for i = 1:localHeight(xj)
+                    xji = getLocal(xj, i, 1)
+                    queueUpdate(A, globalRow(xj, i), j, xji)
                 end
             end
         end
-        processQueues(B)
-        return B
+        processQueues(A)
+        return A
     end
 end
