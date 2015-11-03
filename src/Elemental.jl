@@ -4,8 +4,8 @@ using Compat
 using DistributedArrays
 
 import Base: *, \, Ac_mul_B
-import Base: convert, copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, length, logdet, 
-    pointer, print, setindex!, showarray, similar, size
+import Base: convert, copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, inv, length,
+    logdet, pointer, print, setindex!, showarray, similar, size
 import Base.LinAlg: A_mul_B!, Ac_mul_B!, axpy!, norm, scale!, svd, svdvals, svdvals!
 
 const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
@@ -57,6 +57,7 @@ include("blas_like/level3.jl")
 include("lapack_like/euclidean_min.jl")
 include("lapack_like/factor.jl")
 include("lapack_like/props.jl")
+include("lapack_like/funcs.jl")
 include("lapack_like/solve.jl")
 include("lapack_like/spectral.jl")
 include("optimization/solvers.jl")
