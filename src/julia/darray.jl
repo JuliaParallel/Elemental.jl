@@ -104,6 +104,21 @@ function svdvals{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
+# Right now this is dangerous because Elemental aborts if the matrix is not Hermitian
+function logdet{T<:BlasFloat}(A::DArray{T,2})
+    rA = toback(A)
+    rvals = Array(Any, size(A.chunks))
+    @sync for j = 1:size(rvals, 2)
+        for i = 1:size(rvals, 1)
+            @async rvals[i,j] = remotecall_wait(rA[i,j].where, rA[i,j]) do t
+                d = safeHPDDeterminant(Elemental.LOWER, fetch(t))
+                return log(d.ρ) + d.κ*d.n
+            end
+        end
+    end
+    return fetch(rvals[1])
+end
+
 function spectralPortrait{T<:BlasReal}(A::DArray{T,2}, realSize::Integer, imagSize::Integer, psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
     rvals = Array(Any, size(A.chunks))

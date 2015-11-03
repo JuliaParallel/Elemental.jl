@@ -8,4 +8,5 @@ B = drandn(50,10)
 Bl = convert(Array, B)
 
 @test Al\Bl ≈ A\B
+@test logdet(Al'Al) ≈ logdet(A'A)
 @test svdvals(Al) ≈ Elemental.svdvals(A)
