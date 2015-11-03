@@ -1,3 +1,9 @@
+immutable SafeProduct{T<:BlasReal}
+    ρ::T
+    κ::T
+    n::ElInt
+end
+
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
                            (:Complex64, :Float32, :c),
@@ -8,6 +14,16 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                        (:DistSparseMatrix, "DistSparse_"),
                        (:DistMultiVec, "DistMultiVec_"))
         @eval begin
+
+            function entrywiseNorm(A::$mat{$elty}, p::Real)
+                rval = Ref{$relty}(0)
+                err = ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, $relty, Ref{$relty}),
+                    A.obj, p, rval)
+                err == 0 || throw(ElError(err))
+                return rval[]
+            end
+
             function maxNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
                 err = ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
@@ -25,12 +41,17 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
+        end
+    end
 
-            function entrywiseNorm(A::$mat{$elty}, p::Real)
-                rval = Ref{$relty}(0)
-                err = ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, $relty, Ref{$relty}),
-                    A.obj, p, rval)
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+        @eval begin
+            function safeHPDDeterminant(uplo::UpperOrLower, A::$mat{$elty})
+                rval = Ref{SafeProduct{$relty}}()
+                err = ccall(($(string("ElSafeHPDDeterminant", sym, ext)), libEl), Cuint,
+                    (UpperOrLower, Ptr{Void}, Ref{SafeProduct{$relty}}),
+                    uplo, A.obj, rval)
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
