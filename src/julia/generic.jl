@@ -80,6 +80,14 @@ function convert{T}(::Type{DistMatrix{T}}, A::Base.VecOrMat{T})
     return B
 end
 
+function norm(x::ElementalMatrix)
+    if width(x) == 1
+        return nrm2(x)
+    else
+        return twoNorm(x)
+    end
+end
+
 # Multiplication
 (*){T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = A*convert(DistMatrix{T}, B)
 Ac_mul_B{T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = Ac_mul_B(A, convert(DistMatrix{T}, B))
