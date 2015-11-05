@@ -17,7 +17,9 @@ end
 size(A::ElementalMatrix) = (size(A, 1), size(A, 2))
 
 (*){T<:ElementalMatrix}(A::T, B::T)      = A_mul_B!(one(eltype(A)), A, B, zero(eltype(A)), similar(A, (size(A, 1), size(B, 2))))
+(*){T}(A::DistSparseMatrix{T}, B::DistMultiVec{T}) = A_mul_B!(one(T), A, B, zero(T), similar(B, (size(A, 1), size(B, 2))))
 Ac_mul_B{T<:ElementalMatrix}(A::T, B::T) = Ac_mul_B!(one(eltype(A)), A, B, zero(eltype(A)), similar(A, (size(A, 2), size(B, 2))))
+Ac_mul_B{T}(A::DistSparseMatrix{T}, B::DistMultiVec{T}) = Ac_mul_B!(one(T), A, B, zero(T), similar(B, (size(A, 2), size(B, 2))))
 
 # Spectral
 svd(A::ElementalMatrix) = svd!(copy(A))
@@ -80,8 +82,23 @@ function convert{T}(::Type{DistMatrix{T}}, A::Base.VecOrMat{T})
     return B
 end
 
+function convert{T}(::Type{DistMultiVec{T}}, A::Base.VecOrMat{T})
+    m, n = size(A, 1), size(A, 2)
+    B = DistMultiVec(T)
+    zeros!(B, m, n)
+    if MPI.commRank(comm(B)) == 0
+        for j = 1:n
+            for i = 1:m
+                queueUpdate(B, i, j, A[i,j])
+            end
+        end
+    end
+    processQueues(B)
+    return B
+end
+
 function norm(x::ElementalMatrix)
-    if width(x) == 1
+    if size(x, 2) == 1
         return nrm2(x)
     else
         return twoNorm(x)
@@ -90,5 +107,7 @@ end
 
 # Multiplication
 (*){T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = A*convert(DistMatrix{T}, B)
+(*){T}(A::DistSparseMatrix{T}, B::Base.VecOrMat{T}) = A*convert(DistMultiVec{T}, B)
 Ac_mul_B{T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = Ac_mul_B(A, convert(DistMatrix{T}, B))
+Ac_mul_B{T}(A::DistSparseMatrix{T}, B::Base.VecOrMat{T}) = Ac_mul_B(A, convert(DistMultiVec{T}, B))
 

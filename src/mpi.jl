@@ -32,6 +32,16 @@ function MPIType(t::DataType)
         else
             error("data type not defined yet")
         end
+    elseif MPIImpl == :MPICH2 || MPIImpl == :MPICH3
+        if t == Float64
+            return Cint(0x4c00080b)
+        elseif t == Cint
+            return Cint(0x4c000405)
+        elseif t == Clong
+            return Cint(0x4c000807)
+        else
+            error("data type not defined yet")
+        end
     else
         error("MPI implementation not covered yet")
     end
@@ -44,9 +54,9 @@ function MPIOp(f::Function)
         else
             error("operation not defined yet")
         end
-    elseif MPIImpl == :MPICH2
+    elseif MPIImpl == :MPICH2 || MPIImpl == :MPICH3
         if f == (+)
-            return Cint(1476395011)
+            return Cint(0x58000003)
         else
             error("operation not defined yet")
         end
