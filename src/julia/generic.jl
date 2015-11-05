@@ -28,43 +28,47 @@ svdvals(A::ElementalMatrix, ctrl::SVDCtrl) = svdvals!(copy(A), ctrl)
 
 # conversions to and from julia arrays
 
-function copy!{T}(dest::Matrix{T}, src::Base.VecOrMat{T})
-    m, n = size(src, 1), size(src, 2)
-    resize!(dest, m, n)
-    Base.unsafe_copy!(pointer(dest), pointer(src), m*n)
-    return dest
-end
-function copy!{T}(dest::Base.Matrix{T}, src::Matrix{T})
-    m, n = size(dest)
-    if m != size(src, 1) || n != size(src, 2)
-        throw(DimensionMisMatch("source and destination must have same shape"))
-    end
-    Base.unsafe_copy!(pointer(dest), pointer(src), m*n)
-    return dest
-end
+# function copy!{T}(dest::Matrix{T}, src::Base.VecOrMat{T})
+#     m, n = size(src, 1), size(src, 2)
+#     resize!(dest, m, n)
+#     Base.unsafe_copy!(pointer(dest), pointer(src), m*n)
+#     return dest
+# end
+# function copy!{T}(dest::Base.Matrix{T}, src::Matrix{T})
+#     m, n = size(dest)
+#     if m != size(src, 1) || n != size(src, 2)
+#         throw(DimensionMisMatch("source and destination must have same shape"))
+#     end
+#     Base.unsafe_copy!(pointer(dest), pointer(src), m*n)
+#     return dest
+# end
 
-function copy!{T}(dest::DistMatrix{T}, src::Base.VecOrMat)
-    m, n = size(src, 1), size(src, 2)
-    zeros!(dest, m, n)
-    if MPI.commRank(comm(B)) == 0
-        for j = 1:n
-            for i = 1:m
-                queueUpdate(dest, i, j, src[i,j])
-            end
-        end
-    end
-    processQueues(dest)
-    return dest
-end
+# function copy!{T}(dest::DistMatrix{T}, src::Base.VecOrMat)
+#     m, n = size(src, 1), size(src, 2)
+#     zeros!(dest, m, n)
+#     if MPI.commRank(comm(B)) == 0
+#         for j = 1:n
+#             for i = 1:m
+#                 queueUpdate(dest, i, j, src[i,j])
+#             end
+#         end
+#     end
+#     processQueues(dest)
+#     return dest
+# end
 
 function convert{T}(::Type{Matrix{T}}, A::Base.VecOrMat{T})
+    m, n = size(A, 1), size(A, 2)
     B = Matrix(T)
-    resize!(B, size(A, 1), size(A, 2))
-    return copy!(B, A)
+    resize!(B, m, n)
+    Base.unsafe_copy!(pointer(B), pointer(A), m*n)
+    return B
 end
 function convert{T}(::Type{Base.Matrix{T}}, A::Matrix{T})
-    B = Base.Matrix{T}(size(A, 1), size(A, 2))
-    return copy!(B, A)
+    m, n = size(A)
+    B = Base.Matrix{T}(m, n)
+    Base.unsafe_copy!(pointer(B), pointer(A), m*n)
+    return B
 end
 
 function convert{T}(::Type{DistMatrix{T}}, A::Base.VecOrMat{T})
@@ -97,6 +101,20 @@ function convert{T}(::Type{DistMultiVec{T}}, A::Base.VecOrMat{T})
     return B
 end
 
+function convert{T}(::Type{DistMatrix{T}}, A::DistMultiVec{T})
+    m, n = size(A)
+    B = DistMatrix(T)
+    zeros!(B, m, n)
+    for j = 1:n
+        for i = 1:localHeight(A)
+            xij = getLocal(A, i, j)
+            queueUpdate(B, globalRow(A, i), j, xij)
+        end
+    end
+    processQueues(B)
+    return B
+end
+
 function norm(x::ElementalMatrix)
     if size(x, 2) == 1
         return nrm2(x)
@@ -107,7 +125,9 @@ end
 
 # Multiplication
 (*){T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = A*convert(DistMatrix{T}, B)
+(*){T}(A::DistMultiVec{T}, B::Base.VecOrMat{T}) = convert(DistMatrix{T}, A)*convert(DistMatrix{T}, B)
 (*){T}(A::DistSparseMatrix{T}, B::Base.VecOrMat{T}) = A*convert(DistMultiVec{T}, B)
 Ac_mul_B{T}(A::DistMatrix{T}, B::Base.VecOrMat{T}) = Ac_mul_B(A, convert(DistMatrix{T}, B))
+Ac_mul_B{T}(A::DistMultiVec{T}, B::Base.VecOrMat{T}) = Ac_mul_B(convert(DistMatrix{T}, A), convert(DistMatrix{T}, B))
 Ac_mul_B{T}(A::DistSparseMatrix{T}, B::Base.VecOrMat{T}) = Ac_mul_B(A, convert(DistMultiVec{T}, B))
 

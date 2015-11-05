@@ -35,6 +35,24 @@ for (elty, ext) in ((:ElInt, :i),
             return v[]
         end
 
+        function getLocal(A::DistMultiVec{$elty}, i::Integer, j::Integer)
+            rv = Ref{$elty}(0)
+            err = ccall(($(string("ElDistMultiVecGetLocal_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                A.obj, i - 1, j - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
+        end
+
+        function globalRow(A::DistMultiVec{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMultiVecGlobalRow_", ext)), libEl), Cuint,
+                (Ptr{Void}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv)
+            err == 0 || throw(ElError(err))
+            return rv[] + 1
+        end
+
         function height(x::DistMultiVec{$elty})
             i = Ref{ElInt}()
             err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint,
@@ -42,6 +60,15 @@ for (elty, ext) in ((:ElInt, :i),
                 x.obj, i)
             err == 0 || throw(ElError(err))
             return i[]
+        end
+
+        function localHeight(A::DistMultiVec{$elty})
+            rv = Ref{ElInt}(0)
+            err = ccall(($(string("ElDistMultiVecLocalHeight_", ext)), libEl), Cuint,
+                (Ptr{Void}, Ref{ElInt}),
+                A.obj, rv)
+            err == 0 || throw(ElError(err))
+            return rv[]
         end
 
         function processQueues(A::DistMultiVec{$elty})
@@ -96,4 +123,31 @@ function similar{T}(::DistMultiVec, ::Type{T}, sz::Dims, cm::ElComm = CommWorld)
     A = DistMultiVec(T, cm)
     resize!(A, sz...)
     return A
+end
+
+# FixMe! Should this one handle vectors of matrices?
+function hcat{T}(x::Vector{DistMultiVec{T}})
+    l    = length(x)
+    if l == 0
+        throw(ArgumentError("cannot flatten empty vector"))
+    else
+        x1   = x[1]
+        m, n = size(x1, 1), size(x1, 2)
+        if n != 1
+            throw(ArgumentError("elements has to be vectors, i.e. the second dimension has to have size one"))
+        end
+        A    = DistMultiVec(T)
+        zeros!(A, m, l*n)
+        for j = 1:l
+            xj = x[j]
+            for k = 1:width(xj)
+                for i = 1:localHeight(xj)
+                    xji = getLocal(xj, i, 1)
+                    queueUpdate(A, globalRow(xj, i), j, xji)
+                end
+            end
+        end
+        processQueues(A)
+        return A
+    end
 end
