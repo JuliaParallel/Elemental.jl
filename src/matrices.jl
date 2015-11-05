@@ -82,7 +82,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                        (:DistSparseMatrix, "DistSparse_"))
         @eval begin
             # Helmholtz
-            function helmholtz!(A::$mat{$elty}, nx::Integer, shift::Number)
+            function helmholtz!(A::$mat{$elty}, nx::Integer; shift::Number = 0)
                 err = ccall(($(string("ElHelmholtz1D", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, $elty),
                     A.obj, nx, shift)
@@ -90,7 +90,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return A
             end
 
-            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, shift::Number)
+            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer; shift::Number = 0)
                 err = ccall(($(string("ElHelmholtz2D", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty),
                     A.obj, nx, ny, shift)
@@ -98,7 +98,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return A
             end
 
-            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, nz::Integer, shift::Number)
+            function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, nz::Integer; shift::Number = 0)
                 err = ccall(($(string("ElHelmholtz3D", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, ElInt, $elty),
                     A.obj, nx, ny, nz, shift)

@@ -24,24 +24,18 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return rval[]
             end
 
-            function maxNorm(A::$mat{$elty})
+            function infinityNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
+                err = ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
                     A.obj, rval)
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
-        end
-    end
 
-    for (mat, sym) in ((:Matrix, "_"),
-                       (:DistMatrix, "Dist_"))
-        @eval begin
-
-            function infinityNorm(A::$mat{$elty})
+            function maxNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
+                err = ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
                     A.obj, rval)
                 err == 0 || throw(ElError(err))
@@ -56,6 +50,12 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return rval[]
             end
+        end
+    end
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+        @eval begin
 
             function safeHPDDeterminant(uplo::UpperOrLower, A::$mat{$elty})
                 rval = Ref{SafeProduct{$relty}}()
