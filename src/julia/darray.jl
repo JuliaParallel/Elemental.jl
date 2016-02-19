@@ -5,10 +5,10 @@ type RemoteElementalMatrix
 end
 
 function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})
-    rs = Array(Any, size(A.chunks))
-    @sync for p in eachindex(A.chunks)
+    rs = Array(Any, size(procs(A)))
+    @sync for p in eachindex(procs(A))
         ind = A.indexes[p]
-        @async rs[p] = remotecall(A.pids[p]) do
+        @async rs[p] = remotecall(procs(A)[p]) do
             lA = localpart(A)
             AlA = Elemental.DistMatrix(T)
             zeros!(AlA, size(A)...)
@@ -81,12 +81,12 @@ function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
             solve!(fetch(t1), fetch(t2))
         end
     end
-    return tofront(reshape(rvals, size(B.chunks)))
+    return tofront(reshape(rvals, size(procs(B))))
 end
 
 function eigvals{T<:BlasFloat}(A::Hermitian{T,DArray{T,2,Array{T,2}}})
     rA = toback(A.data)
-    rvals = Array(Any, size(A.data.chunks))
+    rvals = Array(Any, size(procs(A.data)))
     uplo = A.uplo == 'U' ? UPPER : LOWER
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
@@ -98,7 +98,7 @@ end
 
 function svdvals{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             svdvals(fetch(t))
@@ -109,7 +109,7 @@ end
 
 function inv!{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for j = 1:size(rvals, 2)
         for i = 1:size(rvals, 1)
             @async rvals[i,j] = remotecall_wait(t -> inverse!(fetch(t)), rA[i,j].where, rA[i,j])
@@ -122,7 +122,7 @@ inv{T<:BlasFloat}(A::DArray{T,2}) = inv!(copy(A))
 
 function logdet{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             d = safeHPDDeterminant(Elemental.LOWER, fetch(t))
@@ -137,7 +137,7 @@ function spectralPortrait{T<:BlasReal}(A::DArray{T,2},
                                        imagSize::Integer,
                                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1]
@@ -151,7 +151,7 @@ function spectralPortrait{T<:BlasReal}(A::DArray{Complex{T},2},
                                        imagSize::Integer,
                                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i,j] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1]
@@ -168,7 +168,7 @@ function spectralWindow{T<:BlasReal}(A::DArray{T,2},
                                      imagSize::Integer,
                                      psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralWindow(fetch(t), center, realWidth, imagWidth,
@@ -186,7 +186,7 @@ function spectralWindow{T<:BlasReal}(A::DArray{Complex{T},2},
                                      imagSize::Integer,
                                      psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(A.chunks))
+    rvals = Array(Any, size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i,j].where, rA[i]) do t
             spectralWindow(fetch(t), center, realWidth, imagWidth,
