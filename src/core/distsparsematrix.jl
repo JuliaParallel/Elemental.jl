@@ -26,7 +26,7 @@ for (elty, ext) in ((:ElInt, :i),
             return cm[]
         end
 
-        function destroy(A::DistSparseMatrix)
+        function destroy(A::DistSparseMatrix{$elty})
             err = ccall(($(string("ElDistSparseMatrixDestroy_", ext)), libEl), Cuint,
                 (Ptr{Void},),
                 A.obj)
