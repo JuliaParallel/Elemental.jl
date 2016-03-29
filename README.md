@@ -113,6 +113,3 @@ julia> @mpi_do man println(r[2][1:5])
 
 ### Coverage
 We continually add functionality from *Elemental* to `Elemental.jl` so, right now, the best way to see if a specific function is available, is to look through the source code.
-
-### Warning!
-On Julia 0.4 workers will die when `MethodError`s are thrown and one of the arguments is a pointer. This is fixed in 0.5 and will be back ported, but until that happens, you will have to be careful when calling new methods. An option is to wrap a call in a try/catch block and then print the exception instead of having it thrown.
