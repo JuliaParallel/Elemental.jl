@@ -95,7 +95,7 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
   @eval begin
-    function LPAffine{$elty}(
+    function LPAffine(
       A::DistSparseMatrix{$elty},
       G::DistSparseMatrix{$elty},
       b::DistMultiVec{$elty},
@@ -139,7 +139,7 @@ end
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
   @eval begin
-    function SOCPAffine{$elty}(
+    function SOCPAffine(
       A::DistSparseMatrix{$elty},
       G::DistSparseMatrix{$elty},
       b::DistMultiVec{$elty},

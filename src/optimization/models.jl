@@ -24,23 +24,22 @@ for (elty, ext) in ((:Float32, :s),
             end
         end
     end
-    @eval begin
-        function lav{T}(A::Matrix{T}, b::Matrix{T})
-            x = Matrix($elty)
-            return lav!(A, b, x)
-        end
-        function lav{T}(A::DistMatrix{T}, b::DistMatrix{T})
-            x = DistMatrix($elty, MC, MR, Grid(A))
-            return lav!(A, b, x)
-        end
-        function lav{T}(A::DistSparseMatrix{T}, b::DistMultiVec{T})
-            x = DistMultiVec($elty, comm(A))
-            return lav!(A, b, x)
-        end
+end
 
-        function lav{T}(A::DistSparseMatrix{T}, b::DistMultiVec{T}, ctrl::LPAffineCtrl{$elty})
-            x = DistMultiVec($elty, comm(A))
-            return lav!(A, b, x, ctrl)
-        end
-    end
+function lav{T<:Union{Float32,Float64}}(A::Matrix{T}, b::Matrix{T})
+    x = Matrix(T)
+    return lav!(A, b, x)
+end
+function lav{T<:Union{Float32,Float64}}(A::DistMatrix{T}, b::DistMatrix{T})
+    x = DistMatrix(T, MC, MR, Grid(A))
+    return lav!(A, b, x)
+end
+function lav{T<:Union{Float32,Float64}}(A::DistSparseMatrix{T}, b::DistMultiVec{T})
+    x = DistMultiVec(T, comm(A))
+    return lav!(A, b, x)
+end
+
+function lav{T<:Union{Float32,Float64}}(A::DistSparseMatrix{T}, b::DistMultiVec{T}, ctrl::LPAffineCtrl{T})
+    x = DistMultiVec(T, comm(A))
+    return lav!(A, b, x, ctrl)
 end
