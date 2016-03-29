@@ -27,7 +27,7 @@ end
 
 # Schur
 immutable HessQRCtrl
-    distAED::ElBool     
+    distAED::ElBool
     blockHeight::ElInt
     blockWidth::ElInt
 end
@@ -287,24 +287,26 @@ for (elty, ext) in ((:Float32, :s),
                 return s
             end
 
-            function svd!(A::$mat{$elty})
+            function svd(A::$mat{$elty})
+                U = $mat($elty)
                 s = $mat(real($elty))
                 V = $mat($elty)
                 err = ccall(($(string("ElSVD", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}),
-                    A.obj, s.obj, V.obj)
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                    A.obj, U.obj, s.obj, V.obj)
                 err == 0 || throw(ElError(err))
-                return A, s, V
+                return U, s, V
             end
 
             function svd!(A::$mat{$elty}, ctrl::SVDCtrl{real($elty)})
+                U = $mat($elty)
                 s = $mat(real($elty))
                 V = $mat($elty)
                 err = ccall(($(string("ElSVDX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, SVDCtrl{real($elty)}),
-                    A.obj, s.obj, V.obj, ctrl)
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}, SVDCtrl{real($elty)}),
+                    A.obj, U.obj, s.obj, V.obj, ctrl)
                 err == 0 || throw(ElError(err))
-                return A, s, V
+                return U, s, V
             end
 
             function spectralPortrait(A::$mat{$elty}, realSize::ElInt, imagSize::ElInt, psCtrl::PseudospecCtrl{real($elty)}=PseudospecCtrl(real($elty)))
