@@ -4,7 +4,10 @@ using Elemental: ElComm, ElElementType, ElInt, CommWorld, libEl
 
 function __init__()
     # FixMe! The symbol could probably also be missing for other implementations
-    if Libdl.dlsym_e(Libdl.dlopen(libEl), :MPI_Get_library_version) == C_NULL
+    #
+    # NOTE! I'm using RTLD_GLOBAL here to avoid the OPEN-MPI error described in
+    # https://www.open-mpi.org/faq/?category=troubleshooting#missing-symbols
+    if Libdl.dlsym_e(Libdl.dlopen(libEl, Libdl.RTLD_GLOBAL), :MPI_Get_library_version) == C_NULL
         const global MPIImpl = :MPICH2
     else
         versionBuffer = Array(UInt8, 1000)
