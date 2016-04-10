@@ -19,11 +19,15 @@ before_install:
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq -y
   - curl https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr
-  - sudo apt-get install -qq -y gfortran mpich2 libmpich2-3 libmpich2-dev gcc-4.9 g++-4.9 gfortran-4.9 libstdc++-4.9-dev
+  - sudo apt-get install -qq -y gfortran gcc-4.9 g++-4.9 gfortran-4.9 libstdc++-4.9-dev
   - export CC=gcc-4.9
   - export CXX=g++-4.9
   - export CPU_CORES=2
+  - sh ./mpi.sh $MPI
+  - export PATH=$HOME/OpenMPI/bin:$PATH
 
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - echo $PATH
+  - echo $LD_LIBRARY_PATH
   - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental"); Pkg.test("Elemental")'
