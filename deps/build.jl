@@ -1,5 +1,8 @@
 const Git = Base.Git
 
+# Use this version of Elemental
+Elsha = "79987d38b04838acf6b6195be1967177521ee908"
+
 @windows_only begin
     error("Elemental only works on Unix Platforms")
 end
@@ -18,11 +21,11 @@ prefix = joinpath(depdir, "usr")
 
 if !isdir(srcdir)
     Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
-else
-    cd(srcdir) do
-        Git.run(`pull`)
-    end
 end
+cd(srcdir) do
+    Git.run(`checkout $Elsha`)
+end
+
 
 Base.check_blas()
 blas = Base.blas_vendor()
