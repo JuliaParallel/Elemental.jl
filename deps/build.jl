@@ -18,6 +18,10 @@ prefix = joinpath(depdir, "usr")
 
 if !isdir(srcdir)
     Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
+else
+    cd(srcdir) do
+        Git.run(`pull`)
+    end
 end
 
 Base.check_blas()
