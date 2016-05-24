@@ -5,7 +5,7 @@
 A package for dense and sparse distributed linear algebra and optimization. The underlying functionality is provided by the C++ library [Elemental](http://libelemental.org/) written by [Jack Poulson](http://web.stanford.edu/~poulson/).
 
 ## Installation
-The package is installed with `Pkg.add("Elemenetal")`. The install script automatically downloads *Elemental* and will try build against the BLAS library used by Julia.
+The package is installed with `Pkg.add("Elemental")`. The install script automatically downloads *Elemental* and will try build against the BLAS library used by Julia.
 
 ### MPI
 The install script will build against any MPI installation that can be detected from calling `mpirun`. The package is tested with MPICH and OpenMPI but be aware that for OpenMPI at least version 1.8 is required because earlier versions of had bugs for complex data types. If you are using Linux and have installed OpenMPI from the repositories the version is (as always on Linux distributions) likely to be too old.
