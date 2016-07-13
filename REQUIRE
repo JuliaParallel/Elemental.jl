@@ -1,3 +1,4 @@
 julia 0.4
 Compat
 DistributedArrays 0.2.0
+Git

@@ -1,4 +1,4 @@
-const Git = Base.Git
+import Git
 
 # Use this version of Elemental
 Elsha = "79987d38b04838acf6b6195be1967177521ee908"
