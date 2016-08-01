@@ -19,11 +19,20 @@ if !isdir(joinpath(depdir, "usr"))
 end
 prefix = joinpath(depdir, "usr")
 
-if !isdir(srcdir)
-    LibGit2.clone("https://github.com/elemental/Elemental.git", "$srcdir")
-end
-cd(srcdir) do
-    LibGit2.checkout!(LibGit2.GitRepo("."), "$Elsha")
+if VERSION < v"0.5.0-"
+    if !isdir(srcdir)
+        Base.Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
+    end
+    cd(srcdir) do
+        Base.Git.run(`checkout $Elsha`)
+    end
+else
+    if !isdir(srcdir)
+        LibGit2.clone("https://github.com/elemental/Elemental.git", "$srcdir")
+    end
+    cd(srcdir) do
+        LibGit2.checkout!(LibGit2.GitRepo("."), "$Elsha")
+    end
 end
 
 if VERSION < v"0.5.0-dev+4343"
