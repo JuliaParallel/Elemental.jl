@@ -1,6 +1,7 @@
 module Elemental
 
 using Compat
+import Compat.String
 using DistributedArrays
 
 import Base: *, \, Ac_mul_B
@@ -14,7 +15,7 @@ include("error.jl")
 
 function Init()
     argc = Cint[0]
-    argv = Vector{ASCIIString}[ASCIIString[""]]
+    argv = Vector{String}[String[""]]
     err = ccall((:ElInitialize, libEl), Cint,
                 (Ptr{Cint}, Ptr{Ptr{Ptr{UInt8}}}), argc, pointer(argv))
     err == 0 || error("Error Initializing Elemental: $(ErrorString(err))")

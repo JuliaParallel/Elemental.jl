@@ -8,7 +8,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
 
         for (transA, elenumA) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
             for (transB, elenumB) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
-                f = symbol("A", transA, "_mul_B", transB, "!")
+                f = Symbol("A", transA, "_mul_B", transB, "!")
 
                 @eval begin
                     function ($f)(α::$elty, A::$mat{$elty}, B::$mat{$elty}, β::$elty, C::$mat{$elty})

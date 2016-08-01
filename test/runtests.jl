@@ -2,7 +2,7 @@ using Elemental
 using Base.Test
 
 function runtests_mpirun()
-    nprocs = min(4, CPU_CORES)
+    nprocs = min(4, Sys.CPU_CORES)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
     testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl"]
@@ -26,7 +26,7 @@ function runtests_mpirun()
 end
 
 function runtests_repl()
-    nprocs = min(4, CPU_CORES)
+    nprocs = min(4, Sys.CPU_CORES)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
     testfiles = ["darray.jl"]
