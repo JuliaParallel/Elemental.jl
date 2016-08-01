@@ -12,6 +12,10 @@ env:
   - MPI=mpich2
   - MPI=openmpi
 
+matrix:
+  allow_failures:
+    - julia: nightly
+
 notifications:
   email: false
 
