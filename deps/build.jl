@@ -19,7 +19,7 @@ if !isdir(joinpath(depdir, "usr"))
 end
 prefix = joinpath(depdir, "usr")
 
-if VERSION < v"0.5.0-"
+if VERSION < v"0.5.0-dev+5398"
     if !isdir(srcdir)
         Base.Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
     end

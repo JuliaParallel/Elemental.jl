@@ -1,5 +1,8 @@
 module MPI
 
+using Compat
+import Compat.String
+
 using Elemental: ElComm, ElElementType, ElInt, CommWorld, libEl
 
 function __init__()
