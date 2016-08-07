@@ -6,7 +6,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     # Distributed sparse gemv
     for (trans, elenum) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
 
-        f = symbol("A", trans, "_mul_B!")
+        f = Symbol("A", trans, "_mul_B!")
 
         @eval begin
             function ($f)(α::$elty, A::DistSparseMatrix{$elty}, x::DistMultiVec{$elty}, β::$elty, y::DistMultiVec{$elty})

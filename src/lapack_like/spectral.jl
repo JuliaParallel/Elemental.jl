@@ -120,10 +120,10 @@ function SnapshotCtrl(realSize=0,
     imgSaveCount=0,
     numSaveCount=0,
     imgDispCount=0,
-    imgBase::ByteString="ps",
-    numBase::ByteString="ps",
+    imgBase::String="ps",
+    numBase::String="ps",
     imgFormat=PNG,
-    numFormat=ASCII_MATLAB, 
+    numFormat=ASCII_MATLAB,
     itCounts::Bool=true)
     SnapshotCtrl(Cint(realSize),
         Cint(imagSize),
@@ -133,8 +133,8 @@ function SnapshotCtrl(realSize=0,
         Cint(imgSaveCount),
         Cint(numSaveCount),
         Cint(imgDispCount),
-        Cstring(symbol(imgBase)),
-        Cstring(symbol(numBase)),
+        Cstring(Symbol(imgBase)),
+        Cstring(Symbol(numBase)),
         ElFileFormat(imgFormat),
         ElFileFormat(numFormat),
         ElBool(itCounts))
@@ -228,7 +228,7 @@ for (elty, ext) in ((:Float32, :s),
                     (:Complex64, :c),
                     (:Complex128, :z))
     for mattype in ("", "Dist")
-        mat = symbol(mattype, "Matrix")
+        mat = Symbol(mattype, "Matrix")
         @eval begin
 
             function eigvalsTridiag(d::$mat{real($elty)}, dSub::$mat{$elty}, sort::SortType = ASCENDING)

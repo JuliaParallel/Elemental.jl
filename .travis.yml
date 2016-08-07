@@ -1,33 +1,64 @@
+sudo: required
+dist: trusty
+
 language: julia
+
+notifications:
+  email: false
 
 os:
   - linux
 
 julia:
   - 0.4
+  - 0.5
   - nightly
 
+matrix:
+  allow_failures:
+    - julia: nightly
+
 env:
-  - MPI=mpich2
-  - MPI=openmpi
+  global:
+    - PATH=/usr/lib/ccache/:$HOME/OpenMPI/bin:$PATH
+    - FC=gfortran-5
+  matrix:
+    - MPI=mpich   CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB1
+    - MPI=mpich   CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB2
+    - MPI=openmpi CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB3
+    - MPI=openmpi CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB4
 
-notifications:
-  email: false
+cache:
+  directories:
+    - $HOME/.ccache
 
-before_install:
-  - sudo add-apt-repository -y ppa:staticfloat/julia-deps
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq -y
-  - curl https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr
-  - sudo apt-get install -qq -y gfortran gcc-4.9 g++-4.9 gfortran-4.9 libstdc++-4.9-dev
-  - export CC=gcc-4.9
-  - export CXX=g++-4.9
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntu-toolchain-r/test'
+      - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.8 main'
+        key_url: http://apt.llvm.org/llvm-snapshot.gpg.key
+      - sourceline: 'ppa:dzombie/ccache'
+    packages:
+      - ccache
+      - gcc-5
+      - g++-5
+      - gfortran-5
+      - libstdc++-5-dev
+      - clang-3.8
+
+install:
+  - echo `ccache -s`
+  - sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang-3.8
+  - sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++-3.8
+  - echo `which $CC`
+  - echo `which $CXX`
+  - curl https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr
   - export CPU_CORES=2
-  - sh ./mpi.sh $MPI
-  - export PATH=$HOME/OpenMPI/bin:$PATH
+  - sh ./mpi.sh $MPI > /dev/null
+  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental")'
+  - echo `ccache -s`
 
 script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - echo $PATH
-  - echo $LD_LIBRARY_PATH
-  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental"); Pkg.test("Elemental")'
+  - julia --check-bounds=yes -e 'Pkg.test("Elemental")'

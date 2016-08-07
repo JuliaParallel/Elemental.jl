@@ -4,7 +4,7 @@ for dtype in ("", "Dist")
                             (:Float64, :d),
                             (:Complex64, :c),
                             (:Complex128, :z))
-            mat = symbol(dtype, stype, "Matrix")
+            mat = Symbol(dtype, stype, "Matrix")
             @eval begin
                 function solve!(A::$mat{$elty}, B::$mat{$elty})
                     err = ccall(($(string("ElLinearSolve", dtype, stype, "_", ext)), libEl), Cuint,

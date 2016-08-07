@@ -4,7 +4,7 @@ for (elty, ext) in ((:Float32, :s),
                     (:Complex128, :z))
 
     @eval begin
-        function print(A::DistMatrix{$elty}, title::ASCIIString)
+        function print(A::DistMatrix{$elty}, title::String)
             err = ccall(($(string("ElPrintDist_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ptr{UInt8}),
                 A.obj, title)
