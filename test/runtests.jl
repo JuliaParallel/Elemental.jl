@@ -51,7 +51,7 @@ function runtests_repl()
 end
 
 function runtests()
-    return runtests_mpirun() #+ runtests_repl() 2 August 2016. comment out until DistributedArrays has been tagged
+    return runtests_mpirun() & runtests_repl()
 end
 
 exit(runtests())
