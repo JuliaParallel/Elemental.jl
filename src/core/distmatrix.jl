@@ -8,7 +8,7 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistMatrix(::Type{$elty}, colDist = MC, rowDist = MR, grid = Grid())
+        function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = Grid())
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
                 (Cint, Cint, Ptr{Void}, Ref{Ptr{Void}}),
