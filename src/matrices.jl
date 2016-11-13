@@ -109,4 +109,23 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     end
 end
 
+for (elty, ext) in ((:Complex64, :c),
+                    (:Complex128, :z))
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+        @eval begin
+            # Fourier
+            function fourier!(A::$mat{$elty}, n::Integer)
+                err = ccall(($(string("ElFourier", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt),
+                    A.obj, n)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+            fourier!(A::$mat{$elty}) = fourier!(A, size(A))
+            fourier(::Type{$mat{$elty}}, n::Integer) = fourier!($mat($elty), n)
+        end
+    end
+end
 
