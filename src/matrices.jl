@@ -16,6 +16,8 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                 err == 0 || throw(ElError(err))
                 return A
             end
+            bernoulli(::Type{$mat{$elty}}, m::Integer, n::Integer = 1, p::Real = 0.5) =
+                bernoulli!($mat($elty), m, n, p)
 
             # Gaussian
             function gaussian!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1,
@@ -26,6 +28,9 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                 err == 0 || throw(ElError(err))
                 return A
             end
+            gaussian(::Type{$mat{$elty}}, m::Integer, n::Integer = 1,
+                mean::Number = 0, stddev::Number = 1) =
+                    gaussian!($mat($elty), m, n, mean, stddev)
 
             # Ones
             function ones!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1)
@@ -35,16 +40,19 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                 err == 0 || throw(ElError(err))
                 return A
             end
+            ones(::Type{$mat{$elty}}, m::Integer, n::Integer = 1) = ones!($mat($elty), m, n)
 
             # Uniform
             function uniform!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1,
-                              center::Number = 0, radius::Number = 1)
+                              center::Number = 0, radius::Real = 1)
                 err = ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, center, radius)
                 err == 0 || throw(ElError(err))
                 return A
             end
+            uniform(::Type{$mat{$elty}}, m::Integer, n::Integer = 1, center::Number = 0, radius::Real = 1) =
+                uniform!($mat($elty), m, n, center, radius)
 
             # Zeros
             function zeros!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1)
@@ -54,6 +62,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                 err == 0 || throw(ElError(err))
                 return A
             end
+            zeros(::Type{$mat{$elty}}, m::Integer, n::Integer = 1) = zeros!($mat($elty), m, n)
         end
 
         if elty == :Complex64 || elty == :Complex128
@@ -66,6 +75,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                     err == 0 || throw(ElError(err))
                     return A
                 end
+                foxLi(::Type{$mat{$elty}}, m::Integer, n::Integer = 1, ω::Real = 1.0) = foxLi!($mat($elty), m, n, ω)
             end
         end
     end
@@ -105,8 +115,27 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return A
             end
+            helmholtz(::Type{$mat{$elty}}, n::Integer...; shift::Number = 0) = helmholtz!($mat($elty), n..., shift = shift)
         end
     end
 end
 
+for (elty, ext) in ((:Complex64, :c),
+                    (:Complex128, :z))
+
+    for (mat, sym) in ((:Matrix, "_"),
+                       (:DistMatrix, "Dist_"))
+        @eval begin
+            # Fourier
+            function fourier!(A::$mat{$elty}, n::Integer)
+                err = ccall(($(string("ElFourier", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, ElInt),
+                    A.obj, n)
+                err == 0 || throw(ElError(err))
+                return A
+            end
+            fourier(::Type{$mat{$elty}}, n::Integer) = fourier!($mat($elty), n)
+        end
+    end
+end
 

@@ -37,6 +37,7 @@ end
 
 function __init__()
     Init()
+    DefaultGrid[] = Grid()
     atexit() do
         Initialized() && Finalize()
     end
@@ -56,6 +57,7 @@ include("blas_like/level1.jl")
 include("blas_like/level2.jl")
 include("blas_like/level3.jl")
 include("lapack_like/euclidean_min.jl")
+include("lapack_like/condense.jl")
 include("lapack_like/factor.jl")
 include("lapack_like/props.jl")
 include("lapack_like/funcs.jl")

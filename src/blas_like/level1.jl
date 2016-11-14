@@ -39,6 +39,17 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return x
             end
 
+            # Horizontal concatenation
+            # C := [A, B]
+            function hcat!(A::$mat{$elty}, B::$mat{$elty}, C::$mat{$elty})
+                err = ccall(($(string("ElHCat", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                    A.obj, B.obj, C.obj)
+                err == 0 || throw(ElError(err))
+                return C
+            end
+            hcat(A::$mat{$elty}, B::$mat{$elty}) = hcat!(A, B, $mat($elty))
+
             function nrm2(x::$mat{$elty})
                 rval = Ref{$relty}(0)
                 err = ccall(($(string("ElNrm2", sym, ext)), libEl), Cuint,
@@ -55,6 +66,17 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 err == 0 || throw(ElError(err))
                 return x
             end
+
+            # Vertical concatenation
+            # C := [A; B]
+            function vcat!(A::$mat{$elty}, B::$mat{$elty}, C::$mat{$elty})
+                err = ccall(($(string("ElVCat", sym, ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                    A.obj, B.obj, C.obj)
+                err == 0 || throw(ElError(err))
+                return C
+            end
+            vcat(A::$mat{$elty}, B::$mat{$elty}) = vcat!(A, B, $mat($elty))
         end
     end
 end

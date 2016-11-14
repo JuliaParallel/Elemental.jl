@@ -65,7 +65,7 @@ function SDCCtrl{T<:ElFloatType}(::Type{T};
         ElBool(random),
         ElBool(progress),
         signCtrl)
-end 
+end
 
 immutable SchurCtrl{T<:ElFloatType}
     useSDC::ElBool
@@ -73,7 +73,7 @@ immutable SchurCtrl{T<:ElFloatType}
     sdcCtrl::SDCCtrl{T}
 end
 function SchurCtrl{T<:ElFloatType}(::Type{T};
-    useSDC::Bool = false, 
+    useSDC::Bool = false,
     qrCtrl::HessQRCtrl = HessQRCtrl(),
     sdcCtrl::SDCCtrl{T} = SDCCtrl(T))
     SchurCtrl{T}(ElBool(useSDC),
@@ -98,7 +98,7 @@ const XBM           = ElFileFormat(11)
 const XPM           = ElFileFormat(12)
 
 immutable SnapshotCtrl
-    realSize::ElInt    
+    realSize::ElInt
     imagSize::ElInt
     imgSaveFreq::ElInt
     numSaveFreq::ElInt
@@ -153,7 +153,7 @@ immutable PseudospecCtrl{T<:ElFloatType}
     schurCtrl::SchurCtrl{T}
     maxIts::ElInt
     tol::T
-    deflate::ElBool 
+    deflate::ElBool
     arnoldi::ElBool
     basisSize::ElInt
     reorthog::ElBool
@@ -164,27 +164,27 @@ function PseudospecCtrl{T<:ElFloatType}(::Type{T};
     norm = PS_TWO_NORM,
     blockWidth = 10,
     schur::Bool = true,
-    forceComplexSchur::Bool = false,  
+    forceComplexSchur::Bool = false,
     forceComplexPs::Bool = false,
     schurCtrl = SchurCtrl(T),
     maxIts = 50,
-    tol = 1e-6, 
+    tol = 1e-6,
     deflate::Bool = true,
     arnoldi::Bool = true,
     basisSize = 10,
     reorthog::Bool = true,
     progress::Bool = false,
     snapCtrl = SnapshotCtrl())
-     
+
     PseudospecCtrl{T}(ElPseudospecNorm(norm),
         ElInt(blockWidth),
-        ElBool(schur), 
+        ElBool(schur),
         ElBool(forceComplexSchur),
         ElBool(forceComplexPs),
         schurCtrl,
         ElInt(maxIts),
         T(tol),
-        ElBool(deflate), 
+        ElBool(deflate),
         ElBool(arnoldi),
         ElInt(basisSize),
         ElBool(reorthog),

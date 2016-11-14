@@ -58,28 +58,10 @@ eltype{T}(A::ElementalMatrix{T}) = T
 
 # Error is handled in error.jl as an Exception
 
-typealias SortType Cint
-const UNSORTED   = Cint(0)
-const DESCENDING = Cint(1)
-const ASCENDING  = Cint(2)
-
-typealias Dist Cint
-const MC		= Cint(0)
-const MD		= Cint(1)
-const MR		= Cint(2)
-const VC		= Cint(3)
-const VR		= Cint(4)
-const STAR		= Cint(5)
-const CIRC		= Cint(6)
-
-typealias Orientation Cint
-const NORMAL 	= Cint(0)
-const TRANSPOSE = Cint(1)
-const ADJOINT 	= Cint(2)
-
-typealias UpperOrLower Cint
-const LOWER = Cint(0)
-const UPPER = Cint(1)
+@enum SortType UNSORTED DESCENDING ASCENDING
+@enum Dist MC MD MR VC VR STAR CIRC
+@enum Orientation NORMAL TRANSPOSE ADJOINT
+@enum UpperOrLower LOWER UPPER
 
 # Get MPIWorldComm
 function CommWorldValue()
