@@ -8,13 +8,24 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
+
+        # destructor to be used in finalizer. Don't call explicitly
+        function destroy(A::DistMultiVec{$elty})
+            err = ccall(($(string("ElDistMultiVecDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
         function DistMultiVec(::Type{$elty}, cm::ElComm = CommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
                 obj, cm)
             err == 0 || throw(ElError(err))
-            return DistMultiVec{$elty}(obj[])
+            A = DistMultiVec{$elty}(obj[])
+            finalizer(A, destroy)
+            return A
         end
 
         function comm(A::DistMultiVec{$elty})

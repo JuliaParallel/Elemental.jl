@@ -1,5 +1,6 @@
 type DistMatrix{T} <: ElementalMatrix{T}
 	obj::Ptr{Void}
+    g::Grid # keep the grid around to avoid that it's freed before the matrix
 end
 
 for (elty, ext) in ((:ElInt, :i),
@@ -8,23 +9,35 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
-        function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = Grid())
+
+        # destructor to be used in finalizer. Don't call explicitly
+        function destroy(A::DistMatrix{$elty})
+            err = ccall(($(string("ElDistMatrixDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
+        function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = DefaultGrid[])
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
                 (Cint, Cint, Ptr{Void}, Ref{Ptr{Void}}),
                 colDist, rowDist, grid.obj, obj)
             err == 0 || throw(ElError(err))
-            return DistMatrix{$elty}(obj[])
+            A = DistMatrix{$elty}(obj[], grid)
+            finalizer(A, destroy)
+            return A
         end
 
-        function Grid(A::DistMatrix{$elty})
-            g = Grid()
-            err = ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{Ptr{Void}}),
-                A.obj, Ref{Ptr{Void}}(g.obj))
-            err == 0 || throw(ElError(err))
-            return g
-        end
+        # Probably not necesary to have this function as we carry around a reference to the Grid.
+        # function Grid(A::DistMatrix{$elty})
+        #     g = Grid()
+        #     err = ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
+        #         (Ptr{Void}, Ref{Ptr{Void}}),
+        #         A.obj, Ref{Ptr{Void}}(g.obj))
+        #     err == 0 || throw(ElError(err))
+        #     return g
+        # end
 
         function comm(A::DistMatrix{$elty})
             cm = Ref{ElComm}()
@@ -194,7 +207,7 @@ function hcat{T}(x::Vector{DistMatrix{T}})
         x1   = x[1]
         m, n = size(x1, 1), size(x1, 2)
         if n != 1
-            throw(ArgumentError("elements has to be vectors, i.e. the second dimension has to have size one"))
+            throw(ArgumentError("elements have to be vectors, i.e. the second dimension has to have size one"))
         end
         A    = DistMatrix(T)
         zeros!(A, m, l*n)

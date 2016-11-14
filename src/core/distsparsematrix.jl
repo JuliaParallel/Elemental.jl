@@ -8,13 +8,24 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
+
+        # destructor to be used in finalizer. Don't call explicitly
+        function destroy(A::DistSparseMatrix{$elty})
+            err = ccall(($(string("ElDistSparseMatrixDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
         function DistSparseMatrix(::Type{$elty}, comm::ElComm = CommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
             err = ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
                 obj, comm)
             err == 0 || throw(ElError(err))
-            return DistSparseMatrix{$elty}(obj[])
+            A = DistSparseMatrix{$elty}(obj[])
+            finalizer(A, destroy)
+            return A
         end
 
         function comm(A::DistSparseMatrix{$elty})
@@ -24,14 +35,6 @@ for (elty, ext) in ((:ElInt, :i),
                 A.obj, cm)
             err == 0 || throw(ElError(err))
             return cm[]
-        end
-
-        function destroy(A::DistSparseMatrix{$elty})
-            err = ccall(($(string("ElDistSparseMatrixDestroy_", ext)), libEl), Cuint,
-                (Ptr{Void},),
-                A.obj)
-            err == 0 || throw(ElError(err))
-            return 0
         end
 
         function globalRow(A::DistSparseMatrix{$elty}, iLoc::Integer)

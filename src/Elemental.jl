@@ -37,6 +37,7 @@ end
 
 function __init__()
     Init()
+    DefaultGrid[] = Grid()
     atexit() do
         Initialized() && Finalize()
     end

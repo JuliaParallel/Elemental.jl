@@ -19,7 +19,7 @@ end
 
 function leastSquares{T}(A::DistMatrix{T}, B::DistMatrix{T};
     orientation::Orientation = NORMAL)
-    X = DistMatrix(T, MC, MR, Grid(A))
+    X = DistMatrix(T, MC, MR, A.g)
     return leastSquares!(A, B, X, orientation = orientation)
 end
 function leastSquares{T}(A::DistSparseMatrix{T}, B::DistMultiVec{T};

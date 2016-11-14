@@ -31,7 +31,7 @@ function lav{T<:Union{Float32,Float64}}(A::Matrix{T}, b::Matrix{T})
     return lav!(A, b, x)
 end
 function lav{T<:Union{Float32,Float64}}(A::DistMatrix{T}, b::DistMatrix{T})
-    x = DistMatrix(T, MC, MR, Grid(A))
+    x = DistMatrix(T, MC, MR, A.g)
     return lav!(A, b, x)
 end
 function lav{T<:Union{Float32,Float64}}(A::DistSparseMatrix{T}, b::DistMultiVec{T})

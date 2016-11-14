@@ -8,12 +8,23 @@ for (elty, ext) in ((:ElInt, :i),
                     (:Complex64, :c),
                     (:Complex128, :z))
     @eval begin
+
+        # destructor to be used in finalizer. Don't call explicitly
+        function destroy(A::Matrix{$elty})
+            err = ccall(($(string("ElMatrixDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj)
+            err == 0 || throw(ElError(err))
+            return nothing
+        end
+
         function Matrix(::Type{$elty})
             obj = Ref{Ptr{Void}}(0)
             err = ccall(($(string("ElMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}},), obj)
             err == 0 || throw(ElError(err))
-            return Matrix{$elty}(obj[])
+            A = Matrix{$elty}(obj[])
+            finalizer(A, destroy)
+            return A
         end
 
         function getindex(A::Matrix{$elty}, i::Integer, j::Integer)
