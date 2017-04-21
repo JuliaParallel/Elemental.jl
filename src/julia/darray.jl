@@ -5,7 +5,7 @@ type RemoteElementalMatrix
 end
 
 function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})
-    rs = Array(Any, size(procs(A)))
+    rs = Array{Any}(size(procs(A)))
     @sync for p in eachindex(procs(A))
         ind = A.indexes[p]
         @async rs[p] = remotecall(procs(A)[p]) do
@@ -25,7 +25,7 @@ function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})
 end
 
 function tofront(r::Base.Matrix)
-    tt = Array(Any, length(r))
+    tt = Array{Any}(length(r))
     for i = 1:length(r)
         tt[i] = remotecall(r[i].where, r[i]) do t
             typeof(fetch(t))
@@ -75,7 +75,7 @@ function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
     rA = toback(A)
     rB = toback(B)
     pidsAB = union(A.pids, B.pids)
-    rvals = Array(Any, length(pidsAB))
+    rvals = Vector{Any}(length(pidsAB))
     @sync for i = 1:length(pidsAB)
         @async rvals[i] = remotecall_wait(pidsAB[i], rA[i], rB[i]) do t1,t2
             solve!(fetch(t1), fetch(t2))
@@ -86,7 +86,7 @@ end
 
 function eigvals{T<:BlasFloat}(A::Hermitian{T,DArray{T,2,Array{T,2}}})
     rA = toback(A.data)
-    rvals = Array(Any, size(procs(A.data)))
+    rvals = Array{Any}(size(procs(A.data)))
     uplo = A.uplo == 'U' ? UPPER : LOWER
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
@@ -98,7 +98,7 @@ end
 
 function svdvals{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             svdvals(fetch(t))
@@ -109,7 +109,7 @@ end
 
 function inv!{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for j = 1:size(rvals, 2)
         for i = 1:size(rvals, 1)
             @async rvals[i,j] = remotecall_wait(t -> inverse!(fetch(t)), rA[i,j].where, rA[i,j])
@@ -122,7 +122,7 @@ inv{T<:BlasFloat}(A::DArray{T,2}) = inv!(copy(A))
 
 function logdet{T<:BlasFloat}(A::DArray{T,2})
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             d = safeHPDDeterminant(Elemental.LOWER, fetch(t))
@@ -137,7 +137,7 @@ function spectralPortrait{T<:BlasReal}(A::DArray{T,2},
                                        imagSize::Integer,
                                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1]
@@ -151,7 +151,7 @@ function spectralPortrait{T<:BlasReal}(A::DArray{Complex{T},2},
                                        imagSize::Integer,
                                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i,j] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralPortrait(fetch(t), ElInt(realSize), ElInt(imagSize), psCtrl)[1]
@@ -168,7 +168,7 @@ function spectralWindow{T<:BlasReal}(A::DArray{T,2},
                                      imagSize::Integer,
                                      psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i].where, rA[i]) do t
             spectralWindow(fetch(t), center, realWidth, imagWidth,
@@ -186,7 +186,7 @@ function spectralWindow{T<:BlasReal}(A::DArray{Complex{T},2},
                                      imagSize::Integer,
                                      psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
     rA = toback(A)
-    rvals = Array(Any, size(procs(A)))
+    rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
         @async rvals[i] = remotecall_wait(rA[i,j].where, rA[i]) do t
             spectralWindow(fetch(t), center, realWidth, imagWidth,
@@ -198,7 +198,7 @@ end
 
 function foxLi{T<:BlasComplex}(::Type{T}, n::Integer, ω::Real)
     sz = tuple(DistributedArrays.defaultdist((n,n), workers())...)
-    rvals = Array(Any, sz)
+    rvals = Array{Any}(sz)
     @sync for j = 1:size(rvals, 2), i = 1:size(rvals, 1)
         @async rvals[i,j] = remotecall_wait(workers()[sub2ind(sz, i, j)]) do
             A = Elemental.DistMatrix(T)

@@ -29,7 +29,7 @@ finalize() = icxx"El::Finalize();"
 ### ElementalMatrix ###
 # Many of the definitions in Elemental are very similar which makes it easy to define methods for a common abstract type. However, we should be careful when calling into the library with e.g. @cxx or icxx because all leaf types might not implement the actual method.
 
-abstract ElementalMatrix{T} <: AbstractMatrix{T}
+@compat abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
 
 _getindex(A::ElementalMatrix, i::ElInt, j::ElInt) = icxx"$(A.buf).Get($i, $j);"
 getindex(A::ElementalMatrix, i::Integer, j::Integer) = _getindex(A, ElInt(i - 1), ElInt(j - 1))
@@ -63,7 +63,7 @@ end
 svdvals(A::ElementalMatrix) = svdvals!(copy(A))
 
 ### AbstractDistMatrix ###
-abstract AbstractDistMatrix{T} <: ElementalMatrix{T}
+@compat abstract type AbstractDistMatrix{T} <: ElementalMatrix{T} end
 
 _resize!(A::AbstractDistMatrix, i::ElInt, j::ElInt) = icxx"$(A.buf).Resize($i, $j);"
 resize!(A::AbstractDistMatrix, i::Integer, j::Integer) = _resize!(A, ElInt(i), ElInt(j))
@@ -155,7 +155,7 @@ socp(A::DistSparseMatrix, G::DistSparseMatrix, b::DistMultiVec, c::DistMultiVec,
 
 using DistributedArrays
 function toback(A::DArray{Float64,2})
-    rs = Array(Any, size(A.chunks))
+    rs = Array{Any}(size(A.chunks))
     for p in eachindex(A.chunks)
         ind = A.indexes[p]
         rs[p] = remotecall(A.pids[p], () -> begin

@@ -49,11 +49,11 @@ end
 
 using Base.LinAlg: BlasFloat, BlasReal, BlasComplex
 
-typealias ElElementType Union{ElInt,Float32,Float64,Complex64,Complex128}
+const ElElementType = Union{ElInt,Float32,Float64,Complex64,Complex128}
 
-typealias ElFloatType Union{Float32,Float64} # TODO: Maybe just use BlasReal here
+const ElFloatType   = Union{Float32,Float64} # TODO: Maybe just use BlasReal here
 
-abstract ElementalMatrix{T} <: AbstractMatrix{T}
+@compat abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
 eltype{T}(A::ElementalMatrix{T}) = T
 
 # Error is handled in error.jl as an Exception

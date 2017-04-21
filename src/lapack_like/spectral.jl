@@ -1,6 +1,6 @@
 # Sign
 # TODO: Move this to ./funcs.jl
-typealias ElSignScaling Cuint
+const ElSignScaling = Cuint
 const SIGN_SCALE_NONE = ElSignScaling(0)
 const SIGN_SCALE_DET  = ElSignScaling(1)
 const SIGN_SCALE_FROB = ElSignScaling(2)
@@ -82,7 +82,7 @@ function SchurCtrl{T<:ElFloatType}(::Type{T};
 end
 
 # Pseueospectra
-typealias ElFileFormat Cuint
+const ElFileFormat  = Cuint
 const AUTO          = ElFileFormat(0)
 const ASCII         = ElFileFormat(1)
 const ASCII_MATLAB  = ElFileFormat(2)
@@ -140,7 +140,7 @@ function SnapshotCtrl(realSize=0,
         ElBool(itCounts))
 end
 
-typealias ElPseudospecNorm Cuint
+const ElPseudospecNorm = Cuint
 const PS_TWO_NORM = ElPseudospecNorm(0)
 const PS_ONE_NORM = ElPseudospecNorm(1)
 

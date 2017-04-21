@@ -1,11 +1,11 @@
 # Linear Programming
 # ==================
-typealias ElLPApproach Cuint
+const ElLPApproach = Cuint
 
 const LP_ADMM = ElLPApproach(0)
 const LP_MEHROTRA = ElLPApproach(1)
 
-typealias ElKKTSystem Cuint
+const ElKKTSystem = Cuint
 
 const FULL_KKT = ElKKTSystem(0)
 const AUGMENTED_KKT = ElKKTSystem(1)
