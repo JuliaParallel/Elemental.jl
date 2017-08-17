@@ -19,29 +19,15 @@ if !isdir(joinpath(depdir, "usr"))
 end
 prefix = joinpath(depdir, "usr")
 
-if VERSION < v"0.5.0-dev+5398"
-    if !isdir(srcdir)
-        Base.Git.run(`clone -- https://github.com/elemental/Elemental.git $srcdir`)
-    end
-    cd(srcdir) do
-        Base.Git.run(`checkout $Elsha`)
-    end
-else
-    if !isdir(srcdir)
-        LibGit2.clone("https://github.com/elemental/Elemental.git", "$srcdir")
-    end
-    cd(srcdir) do
-        LibGit2.checkout!(LibGit2.GitRepo("."), "$Elsha")
-    end
+if !isdir(srcdir)
+    LibGit2.clone("https://github.com/elemental/Elemental.git", "$srcdir")
+end
+cd(srcdir) do
+    LibGit2.checkout!(LibGit2.GitRepo("."), "$Elsha")
 end
 
-if VERSION < v"0.5.0-dev+4343"
-    Base.check_blas()
-    blas = Base.blas_vendor()
-else
-    BLAS.check()
-    blas = BLAS.vendor()
-end
+BLAS.check()
+blas = BLAS.vendor()
 mathlib = Libdl.dlpath(BLAS.libblas)
 blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
 blas_suffix = blas === :openblas64 ? "_64_" : "_"
