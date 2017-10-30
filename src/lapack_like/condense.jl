@@ -22,7 +22,7 @@ end
 immutable ElHessenberg{T,S<:ElementalMatrix} <: Factorization{T}
     factors::S
     τ::S
-    ElHessenberg(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = new(factors, τ)
+    (::Type{ElHessenberg{T,S}}){T,S<:ElementalMatrix}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = new{T,S}(factors, τ)
 end
 
 ElHessenberg{T}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = ElHessenberg{T,typeof(factors)}(factors, τ)

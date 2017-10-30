@@ -1,4 +1,4 @@
-typealias RegSolveAlg Cuint
+const RegSolveAlg = Cuint
 
 const REG_SOLVE_FGMRES = RegSolveAlg(0)
 const REG_SOLVE_LGMRES = RegSolveAlg(1)

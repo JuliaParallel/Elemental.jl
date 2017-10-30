@@ -13,7 +13,7 @@ function __init__()
     if Libdl.dlsym_e(Libdl.dlopen(libEl, Libdl.RTLD_GLOBAL), :MPI_Get_library_version) == C_NULL
         const global MPIImpl = :MPICH2
     else
-        versionBuffer = Array(UInt8, 2800)
+        versionBuffer = Vector{UInt8}(2800)
         len = Cint[0]
         err = ccall((:MPI_Get_library_version, libEl), Cint, (Ptr{UInt8}, Ptr{Cint}), versionBuffer, len)
         versionString = String(versionBuffer[1:len[1]-1])
