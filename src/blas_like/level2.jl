@@ -10,10 +10,9 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
 
         @eval begin
             function ($f)(α::$elty, A::DistSparseMatrix{$elty}, x::DistMultiVec{$elty}, β::$elty, y::DistMultiVec{$elty})
-                err = ccall(($(string("ElMultiplyDist_", ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElMultiplyDist_", ext)), libEl), Cuint,
                     (Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
-                    $elenum, α, A.obj, x.obj, β, y.obj)
-                err == 0 || throw(ElError(err))
+                    $elenum, α, A.obj, x.obj, β, y.obj))
                 return y
             end
         end

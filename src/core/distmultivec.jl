@@ -11,18 +11,16 @@ for (elty, ext) in ((:ElInt, :i),
 
         # destructor to be used in finalizer. Don't call explicitly
         function destroy(A::DistMultiVec{$elty})
-            err = ccall(($(string("ElDistMultiVecDestroy_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj)
-            err == 0 || throw(ElError(err))
+            ElError(ccall(($(string("ElDistMultiVecDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj))
             return nothing
         end
 
         function DistMultiVec(::Type{$elty}, cm::ElComm = CommWorld)
             obj = Ref{Ptr{Void}}(C_NULL)
-            err = ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Void}}, ElComm),
-                obj, cm)
-            err == 0 || throw(ElError(err))
+                obj, cm))
             A = DistMultiVec{$elty}(obj[])
             finalizer(A, destroy)
             return A
@@ -30,95 +28,84 @@ for (elty, ext) in ((:ElInt, :i),
 
         function comm(A::DistMultiVec{$elty})
             cm = Ref{ElComm}()
-            err = ccall(($(string("ElDistMultiVecComm_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecComm_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElComm}),
-                A.obj, cm)
-            err == 0 || throw(ElError(err))
+                A.obj, cm))
             return cm[]
         end
 
         function get(x::DistMultiVec{$elty}, i::Integer = size(x, 1), j::Integer = 1)
             v = Ref{$elty}()
-            err = ccall(($(string("ElDistMultiVecGet_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecGet_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
-                x.obj, i - 1, j - 1, v)
-            err == 0 || throw(ElError(err))
+                x.obj, i - 1, j - 1, v))
             return v[]
         end
 
         function getLocal(A::DistMultiVec{$elty}, i::Integer, j::Integer)
             rv = Ref{$elty}(0)
-            err = ccall(($(string("ElDistMultiVecGetLocal_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecGetLocal_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
-                A.obj, i - 1, j - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, j - 1, rv))
             return rv[]
         end
 
         function globalRow(A::DistMultiVec{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMultiVecGlobalRow_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecGlobalRow_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}),
-                A.obj, i - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, rv))
             return rv[] + 1
         end
 
         function height(x::DistMultiVec{$elty})
             i = Ref{ElInt}()
-            err = ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                x.obj, i)
-            err == 0 || throw(ElError(err))
+                x.obj, i))
             return i[]
         end
 
         function localHeight(A::DistMultiVec{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMultiVecLocalHeight_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecLocalHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                A.obj, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, rv))
             return rv[]
         end
 
         function processQueues(A::DistMultiVec{$elty})
-            err = ccall(($(string("ElDistMultiVecProcessQueues_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj)
-            err == 0 || throw(ElError(err))
+            ElError(ccall(($(string("ElDistMultiVecProcessQueues_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj))
           return nothing
         end
 
         function queueUpdate(A::DistMultiVec{$elty}, i::Integer, j::Integer, value::$elty)
-            err = ccall(($(string("ElDistMultiVecQueueUpdate_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
-              A.obj, i - 1, j - 1, value)
-            err == 0 || throw(ElError(err))
+              A.obj, i - 1, j - 1, value))
             return nothing
         end
 
         function reserve(A::DistMultiVec{$elty}, numEntries::Integer)
-            err = ccall(($(string("ElDistMultiVecReserve_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecReserve_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt),
-              A.obj, numEntries)
-            err == 0 || throw(ElError(err))
+              A.obj, numEntries))
             return nothing
         end
 
         function resize!(A::DistMultiVec{$elty}, m::Integer, n::Integer = 1) # to mimic vector behavior
-            err = ccall(($(string("ElDistMultiVecResize_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecResize_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt),
-              A.obj, ElInt(m), ElInt(n))
-            err == 0 || throw(ElError(err))
+              A.obj, ElInt(m), ElInt(n)))
             return A
         end
 
         function width(x::DistMultiVec{$elty})
             i = Ref{ElInt}()
-            err = ccall(($(string("ElDistMultiVecWidth_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMultiVecWidth_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                x.obj, i)
-            err == 0 || throw(ElError(err))
+                x.obj, i))
             return i[]
         end
     end

@@ -11,7 +11,7 @@ const FULL_KKT = ElKKTSystem(0)
 const AUGMENTED_KKT = ElKKTSystem(1)
 const NORMAL_KKT = ElKKTSystem(2)
 
-immutable MehrotraCtrl{T<:ElFloatType}
+struct MehrotraCtrl{T<:ElFloatType}
     primalInit::ElBool
     dualInit::ElBool
     minTol::T
@@ -80,7 +80,7 @@ function MehrotraCtrl{T<:ElFloatType}(::Type{T};
                     ElBool(checkResiduals))
 end
 
-immutable LPAffineCtrl{T<:ElFloatType}
+struct LPAffineCtrl{T<:ElFloatType}
     approach::Cuint
     mehrotraCtrl::MehrotraCtrl{T}
 end
@@ -106,13 +106,12 @@ for (elty, ext) in ((:Float32, :s),
       z::DistMultiVec{$elty},
       s::DistMultiVec{$elty},
       ctrl::LPAffineCtrl=SOCPAffineCtrl($elty))
-      err = ccall(($(string("ElLPAffine_", ext)), libEl), Cuint,
+      ElError(ccall(($(string("ElLPAffine_", ext)), libEl), Cuint,
         (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          LPAffineCtrl{$elty}),
         A.obj, G.obj, b.obj, c.obj, h.obj,
-        x.obj, y.obj, z.obj, s.obj, ctrl)
-      err == 0 || throw(ElError(err))
+        x.obj, y.obj, z.obj, s.obj, ctrl))
       return nothing
     end
   end
@@ -126,7 +125,7 @@ const SOCP_IPF_SELFDUAL = Cuint(2)
 const SOCP_MEHROTRA = Cuint(3)
 const SOCP_MEHROTRA_SELFDUAL = Cuint(4)
 
-immutable SOCPAffineCtrl{T<:ElFloatType}
+struct SOCPAffineCtrl{T<:ElFloatType}
     approach::Cuint
     mehrotraCtrl::MehrotraCtrl{T}
 end
@@ -153,15 +152,14 @@ for (elty, ext) in ((:Float32, :s),
       z::DistMultiVec{$elty},
       s::DistMultiVec{$elty},
       ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))
-      err = ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
+      ElError(ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
         (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          Ptr{Void},Ptr{Void},Ptr{Void},
          Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
          SOCPAffineCtrl{$elty}),
         A.obj, G.obj, b.obj, c.obj, h.obj,
         orders.obj, firstInds.obj, labels.obj,
-        x.obj, y.obj, z.obj, s.obj, ctrl)
-      err == 0 || throw(ElError(err))
+        x.obj, y.obj, z.obj, s.obj, ctrl))
       return nothing
     end
   end

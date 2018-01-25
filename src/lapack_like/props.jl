@@ -1,4 +1,4 @@
-immutable SafeProduct{T<:BlasReal}
+struct SafeProduct{T<:BlasReal}
     ρ::T
     κ::T
     n::ElInt
@@ -17,37 +17,33 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
 
             function entrywiseNorm(A::$mat{$elty}, p::Real)
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, $relty, Ref{$relty}),
-                    A.obj, p, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, p, rval))
                 return rval[]
             end
 
             function infinityNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
-                    A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, rval))
                 return rval[]
             end
 
             function maxNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
-                    A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, rval))
                 return rval[]
             end
 
             function oneNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElOneNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElOneNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
-                    A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, rval))
                 return rval[]
             end
         end
@@ -59,28 +55,25 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
 
             function safeHPDDeterminant(uplo::UpperOrLower, A::$mat{$elty})
                 rval = Ref{SafeProduct{$relty}}()
-                err = ccall(($(string("ElSafeHPDDeterminant", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElSafeHPDDeterminant", sym, ext)), libEl), Cuint,
                     (UpperOrLower, Ptr{Void}, Ref{SafeProduct{$relty}}),
-                    uplo, A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    uplo, A.obj, rval))
                 return rval[]
             end
 
             function twoNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
-                err = ccall(($(string("ElTwoNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElTwoNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{$relty}),
-                    A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, rval))
                 return rval[]
             end
 
             function zeroNorm(A::$mat{$elty})
                 rval = Ref{ElInt}(0)
-                err = ccall(($(string("ElZeroNorm", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElZeroNorm", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ref{ElInt}),
-                    A.obj, rval)
-                err == 0 || throw(ElError(err))
+                    A.obj, rval))
                 return rval[]
             end
         end

@@ -5,10 +5,9 @@ for (elty, ext) in ((:Float32, :s),
 
     @eval begin
         function print(A::DistMatrix{$elty}, title::String)
-            err = ccall(($(string("ElPrintDist_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElPrintDist_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ptr{UInt8}),
-                A.obj, title)
-            err == 0 || throw(ElError(err))
+                A.obj, title))
         end
     end
 end

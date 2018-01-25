@@ -1,26 +1,23 @@
 # Detect Elemental integer size
 function ElIntType()
     using64 = Cint[0]
-    err = ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64)
-    err == 0 || throw(ElError(err))
+    ElError(ccall((:ElUsing64BitInt, libEl), Cuint, (Ptr{Cint},), using64))
     return using64[1] == 1 ? Int64 : Int32
 end
 const ElInt = ElIntType()
 
 function ElCommType()
     sameSizeAsInt = Cint[0]
-    err = ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
-      sameSizeAsInt)
-    err == 0 || throw(ElError(err))
+    ElError(ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
+      sameSizeAsInt))
     return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
 end
 const ElComm = ElCommType()
 
 function ElGroupType()
     sameSizeAsInt = Cint[0]
-    err = ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
-      sameSizeAsInt)
-    err == 0 || throw(ElError(err))
+    ElError(ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
+      sameSizeAsInt))
     return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
 end
 const ElGroup = ElGroupType()
@@ -33,8 +30,7 @@ function ElBoolType()
 
     # warn("Hardcoding ElBool to Cint")
     boolsize = Ref(zero(Cuint))
-    err = ccall((:ElSizeOfCBool, libEl), Cuint, (Ref{Cuint},), boolsize)
-    err == 0 || throw(ElError(err))
+    ElError(ccall((:ElSizeOfCBool, libEl), Cuint, (Ref{Cuint},), boolsize))
     return boolsize[] == 1 ? UInt8 : Cint
 end
 const ElBool = ElBoolType()
