@@ -12,18 +12,16 @@ for (elty, ext) in ((:ElInt, :i),
 
         # destructor to be used in finalizer. Don't call explicitly
         function destroy(A::DistMatrix{$elty})
-            err = ccall(($(string("ElDistMatrixDestroy_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj)
-            err == 0 || throw(ElError(err))
+            ElError(ccall(($(string("ElDistMatrixDestroy_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj))
             return nothing
         end
 
         function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = DefaultGrid[])
             obj = Ref{Ptr{Void}}(C_NULL)
-            err = ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
                 (Cint, Cint, Ptr{Void}, Ref{Ptr{Void}}),
-                colDist, rowDist, grid.obj, obj)
-            err == 0 || throw(ElError(err))
+                colDist, rowDist, grid.obj, obj))
             A = DistMatrix{$elty}(obj[], grid)
             finalizer(A, destroy)
             return A
@@ -32,138 +30,122 @@ for (elty, ext) in ((:ElInt, :i),
         # Probably not necesary to have this function as we carry around a reference to the Grid.
         # function Grid(A::DistMatrix{$elty})
         #     g = Grid()
-        #     err = ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
+        #     ElError(ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
         #         (Ptr{Void}, Ref{Ptr{Void}}),
-        #         A.obj, Ref{Ptr{Void}}(g.obj))
-        #     err == 0 || throw(ElError(err))
+        #         A.obj, Ref{Ptr{Void}}(g.obj)))
         #     return g
         # end
 
         function comm(A::DistMatrix{$elty})
             cm = Ref{ElComm}()
-            err = ccall(($(string("ElDistMatrixDistComm_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixDistComm_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElComm}),
-                A.obj, cm)
-            err == 0 || throw(ElError(err))
+                A.obj, cm))
             return cm[]
         end
 
         function get(A::DistMatrix{$elty}, i::Integer, j::Integer)
             rv = Ref{$elty}(0)
-            err = ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
-                A.obj, i - 1, j - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, j - 1, rv))
             return rv[]
         end
 
         function getLocal(A::DistMatrix{$elty}, i::Integer, j::Integer)
             rv = Ref{$elty}(0)
-            err = ccall(($(string("ElDistMatrixGetLocal_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixGetLocal_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
-                A.obj, i - 1, j - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, j - 1, rv))
             return rv[]
         end
 
         function globalCol(A::DistMatrix{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixGlobalCol_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixGlobalCol_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}),
-                A.obj, i - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, rv))
             return rv[] + 1
         end
 
         function globalRow(A::DistMatrix{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixGlobalRow_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixGlobalRow_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, Ref{ElInt}),
-                A.obj, i - 1, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, rv))
             return rv[] + 1
         end
 
         function height(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                A.obj, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, rv))
             return rv[]
         end
 
         function localHeight(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixLocalHeight_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixLocalHeight_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                A.obj, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, rv))
             return rv[]
         end
 
         function localWidth(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixLocalWidth_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixLocalWidth_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                A.obj, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, rv))
             return rv[]
         end
 
         function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
-            err = ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ptr{$elty}),
-                A.obj, buf)
-            err == 0 || throw(ElError(err))
+                A.obj, buf))
             return buf
         end
 
         function processQueues(A::DistMatrix{$elty})
-            err = ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj)
-            err == 0 || throw(ElError(err))
+            ElError(ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
+                (Ptr{Void},), A.obj))
             return A
         end
 
         function queuePull(A::DistMatrix{$elty}, i::Integer, j::Integer)
-            err = ccall(($(string("ElDistMatrixQueuePull_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixQueuePull_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
-                A.obj, i - 1, j - 1)
-            err == 0 || throw(ElError(err))
+                A.obj, i - 1, j - 1))
             return nothing
         end
 
         function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
-            err = ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt, ElInt, $elty),
-              A.obj, i - 1, j - 1, value)
-            err == 0 || throw(ElError(err))
+              A.obj, i - 1, j - 1, value))
             return nothing
         end
 
         function reserve(A::DistMatrix{$elty}, numEntries::Integer)
-            err = ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
               (Ptr{Void}, ElInt),
-              A.obj, numEntries)
-            err == 0 || throw(ElError(err))
+              A.obj, numEntries))
             return nothing
         end
 
         function width(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
-            err = ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
                 (Ptr{Void}, Ref{ElInt}),
-                A.obj, rv)
-            err == 0 || throw(ElError(err))
+                A.obj, rv))
             return rv[]
         end
 
         function resize!(A::DistMatrix{$elty}, i::Integer, j::Integer = 1) # to mimic vector behavior
-            err = ccall(($(string("ElDistMatrixResize_", ext)), libEl), Cuint,
+            ElError(ccall(($(string("ElDistMatrixResize_", ext)), libEl), Cuint,
                 (Ptr{Void}, ElInt, ElInt),
-                A.obj, i, j)
-            err == 0 || throw(ElError(err))
+                A.obj, i, j))
             return A
         end
     end

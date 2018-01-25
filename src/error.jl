@@ -1,37 +1,30 @@
-immutable ElError <: Exception
-end
-
-immutable ElRuntimeError <: Exception
-end
-
-immutable ElLogicError <: Exception
-end
-
-immutable ElArgumentError <: Exception
-end
-
-immutable ElBoundsError <: Exception
-end
-
-immutable ElAllocError <: Exception
-end
+struct AllocError    <: Exception end
+struct BoundsError   <: Exception end
+struct Error         <: Exception end
+struct RuntimeError  <: Exception end
+struct LogicError    <: Exception end
+struct ArgumentError <: Exception end
 
 function ElError(code::Integer)
-    if code == 1
-        return OutOfMemoryError()
+    if code == 0
+        return nothing
+    elseif code == 1
+        throw(AllocError())
     elseif code == 2
-        return ArgumentError()
+        throw(BoundsError())
     elseif code == 3
-        return ElLogicError()
+        throw(ArgumentError())
     elseif code == 4
-        return ElRuntimeError()
+        throw(LogicError())
+    elseif code == 5
+        throw(RuntimeError())
     elseif code == -1
         # catchall error code
-        return ElError()
+        return throw(Error())
     else
         throw(ArgumentError("Unknown Elemental Error Code: $code"))
     end
 end
 
 ErrorString(code::Integer) =
-    btyestring(ccall((:ElErrorString, libEl), Ptr{Cchar}, (Cint,), code))
+    String(ccall((:ElErrorString, libEl), Ptr{Cchar}, (Cint,), code))

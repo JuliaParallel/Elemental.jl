@@ -7,10 +7,9 @@ for dtype in ("", "Dist")
             mat = Symbol(dtype, stype, "Matrix")
             @eval begin
                 function solve!(A::$mat{$elty}, B::$mat{$elty})
-                    err = ccall(($(string("ElLinearSolve", dtype, stype, "_", ext)), libEl), Cuint,
+                    ElError(ccall(($(string("ElLinearSolve", dtype, stype, "_", ext)), libEl), Cuint,
                         (Ptr{Void}, Ptr{Void}),
-                        A.obj, B.obj)
-                    err == 0 || throw(ElError(err))
+                        A.obj, B.obj))
                     return B
                 end
             end

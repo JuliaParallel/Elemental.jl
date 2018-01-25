@@ -8,10 +8,9 @@ for (elty, ext) in ((:Float32, :s),
 
             # Hessenberg
             function hessenberg!(uplo::UpperOrLower, A::$mat{$elty}, t::$mat{$elty})
-                err = ccall(($(string("ElHessenberg", mattype, "_", ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElHessenberg", mattype, "_", ext)), libEl), Cuint,
                     (UpperOrLower, Ptr{Void}, Ptr{Void}),
-                    uplo, A.obj, t.obj)
-                err == 0 || throw(ElError(err))
+                    uplo, A.obj, t.obj))
                 return A, t
             end
             hessenberg!(A::$mat{$elty}) = hessenberg!(UPPER, A, $mat($elty))
@@ -19,7 +18,7 @@ for (elty, ext) in ((:Float32, :s),
     end
 end
 
-immutable ElHessenberg{T,S<:ElementalMatrix} <: Factorization{T}
+struct ElHessenberg{T,S<:ElementalMatrix} <: Factorization{T}
     factors::S
     τ::S
     (::Type{ElHessenberg{T,S}}){T,S<:ElementalMatrix}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = new{T,S}(factors, τ)

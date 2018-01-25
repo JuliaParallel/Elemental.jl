@@ -8,18 +8,16 @@ for (elty, ext) in ((:Float32, :s),
         @eval begin
 
             function lav!(A::$matA{$elty}, b::$matb{$elty}, x::$matb{$elty})
-                err = ccall(($(string("ElLAV", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElLAV", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ptr{Void}, Ptr{Void}),
-                    A.obj, b.obj, x.obj)
-                err == 0 || throw(ElError(err))
+                    A.obj, b.obj, x.obj))
                 return x
             end
 
             function lav!(A::$matA{$elty}, b::$matb{$elty}, x::$matb{$elty}, ctrl::LPAffineCtrl{$elty})
-                err = ccall(($(string("ElLAVX", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElLAVX", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ptr{Void}, Ptr{Void}, LPAffineCtrl{$elty}),
-                    A.obj, b.obj, x.obj, ctrl)
-                err == 0 || throw(ElError(err))
+                    A.obj, b.obj, x.obj, ctrl))
                 return x
             end
         end

@@ -3,7 +3,7 @@ const RegSolveAlg = Cuint
 const REG_SOLVE_FGMRES = RegSolveAlg(0)
 const REG_SOLVE_LGMRES = RegSolveAlg(1)
 
-immutable RegSolveCtrl{T<:ElFloatType}
+struct RegSolveCtrl{T<:ElFloatType}
     alg::RegSolveAlg
     relTol::T
     relTolRefine::T

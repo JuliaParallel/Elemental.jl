@@ -7,10 +7,9 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
         @eval begin
             function leastSquares!(A::$matA{$elty}, B::$matB{$elty}, X::$matB{$elty};
                 orientation::Orientation = NORMAL)
-                err = ccall(($(string("ElLeastSquares", sym, ext)), libEl), Cuint,
+                ElError(ccall(($(string("ElLeastSquares", sym, ext)), libEl), Cuint,
                     (Cuint, Ptr{Void}, Ptr{Void}, Ptr{Void}),
-                    orientation, A.obj, B.obj, X.obj)
-                err == 0 || throw(ElError(err))
+                    orientation, A.obj, B.obj, X.obj))
                 return X
             end
         end

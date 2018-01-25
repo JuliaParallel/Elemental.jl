@@ -4,9 +4,8 @@ end
 
 # destructor to be used in finalizer. Don't call explicitly
 function destroy(G::Grid)
-    err = ccall(("ElGridDestroy", libEl), Cuint,
-        (Ptr{Void},), G.obj)
-    err == 0 || throw(ElError(err))
+    ElError(ccall(("ElGridDestroy", libEl), Cuint,
+        (Ptr{Void},), G.obj))
     return nothing
 end
 
@@ -14,9 +13,8 @@ end
 # so we shouldn't register a `destroy` as finalizer.
 function Grid()
     obj = Ref{Ptr{Void}}(C_NULL)
-        err = ccall(("ElDefaultGrid", libEl), Cuint,
-            (Ref{Ptr{Void}},), obj)
-    err == 0 || throw(ElError(err))
+        ElError(ccall(("ElDefaultGrid", libEl), Cuint,
+            (Ref{Ptr{Void}},), obj))
     return Grid(obj[])
 end
 

@@ -16,22 +16,19 @@ include("error.jl")
 function Init()
     argc = Cint[0]
     argv = Vector{String}[String[""]]
-    err = ccall((:ElInitialize, libEl), Cint,
-                (Ptr{Cint}, Ptr{Ptr{Ptr{UInt8}}}), argc, pointer(argv))
-    err == 0 || error("Error Initializing Elemental: $(ErrorString(err))")
+    ElError(ccall((:ElInitialize, libEl), Cint,
+                (Ptr{Cint}, Ptr{Ptr{Ptr{UInt8}}}), argc, pointer(argv)))
     return nothing
 end
 
 function Initialized()
     active = Ref(zero(Cint))
-    err = ccall((:ElInitialized, libEl), Cuint, (Ref{Cint},), active)
-    err == 0 || throw(ElError(err))
+    ElError(ccall((:ElInitialized, libEl), Cuint, (Ref{Cint},), active))
     return active[] == 1
 end
 
 function Finalize()
-    err = ccall((:ElFinalize, libEl), Cint, ())
-    err == 0 || error("Error Finalizing Elemental: $(ErrorString(err))")
+    ElError(ccall((:ElFinalize, libEl), Cint, ()))
     return nothing
 end
 
