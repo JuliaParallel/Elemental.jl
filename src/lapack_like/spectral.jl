@@ -265,6 +265,14 @@ for (elty, ext) in ((:Float32, :s),
                 return w, Z
             end
 
+            function eigvalsGeneral(A::$mat{$elty}, fullTriangle = false)
+                w = $mat(complex($elty))
+                ElError(ccall(($(string("ElSchur", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Void}, Ptr{Void}, ElBool),
+                    A.obj, w.obj, fullTriangle))
+                return w
+            end
+
             function svdvals!(A::$mat{$elty})
                 s = $mat(real($elty))
                 ElError(ccall(($(string("ElSingularValues", mattype, "_", ext)), libEl), Cuint,
