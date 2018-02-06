@@ -58,6 +58,8 @@ eltype{T}(A::ElementalMatrix{T}) = T
 @enum Dist MC MD MR VC VR STAR CIRC
 @enum Orientation NORMAL TRANSPOSE ADJOINT
 @enum UpperOrLower LOWER UPPER
+@enum LeftOrRight LEFT RIGHT
+@enum UnitOrNonUnit NON_UNIT UNIT
 
 # Get MPIWorldComm
 function CommWorldValue()

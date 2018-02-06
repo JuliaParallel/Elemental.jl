@@ -13,7 +13,8 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return y
             end
 
-            function copy!(src::$mat{$elty}, dest::$mat{$elty})
+            # Which is opposite Julia's copy! so we call it _copy! to avoid confusion
+            function _copy!(src::$mat{$elty}, dest::$mat{$elty})
                 ElError(ccall(($(string("ElCopy", sym, ext)), libEl), Cuint,
                     (Ptr{Void}, Ptr{Void}),
                     src.obj, dest.obj))
@@ -72,6 +73,3 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
         end
     end
 end
-
-copy(A::ElementalMatrix) = copy!(A, similar(A))
-length(A::ElementalMatrix) = prod(size(A))
