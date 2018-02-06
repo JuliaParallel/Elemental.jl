@@ -33,3 +33,21 @@ function RegSolveCtrl{T<:ElFloatType}(::Type{T};
         ElBool(progress),
         ElBool(time))
 end
+
+for (elty, ext) in ((:Float32, :s),
+                    (:Float64, :d),
+                    (:Complex64, :c),
+                    (:Complex128, :z))
+    for mattype in ("", "Dist")
+        mat = Symbol(mattype, "Matrix")
+        @eval begin
+
+            function cholesky(uplo::UpperOrLower, A::$mat{$elty})
+                ElError(ccall(($(string("ElCholesky", mattype, "_", ext)), libEl), Cuint,
+                    (UpperOrLower, Ptr{Void}),
+                    uplo, A.obj))
+                return A
+            end
+        end
+    end
+end

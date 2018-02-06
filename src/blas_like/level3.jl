@@ -6,18 +6,22 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"))
 
-        for (transA, elenumA) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
-            for (transB, elenumB) in (("", :NORMAL), ("t", :TRANSPOSE), ("c", :ADJOINT))
-                f = Symbol("A", transA, "_mul_B", transB, "!")
+        @eval begin
 
-                @eval begin
-                    function ($f)(α::$elty, A::$mat{$elty}, B::$mat{$elty}, β::$elty, C::$mat{$elty})
-                        ElError(ccall(($(string("ElGemm", sym, ext)), libEl), Cuint,
-                            (Cint, Cint, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
-                            $elenumA, $elenumB, α, A.obj, B.obj, β, C.obj))
-                        return C
-                    end
-                end
+            function gemm(orientationOfA::Orientation, orientationOfB::Orientation, α::$elty, A::$mat{$elty}, B::$mat{$elty}, β::$elty, C::$mat{$elty})
+                ElError(ccall(($(string("ElGemm", sym, ext)), libEl), Cuint,
+                    (Orientation, Orientation, $elty, Ptr{Void}, Ptr{Void}, $elty, Ptr{Void}),
+                     orientationOfA, orientationOfB, α, A.obj, B.obj, β, C.obj))
+                return C
+            end
+
+            function trsm(side::LeftOrRight, uplo::UpperOrLower, orientation::Orientation, diag::UnitOrNonUnit, α::$elty, A::$mat{$elty}, B::$mat{$elty})
+                ElError(ccall(($(string("ElTrsm", sym, ext)), libEl), Cuint,
+                    (LeftOrRight, UpperOrLower, Orientation, UnitOrNonUnit,
+                     $elty, Ptr{Void}, Ptr{Void}),
+                     side, uplo, orientation, diag,
+                     α, A.obj, B.obj))
+                return B
             end
         end
     end
