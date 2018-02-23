@@ -82,20 +82,6 @@ function SchurCtrl{T<:ElFloatType}(::Type{T};
 end
 
 # Pseueospectra
-const ElFileFormat  = Cuint
-const AUTO          = ElFileFormat(0)
-const ASCII         = ElFileFormat(1)
-const ASCII_MATLAB  = ElFileFormat(2)
-const BINARY        = ElFileFormat(3)
-const BINARY_FLAT   = ElFileFormat(4)
-const BMP           = ElFileFormat(5)
-const JPG           = ElFileFormat(6)
-const JPEG          = ElFileFormat(7)
-const MATRIX_MARKET = ElFileFormat(8)
-const PNG           = ElFileFormat(9)
-const PPM           = ElFileFormat(10)
-const XBM           = ElFileFormat(11)
-const XPM           = ElFileFormat(12)
 
 struct SnapshotCtrl
     realSize::ElInt
@@ -108,8 +94,8 @@ struct SnapshotCtrl
     imgDispCount::ElInt
     imgBase::Cstring
     numBase::Cstring
-    imgFormat::ElFileFormat
-    numFormat::ElFileFormat
+    imgFormat::FileFormat
+    numFormat::FileFormat
     itCounts::ElBool
 end
 function SnapshotCtrl(realSize=0,
@@ -135,8 +121,8 @@ function SnapshotCtrl(realSize=0,
         Cint(imgDispCount),
         Cstring(Symbol(imgBase)),
         Cstring(Symbol(numBase)),
-        ElFileFormat(imgFormat),
-        ElFileFormat(numFormat),
+        imgFormat,
+        numFormat,
         ElBool(itCounts))
 end
 
