@@ -242,6 +242,14 @@ for (elty, ext) in ((:Float32, :s),
                 return w
             end
 
+            function eigvalsHermitian(pencil::Pencil, uplo::UpperOrLower, A::$mat{$elty}, B::$mat{$elty}, sort::SortType = ASCENDING)
+                w = $mat(real($elty))
+                ElError(ccall(($(string("ElHermitianGenDefEig", mattype, "_", ext)), libEl), Cuint,
+                    (Pencil, UpperOrLower, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    pencil, uplo, A.obj, B.obj, w.obj, sort))
+                return w
+            end
+
             function eigHermitian(uplo::UpperOrLower, A::$mat{$elty}, sort::SortType = ASCENDING)
                 w = $mat(real($elty))
                 Z = $mat($elty)

@@ -60,6 +60,7 @@ eltype{T}(A::ElementalMatrix{T}) = T
 @enum UpperOrLower LOWER UPPER
 @enum LeftOrRight LEFT RIGHT
 @enum UnitOrNonUnit NON_UNIT UNIT
+@enum Pencil AXBX=1 ABX=2 BAX=3
 
 # Get MPIWorldComm
 function CommWorldValue()
