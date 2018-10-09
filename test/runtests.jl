@@ -1,21 +1,21 @@
 using Elemental
-using Base.Test
+using Test
 
 function runtests_mpirun()
-    nprocs = min(4, Sys.CPU_CORES)
-    exename = joinpath(JULIA_HOME, Base.julia_exename())
+    nprocs = min(4, Sys.CPU_THREADS)
+    exename = joinpath(Sys.BINDIR, Base.julia_exename())
     testdir = dirname(@__FILE__)
     testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl", "spectral.jl"]
     nfail = 0
-    print_with_color(:white, "Running Elemental.jl tests\n")
+    @info "Running Elemental.jl tests"
     for f in testfiles
         try
             run(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
-            Base.with_output_color(:green,STDOUT) do io
+            Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
         catch ex
-            Base.with_output_color(:red,STDERR) do io
+            Base.with_output_color(:red,stderr) do io
                 println(io,"\tError: $f")
                 showerror(io,ex,backtrace())
             end
@@ -26,21 +26,21 @@ function runtests_mpirun()
 end
 
 function runtests_repl()
-    nprocs = min(4, Sys.CPU_CORES)
-    exename = joinpath(JULIA_HOME, Base.julia_exename())
+    nprocs = min(4, Sys.CPU_THREADS)
+    exename = joinpath(Sys.BINDIR, Base.julia_exename())
     testdir = dirname(@__FILE__)
     testfiles = ["darray.jl"]
     nfail = 0
-    print_with_color(:white, "Running Elemental.jl tests\n")
+    @info "Running Elemental.jl tests"
     for f in testfiles
         try
-            cmdstr = "using MPI; man = MPIManager(np = $nprocs); addprocs(man); include(\"$(joinpath(testdir, f))\")"
+            cmdstr = "using Distributed, MPI; man = MPIManager(np = $nprocs); addprocs(man); include(\"$(joinpath(testdir, f))\")"
             run(`$exename -e $cmdstr`)
-            Base.with_output_color(:green,STDOUT) do io
+            Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
         catch ex
-            Base.with_output_color(:red,STDERR) do io
+            Base.with_output_color(:red,stderr) do io
                 println(io,"\tError: $f")
                 showerror(io,ex,backtrace())
             end

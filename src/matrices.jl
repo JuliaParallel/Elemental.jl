@@ -1,8 +1,8 @@
 for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
                            (:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
-                           (:Complex64, :Float32, :c),
-                           (:Complex128, :Float64, :z))
+                           (:ComplexF32, :Float32, :c),
+                           (:ComplexF64, :Float64, :z))
 
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
@@ -11,7 +11,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
             # Bernoulli
             function bernoulli!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1, p::Real = 0.5)
                 ElError(ccall(($(string("ElBernoulli", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, Float64),
+                    (Ptr{Cvoid}, ElInt, ElInt, Float64),
                     A.obj, m, n, Float64(p)))
                 return A
             end
@@ -22,7 +22,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
             function gaussian!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1,
                                mean::Number = 0, stddev::Number = 1)
                 ElError(ccall(($(string("ElGaussian", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
+                    (Ptr{Cvoid}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, mean, stddev))
                 return A
             end
@@ -33,7 +33,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
             # Ones
             function ones!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1)
                 ElError(ccall(($(string("ElOnes", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt),
+                    (Ptr{Cvoid}, ElInt, ElInt),
                     A.obj, m, n))
                 return A
             end
@@ -43,7 +43,7 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
             function uniform!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1,
                               center::Number = 0, radius::Real = 1)
                 ElError(ccall(($(string("ElUniform", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, $elty, $relty),
+                    (Ptr{Cvoid}, ElInt, ElInt, $elty, $relty),
                     A.obj, m, n, center, radius))
                 return A
             end
@@ -53,19 +53,19 @@ for (elty, relty, ext) in ((:ElInt, :ElInt, :i),
             # Zeros
             function zeros!(A::$mat{$elty}, m::Integer = size(A, 1), n::Integer = 1)
                 ElError(ccall(($(string("ElZeros", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt),
+                    (Ptr{Cvoid}, ElInt, ElInt),
                     A.obj, m, n))
                 return A
             end
             zeros(::Type{$mat{$elty}}, m::Integer, n::Integer = 1) = zeros!($mat($elty), m, n)
         end
 
-        if elty == :Complex64 || elty == :Complex128
+        if elty == :ComplexF32 || elty == :ComplexF64
             # Uniform
             @eval begin
                 function foxLi!(A::$mat{$elty}, n::Integer = size(A, 1), ω::Real = 1.0)
                     ElError(ccall(($(string("ElFoxLi", sym, ext)), libEl), Cuint,
-                        (Ptr{Void}, ElInt, $relty),
+                        (Ptr{Cvoid}, ElInt, $relty),
                         A.obj, n, ω))
                     return A
                 end
@@ -77,8 +77,8 @@ end
 
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
-                           (:Complex64, :Float32, :c),
-                           (:Complex128, :Float64, :z))
+                           (:ComplexF32, :Float32, :c),
+                           (:ComplexF64, :Float64, :z))
 
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
@@ -88,21 +88,21 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             # Helmholtz
             function helmholtz!(A::$mat{$elty}, nx::Integer; shift::Number = 0)
                 ElError(ccall(($(string("ElHelmholtz1D", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, $elty),
+                    (Ptr{Cvoid}, ElInt, $elty),
                     A.obj, nx, shift))
                 return A
             end
 
             function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer; shift::Number = 0)
                 ElError(ccall(($(string("ElHelmholtz2D", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, $elty),
+                    (Ptr{Cvoid}, ElInt, ElInt, $elty),
                     A.obj, nx, ny, shift))
                 return A
             end
 
             function helmholtz!(A::$mat{$elty}, nx::Integer, ny::Integer, nz::Integer; shift::Number = 0)
                 ElError(ccall(($(string("ElHelmholtz3D", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt, ElInt, ElInt, $elty),
+                    (Ptr{Cvoid}, ElInt, ElInt, ElInt, $elty),
                     A.obj, nx, ny, nz, shift))
                 return A
             end
@@ -111,8 +111,8 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     end
 end
 
-for (elty, ext) in ((:Complex64, :c),
-                    (:Complex128, :z))
+for (elty, ext) in ((:ComplexF32, :c),
+                    (:ComplexF64, :z))
 
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"))
@@ -120,7 +120,7 @@ for (elty, ext) in ((:Complex64, :c),
             # Fourier
             function fourier!(A::$mat{$elty}, n::Integer)
                 ElError(ccall(($(string("ElFourier", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, ElInt),
+                    (Ptr{Cvoid}, ElInt),
                     A.obj, n))
                 return A
             end

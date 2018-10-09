@@ -1,9 +1,9 @@
+import Libdl, LibGit2, LinearAlgebra
+
 # Use this version of Elemental
 Elsha = "79987d38b04838acf6b6195be1967177521ee908"
 
-using Compat
-
-if is_windows()
+if Sys.iswindows()
     error("Elemental only works on Unix Platforms")
 end
 
@@ -26,12 +26,12 @@ cd(srcdir) do
     LibGit2.checkout!(LibGit2.GitRepo("."), "$Elsha")
 end
 
-BLAS.check()
-blas = BLAS.vendor()
-mathlib = Libdl.dlpath(BLAS.libblas)
-blas64 = LinAlg.USE_BLAS64 ? "ON" : "OFF"
+LinearAlgebra.BLAS.check()
+blas = LinearAlgebra.BLAS.vendor()
+mathlib = Libdl.dlpath(LinearAlgebra.BLAS.libblas)
+blas64 = LinearAlgebra.USE_BLAS64 ? "ON" : "OFF"
 blas_suffix = blas === :openblas64 ? "_64_" : "_"
-build_procs = (haskey(ENV, "CI") && ENV["CI"] == "true") ? 2 : Sys.CPU_CORES
+build_procs = (haskey(ENV, "CI") && ENV["CI"] == "true") ? 2 : Sys.CPU_THREADS
 
 builddir = joinpath(depdir, "builds")
 if isdir(builddir)
@@ -54,3 +54,4 @@ cd(builddir) do
     run(`make -j $build_procs`)
     run(`make install`)
 end
+GC.gc() # work-around for https://github.com/JuliaLang/julia/issues/28306

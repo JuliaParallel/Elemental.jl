@@ -6,8 +6,8 @@ end
 
 for (elty, relty, ext) in ((:Float32, :Float32, :s),
                            (:Float64, :Float64, :d),
-                           (:Complex64, :Float32, :c),
-                           (:Complex128, :Float64, :z))
+                           (:ComplexF32, :Float32, :c),
+                           (:ComplexF64, :Float64, :z))
     for (mat, sym) in ((:Matrix, "_"),
                        (:DistMatrix, "Dist_"),
                        (:SparseMatrix, "Sparse_"),
@@ -18,7 +18,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function entrywiseNorm(A::$mat{$elty}, p::Real)
                 rval = Ref{$relty}(0)
                 ElError(ccall(($(string("ElEntrywiseNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, $relty, Ref{$relty}),
+                    (Ptr{Cvoid}, $relty, Ref{$relty}),
                     A.obj, p, rval))
                 return rval[]
             end
@@ -26,7 +26,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function infinityNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
                 ElError(ccall(($(string("ElInfinityNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ref{$relty}),
+                    (Ptr{Cvoid}, Ref{$relty}),
                     A.obj, rval))
                 return rval[]
             end
@@ -34,7 +34,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function maxNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
                 ElError(ccall(($(string("ElMaxNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ref{$relty}),
+                    (Ptr{Cvoid}, Ref{$relty}),
                     A.obj, rval))
                 return rval[]
             end
@@ -42,7 +42,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function oneNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
                 ElError(ccall(($(string("ElOneNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ref{$relty}),
+                    (Ptr{Cvoid}, Ref{$relty}),
                     A.obj, rval))
                 return rval[]
             end
@@ -56,7 +56,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function safeHPDDeterminant(uplo::UpperOrLower, A::$mat{$elty})
                 rval = Ref{SafeProduct{$relty}}()
                 ElError(ccall(($(string("ElSafeHPDDeterminant", sym, ext)), libEl), Cuint,
-                    (UpperOrLower, Ptr{Void}, Ref{SafeProduct{$relty}}),
+                    (UpperOrLower, Ptr{Cvoid}, Ref{SafeProduct{$relty}}),
                     uplo, A.obj, rval))
                 return rval[]
             end
@@ -64,7 +64,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function twoNorm(A::$mat{$elty})
                 rval = Ref{$relty}(0)
                 ElError(ccall(($(string("ElTwoNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ref{$relty}),
+                    (Ptr{Cvoid}, Ref{$relty}),
                     A.obj, rval))
                 return rval[]
             end
@@ -72,7 +72,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
             function zeroNorm(A::$mat{$elty})
                 rval = Ref{ElInt}(0)
                 ElError(ccall(($(string("ElZeroNorm", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ref{ElInt}),
+                    (Ptr{Cvoid}, Ref{ElInt}),
                     A.obj, rval))
                 return rval[]
             end
@@ -80,9 +80,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     end
 end
 
-countnz(A::Union{Matrix,DistMatrix}) = Int(zeroNorm(A))
-
-function norm(A::ElementalMatrix, p::Real)
+function LinearAlgebra.norm(A::ElementalMatrix, p::Real)
     if p == 1
         return oneNorm(A)
     elseif p == 2

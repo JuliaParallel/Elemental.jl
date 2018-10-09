@@ -29,7 +29,7 @@ finalize() = icxx"El::Finalize();"
 ### ElementalMatrix ###
 # Many of the definitions in Elemental are very similar which makes it easy to define methods for a common abstract type. However, we should be careful when calling into the library with e.g. @cxx or icxx because all leaf types might not implement the actual method.
 
-@compat abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
+abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
 
 _getindex(A::ElementalMatrix, i::ElInt, j::ElInt) = icxx"$(A.buf).Get($i, $j);"
 getindex(A::ElementalMatrix, i::Integer, j::Integer) = _getindex(A, ElInt(i - 1), ElInt(j - 1))
@@ -63,7 +63,7 @@ end
 svdvals(A::ElementalMatrix) = svdvals!(copy(A))
 
 ### AbstractDistMatrix ###
-@compat abstract type AbstractDistMatrix{T} <: ElementalMatrix{T} end
+abstract type AbstractDistMatrix{T} <: ElementalMatrix{T} end
 
 _resize!(A::AbstractDistMatrix, i::ElInt, j::ElInt) = icxx"$(A.buf).Resize($i, $j);"
 resize!(A::AbstractDistMatrix, i::Integer, j::Integer) = _resize!(A, ElInt(i), ElInt(j))
@@ -71,8 +71,8 @@ resize!(A::AbstractDistMatrix, i::Integer, j::Integer) = _resize!(A, ElInt(i), E
 _reserve(A::AbstractDistMatrix, n::ElInt) = icxx"$(A.buf).Reserve($n);"
 reserve(A::AbstractDistMatrix, n::Integer) = _reserve(A, ElInt(n))
 
-_queueUpdate{T}(A::AbstractDistMatrix{T}, i::ElInt, j::ElInt, x::T) = icxx"$(A.buf).QueueUpdate($i, $j, $x);"
-queueUpdate{T}(A::AbstractDistMatrix{T}, i::Integer, j::Integer, x) = _queueUpdate(A, ElInt(i - 1), ElInt(j - 1), T(x))
+_queueUpdate(A::AbstractDistMatrix{T}, i::ElInt, j::ElInt, x::T) where {T} = icxx"$(A.buf).QueueUpdate($i, $j, $x);"
+queueUpdate(A::AbstractDistMatrix{T}, i::Integer, j::Integer, x) where {T} = _queueUpdate(A, ElInt(i - 1), ElInt(j - 1), T(x))
 
 processQueues!(A::AbstractDistMatrix) = icxx"$(A.buf).ProcessQueues();"
 
@@ -81,7 +81,7 @@ zeros!(A::AbstractDistMatrix, m::Integer = size(A,1), n::Integer = size(A,2)) = 
 
 ### Matrix ###
 
-immutable Matrix{T} <: ElementalMatrix{T}
+struct Matrix{T} <: ElementalMatrix{T}
     # buf::Cxx.CppValue{Cxx.CxxQualType{Cxx.CppTemplate{Cxx.CppBaseType{symbol("El::Matrix")},Tuple{T}},(false,false,false)},56}
     buf::Any
 end
@@ -91,7 +91,7 @@ convert(::Type{Matrix{Float64}}, m::ElInt = 0, n::ElInt = 0) = Matrix{Float64}(i
 
 _randn!(A::Matrix, i::ElInt, j::ElInt) = icxx"Gaussian($(A.buf), $i, $j);"
 
-function svdvals!{T}(A::Matrix{T})
+function LinearAlgebra.svdvals!(A::Matrix{T}) where {T}
     s = Matrix{T}(min(size(A)...),1)
     @cxx El::SVD(A.buf, s.buf)
     return s
@@ -101,7 +101,7 @@ end
 
 # DistMatrix
 
-immutable DistMatrix{T,U,V} <: AbstractDistMatrix{T}
+struct DistMatrix{T,U,V} <: AbstractDistMatrix{T}
     # buf::Cxx.CppValue{Cxx.CxxQualType{Cxx.CppTemplate{Cxx.CppBaseType{symbol("El::DistMatrix")},Tuple{T,U,V,U}},(false,false,false)},144}
     buf::Any
 end
@@ -115,18 +115,18 @@ convert(::Type{Cxx.CppEnum{symbol("El::DistWrapNS::DistWrap")}}, x::Int) = Cxx.C
 
 convert(::Type{DistMatrix{Float32,MC,MR}}, m::ElInt = 0, n::ElInt = 0) = DistMatrix{Float32,MC,MR}(icxx"El::DistMatrix<float,El::MC,El::MR>($m,$n);")
 convert(::Type{DistMatrix{Float64,MC,MR}}, m::ElInt = 0, n::ElInt = 0) = DistMatrix{Float64,MC,MR}(icxx"El::DistMatrix<double,El::MC,El::MR>($m,$n);")
-convert{T}(::Type{DistMatrix{T}}, m::ElInt = 0, n::ElInt = 0) = DistMatrix{T,MC,MR}(m, n)
+convert(::Type{DistMatrix{T}}, m::ElInt = 0, n::ElInt = 0) where {T} = DistMatrix{T,MC,MR}(m, n)
 
 _randn!(A::DistMatrix, i::ElInt, j::ElInt) = icxx"Gaussian($(A.buf), $i, $j);"
 
-function svdvals!{T}(A::DistMatrix{T})
+function LinearAlgebra.svdvals!(A::DistMatrix{T}) where {T}
     s = DistMatrix{T}(min(size(A)...),1)
     @cxx El::SVD(A.buf, s.buf)
     return s
 end
 
 # DistSparseMatrix
-immutable DistSparseMatrix{T} <: AbstractDistMatrix{T}
+struct DistSparseMatrix{T} <: AbstractDistMatrix{T}
     buf::Any
 end
 
@@ -136,7 +136,7 @@ convert(::Type{DistSparseMatrix{Float64}}, m::ElInt = 0, n::ElInt = 0) = DistSpa
 processLocalQueues!(A::DistSparseMatrix) = icxx"$(A.buf).ProcessLocalQueues();"
 
 # DistMultiVec
-immutable DistMultiVec{T} <: AbstractDistMatrix{T}
+struct DistMultiVec{T} <: AbstractDistMatrix{T}
     buf::Any
 end
 
@@ -144,8 +144,8 @@ convert(::Type{DistMultiVec{ElInt}}, m::ElInt = 0, n::ElInt = 0) = DistMultiVec{
 convert(::Type{DistMultiVec{Float32}}, m::ElInt = 0, n::ElInt = 0) = DistMultiVec{Float32}(icxx"El::DistMultiVec<float>($m,$n);")
 convert(::Type{DistMultiVec{Float64}}, m::ElInt = 0, n::ElInt = 0) = DistMultiVec{Float64}(icxx"El::DistMultiVec<double>($m,$n);")
 
-_setindex!{T}(A::DistMultiVec{T}, x::T, i::ElInt, j::ElInt) = icxx"$(A.buf).Set($i, $j, $x);"
-setindex!{T}(A::DistMultiVec{T}, x, i::Integer, j::Integer) = _setindex!(A, T(x), ElInt(i - 1), ElInt(j - 1))
+_setindex!(A::DistMultiVec{T}, x::T, i::ElInt, j::ElInt) where {T} = icxx"$(A.buf).Set($i, $j, $x);"
+setindex!(A::DistMultiVec{T}, x, i::Integer, j::Integer) where {T} = _setindex!(A, T(x), ElInt(i - 1), ElInt(j - 1))
 
 
 ### SOCP ###

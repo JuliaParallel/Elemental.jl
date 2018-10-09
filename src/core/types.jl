@@ -10,7 +10,7 @@ function ElCommType()
     sameSizeAsInt = Cint[0]
     ElError(ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
       sameSizeAsInt))
-    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
+    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Cvoid}
 end
 const ElComm = ElCommType()
 
@@ -18,7 +18,7 @@ function ElGroupType()
     sameSizeAsInt = Cint[0]
     ElError(ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
       sameSizeAsInt))
-    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Void}
+    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Cvoid}
 end
 const ElGroup = ElGroupType()
 
@@ -43,14 +43,14 @@ function ElBool(value::Bool)
     end
 end
 
-using Base.LinAlg: BlasFloat, BlasReal, BlasComplex
+using LinearAlgebra: BlasFloat, BlasReal, BlasComplex
 
-const ElElementType = Union{ElInt,Float32,Float64,Complex64,Complex128}
+const ElElementType = Union{ElInt,Float32,Float64,ComplexF32,ComplexF64}
 
 const ElFloatType   = Union{Float32,Float64} # TODO: Maybe just use BlasReal here
 
-@compat abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
-eltype{T}(A::ElementalMatrix{T}) = T
+abstract type ElementalMatrix{T} <: AbstractMatrix{T} end
+eltype(A::ElementalMatrix{T}) where {T} = T
 
 # Error is handled in error.jl as an Exception
 

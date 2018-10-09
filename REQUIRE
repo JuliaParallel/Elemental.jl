@@ -1,3 +1,2 @@
-julia 0.6
-Compat 0.31.0
-DistributedArrays 0.4.0
+julia 0.7
+DistributedArrays 0.5

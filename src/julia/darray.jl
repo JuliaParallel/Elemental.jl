@@ -1,10 +1,10 @@
 # FixMe! Right now the MPI workers are deduced from the DArrays, but if a DArray is distributed on fewer workers that what consistutes the MPI world, then this approach will fail.
 
-type RemoteElementalMatrix
+mutable struct RemoteElementalMatrix
     refs::Matrix{Any}
 end
 
-function toback{T<:BlasFloat,S<:StridedMatrix}(A::DArray{T,2,S})
+function toback(A::DArray{T,2,S} where {T<:BlasFloat,S<:StridedMatrix})
     rs = Array{Any}(size(procs(A)))
     @sync for p in eachindex(procs(A))
         ind = A.indexes[p]
@@ -71,7 +71,7 @@ function tofront(r::Base.Matrix)
     return A
 end
 
-function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
+function (\)(A::DArray{T,2,S}, B::DArray{T,2,S}) where {T<:BlasFloat,S}
     rA = toback(A)
     rB = toback(B)
     pidsAB = union(A.pids, B.pids)
@@ -84,7 +84,7 @@ function (\){T<:BlasFloat,S}(A::DArray{T,2,S}, B::DArray{T,2,S})
     return tofront(reshape(rvals, size(procs(B))))
 end
 
-function eigvals{T<:BlasFloat}(A::Hermitian{T,DArray{T,2,Array{T,2}}})
+function LinearAlgebra.eigvals(A::Hermitian{T,DArray{T,2,Array{T,2}}} where {T<:BlasFloat} )
     rA = toback(A.data)
     rvals = Array{Any}(size(procs(A.data)))
     uplo = A.uplo == 'U' ? UPPER : LOWER
@@ -96,7 +96,7 @@ function eigvals{T<:BlasFloat}(A::Hermitian{T,DArray{T,2,Array{T,2}}})
     return tofront(rvals)
 end
 
-function svdvals{T<:BlasFloat}(A::DArray{T,2})
+function LinearAlgebra.svdvals(A::DArray{<:BlasFloat,2})
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -107,7 +107,7 @@ function svdvals{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
-function inv!{T<:BlasFloat}(A::DArray{T,2})
+function LinearAlgebra.inv!(A::DArray{<:BlasFloat,2})
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for j = 1:size(rvals, 2)
@@ -118,9 +118,9 @@ function inv!{T<:BlasFloat}(A::DArray{T,2})
     return tofront(rvals)
 end
 
-inv{T<:BlasFloat}(A::DArray{T,2}) = inv!(copy(A))
+LinearAlgebra.inv(A::DArray{<:BlasFloat,2}) = inv!(copy(A))
 
-function logdet{T<:BlasFloat}(A::DArray{T,2})
+function LinearAlgebra.logdet(A::DArray{<:BlasFloat,2})
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -132,10 +132,10 @@ function logdet{T<:BlasFloat}(A::DArray{T,2})
     return fetch(rvals[1])
 end
 
-function spectralPortrait{T<:BlasReal}(A::DArray{T,2},
-                                       realSize::Integer,
-                                       imagSize::Integer,
-                                       psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+function spectralPortrait(A::DArray{T,2},
+                          realSize::Integer,
+                          imagSize::Integer,
+                          psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T)) where {T<:BlasReal}
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -146,10 +146,10 @@ function spectralPortrait{T<:BlasReal}(A::DArray{T,2},
     return tofront(rvals)
 end
 
-function spectralPortrait{T<:BlasReal}(A::DArray{Complex{T},2},
-                                       realSize::Integer,
-                                       imagSize::Integer,
-                                       psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+function spectralPortrait(A::DArray{Complex{T},2},
+                          realSize::Integer,
+                          imagSize::Integer,
+                          psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T)) where {T<:BlasReal}
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -160,13 +160,13 @@ function spectralPortrait{T<:BlasReal}(A::DArray{Complex{T},2},
     return tofront(rvals)
 end
 
-function spectralWindow{T<:BlasReal}(A::DArray{T,2},
-                                     center::Complex{T},
-                                     realWidth::T,
-                                     imagWidth::T,
-                                     realSize::Integer,
-                                     imagSize::Integer,
-                                     psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+function spectralWindow(A::DArray{T,2},
+                        center::Complex{T},
+                        realWidth::T,
+                        imagWidth::T,
+                        realSize::Integer,
+                        imagSize::Integer,
+                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T)) where {T<:BlasReal}
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -178,13 +178,13 @@ function spectralWindow{T<:BlasReal}(A::DArray{T,2},
     return tofront(rvals)
 end
 
-function spectralWindow{T<:BlasReal}(A::DArray{Complex{T},2},
-                                     center::Complex{T},
-                                     realWidth::T,
-                                     imagWidth::T,
-                                     realSize::Integer,
-                                     imagSize::Integer,
-                                     psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T))
+function spectralWindow(A::DArray{Complex{T},2},
+                        center::Complex{T},
+                        realWidth::T,
+                        imagWidth::T,
+                        realSize::Integer,
+                        imagSize::Integer,
+                        psCtrl::PseudospecCtrl{T}=PseudospecCtrl(T)) where {T<:BlasReal}
     rA = toback(A)
     rvals = Array{Any}(size(procs(A)))
     @sync for i in eachindex(rvals)
@@ -196,7 +196,7 @@ function spectralWindow{T<:BlasReal}(A::DArray{Complex{T},2},
     return tofront(rvals)
 end
 
-function foxLi{T<:BlasComplex}(::Type{T}, n::Integer, ω::Real)
+function foxLi(::Type{T}, n::Integer, ω::Real) where {T<:BlasComplex}
     sz = tuple(DistributedArrays.defaultdist((n,n), workers())...)
     rvals = Array{Any}(sz)
     @sync for j = 1:size(rvals, 2), i = 1:size(rvals, 1)
@@ -207,7 +207,7 @@ function foxLi{T<:BlasComplex}(::Type{T}, n::Integer, ω::Real)
     end
     return tofront(rvals)
 end
-foxLi(n::Integer, ω::Real) = foxLi(Complex128, n, ω)
+foxLi(n::Integer, ω::Real) = foxLi(ComplexF64, n, ω)
 
 # Andreas: Just saw this one. It is almost identical to the one I wrote above,
 # but I don't think that we can return a Elemental array beacause it has to
@@ -216,8 +216,8 @@ foxLi(n::Integer, ω::Real) = foxLi(Complex128, n, ω)
 for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
+                    (:ComplexF32, :c),
+                    (:ComplexF64, :z))
     @eval begin
         function convert(::Type{DistSparseMatrix{$elty}}, DA::DistributedArrays.DArray)
             npr, npc = size(procs(DA))

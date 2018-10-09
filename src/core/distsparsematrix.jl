@@ -1,25 +1,25 @@
-type DistSparseMatrix{T} <: ElementalMatrix{T}
-    obj::Ptr{Void}
+mutable struct DistSparseMatrix{T} <: ElementalMatrix{T}
+    obj::Ptr{Cvoid}
 end
 
 for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
+                    (:ComplexF32, :c),
+                    (:ComplexF64, :z))
     @eval begin
 
         # destructor to be used in finalizer. Don't call explicitly
         function destroy(A::DistSparseMatrix{$elty})
             ElError(ccall(($(string("ElDistSparseMatrixDestroy_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj))
+                (Ptr{Cvoid},), A.obj))
             return nothing
         end
 
         function DistSparseMatrix(::Type{$elty}, comm::ElComm = CommWorld)
-            obj = Ref{Ptr{Void}}(C_NULL)
+            obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
-                (Ref{Ptr{Void}}, ElComm),
+                (Ref{Ptr{Cvoid}}, ElComm),
                 obj, comm))
             A = DistSparseMatrix{$elty}(obj[])
             finalizer(A, destroy)
@@ -29,7 +29,7 @@ for (elty, ext) in ((:ElInt, :i),
         function comm(A::DistSparseMatrix{$elty})
             cm = Ref{ElComm}()
             ElError(ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElComm}),
+                (Ptr{Cvoid}, Ref{ElComm}),
                 A.obj, cm))
             return cm[]
         end
@@ -37,7 +37,7 @@ for (elty, ext) in ((:ElInt, :i),
         function globalRow(A::DistSparseMatrix{$elty}, iLoc::Integer)
             i = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, Ref{ElInt}),
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
                 A.obj, iLoc-1, i))
             return i[]+1
         end
@@ -45,7 +45,7 @@ for (elty, ext) in ((:ElInt, :i),
         function height(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, i))
             return i[]
         end
@@ -53,7 +53,7 @@ for (elty, ext) in ((:ElInt, :i),
         function localHeight(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixLocalHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, i))
             return i[]
         end
@@ -61,42 +61,42 @@ for (elty, ext) in ((:ElInt, :i),
         function numLocalEntries(A::DistSparseMatrix{$elty})
             n = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixNumLocalEntries_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, n))
             return n[]
         end
 
         function processQueues(A::DistSparseMatrix{$elty})
             ElError(ccall(($(string("ElDistSparseMatrixProcessQueues_", ext)), libEl), Cuint,
-                (Ptr{Void},),
+                (Ptr{Cvoid},),
                 A.obj))
             return nothing
         end
 
         function queueLocalUpdate(A::DistSparseMatrix{$elty}, localRow::Integer, col::Integer, value::$elty)
             ElError(ccall(($(string("ElDistSparseMatrixQueueLocalUpdate_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, $elty),
+                (Ptr{Cvoid}, ElInt, ElInt, $elty),
                 A.obj, localRow-1, col-1, value))
             return nothing
         end
 
         function queueUpdate(A::DistSparseMatrix{$elty}, row::Integer, col::Integer, value::$elty, passive::Bool = true)
             ElError(ccall(($(string("ElDistSparseMatrixQueueUpdate_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, $elty, Bool),
+                (Ptr{Cvoid}, ElInt, ElInt, $elty, Bool),
                 A.obj, row-1, col-1, value, passive))
             return nothing
         end
 
         function reserve(A::DistSparseMatrix{$elty}, numLocalEntries::Integer, numRemoteEntries::Integer = 0)
             ElError(ccall(($(string("ElDistSparseMatrixReserve_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt),
+                (Ptr{Cvoid}, ElInt, ElInt),
                 A.obj, numLocalEntries, numRemoteEntries))
             return nothing
         end
 
         function resize!(A::DistSparseMatrix{$elty}, height::Integer, width::Integer = 1) # to mimic vector behavior
             ElError(ccall(($(string("ElDistSparseMatrixResize_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt),
+                (Ptr{Cvoid}, ElInt, ElInt),
                 A.obj, height, width))
             return A
         end
@@ -104,7 +104,7 @@ for (elty, ext) in ((:ElInt, :i),
         function width(A::DistSparseMatrix{$elty})
             i = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixWidth_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, i))
             return i[]
         end
@@ -112,7 +112,7 @@ for (elty, ext) in ((:ElInt, :i),
 end
 
 # The other constructors don't have a version with dimensions. Should they, or should this one go?
-function DistSparseMatrix{T}(::Type{T}, m::Integer, n::Integer, comm::ElComm = CommWorld)
+function DistSparseMatrix(::Type{T}, m::Integer, n::Integer, comm::ElComm = CommWorld) where {T}
     A = DistSparseMatrix(T, comm)
     resize!(A, m, n)
     return A
@@ -120,8 +120,6 @@ end
 
 # Julia convenience
 
-countnz(A::DistSparseMatrix) = MPI.allreduce(Cint(numLocalEntries(A)), +, comm(A))
-
-function showarray(io::IO, A::DistSparseMatrix; kwargs...)
+function Base.show(io::IO, ::MIME"text/plain", A::DistSparseMatrix)
     print(io, "$(size(A, 1))x$(size(A, 2)) $(typeof(A))")
 end

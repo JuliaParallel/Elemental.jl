@@ -1,13 +1,10 @@
 module Elemental
 
-using Compat
-import Compat.String
 using DistributedArrays
+using LinearAlgebra
 
-import Base: *, \, Ac_mul_B
-import Base: convert, copy, copy!, countnz, dot, eltype, fill!, getindex, hcat, inv, length,
-    logdet, pointer, print, setindex!, showarray, similar, size
-import Base.LinAlg: A_mul_B!, Ac_mul_B!, axpy!, norm, scale!, svd, svdvals, svdvals!
+import Base: *, \
+import Base: convert, copy, copy!, eltype, fill!, getindex, hcat, inv, length, pointer, print, setindex!, similar, size
 
 const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
 

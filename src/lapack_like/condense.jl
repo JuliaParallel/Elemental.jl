@@ -1,29 +1,29 @@
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
+                    (:ComplexF32, :c),
+                    (:ComplexF64, :z))
     for mattype in ("", "Dist")
         mat = Symbol(mattype, "Matrix")
         @eval begin
 
             # Hessenberg
-            function hessenberg!(uplo::UpperOrLower, A::$mat{$elty}, t::$mat{$elty})
+            function _hessenberg!(uplo::UpperOrLower, A::$mat{$elty}, t::$mat{$elty})
                 ElError(ccall(($(string("ElHessenberg", mattype, "_", ext)), libEl), Cuint,
-                    (UpperOrLower, Ptr{Void}, Ptr{Void}),
+                    (UpperOrLower, Ptr{Cvoid}, Ptr{Cvoid}),
                     uplo, A.obj, t.obj))
                 return A, t
             end
-            hessenberg!(A::$mat{$elty}) = hessenberg!(UPPER, A, $mat($elty))
+            _hessenberg!(A::$mat{$elty}) = _hessenberg!(UPPER, A, $mat($elty))
         end
     end
 end
 
-struct ElHessenberg{T,S<:ElementalMatrix} <: Factorization{T}
+struct ElHessenberg{T,S<:ElementalMatrix} <: LinearAlgebra.Factorization{T}
     factors::S
     τ::S
-    (::Type{ElHessenberg{T,S}}){T,S<:ElementalMatrix}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = new{T,S}(factors, τ)
+    ElHessenberg{T,S}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) where {T,S<:ElementalMatrix} = new{T,S}(factors, τ)
 end
 
-ElHessenberg{T}(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) = ElHessenberg{T,typeof(factors)}(factors, τ)
+ElHessenberg(factors::ElementalMatrix{T}, τ::ElementalMatrix{T}) where {T} = ElHessenberg{T,typeof(factors)}(factors, τ)
 
-Base.LinAlg.hessfact!(A::ElementalMatrix) = ElHessenberg(hessenberg!(A)...)
+LinearAlgebra.hessenberg!(A::ElementalMatrix) = ElHessenberg(_hessenberg!(A)...)
