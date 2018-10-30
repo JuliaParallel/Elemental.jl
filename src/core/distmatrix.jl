@@ -23,7 +23,7 @@ for (elty, ext) in ((:ElInt, :i),
                 (Cint, Cint, Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
                 colDist, rowDist, grid.obj, obj))
             A = DistMatrix{$elty}(obj[], grid)
-            finalizer(A, destroy)
+            finalizer(destroy, A)
             return A
         end
 

@@ -16,7 +16,7 @@ end
 
 Base.size(A::ElementalMatrix) = (size(A, 1), size(A, 2))
 
-Base.copy!(A::T, B::T) where {T<:ElementalMatrix} = _copy!(B, A)
+Base.copyto!(A::T, B::T) where {T<:ElementalMatrix} = _copy!(B, A)
 # copy(A::ElementalMatrix) = copy!(similar(A), A)
 Base.length(A::ElementalMatrix) = prod(size(A))
 
@@ -160,12 +160,13 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
     return B
 end
 
-function LinearAlgebra.norm(x::ElementalMatrix)
-    if size(x, 2) == 1
-        return nrm2(x)
-    else
-        return twoNorm(x)
-    end
-end
+LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
+# function LinearAlgebra.norm(x::ElementalMatrix)
+#     if size(x, 2) == 1
+#         return nrm2(x)
+#     else
+#         return twoNorm(x)
+#     end
+# end
 
 LinearAlgebra.cholesky!(A::Hermitian{<:Any,<:ElementalMatrix}, ::Type{Val{false}}) = LinearAlgebra.Cholesky(cholesky(A.uplo == 'U' ? UPPER : LOWER, A.data), A.uplo)

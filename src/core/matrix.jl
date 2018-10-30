@@ -21,7 +21,7 @@ for (elty, ext) in ((:ElInt, :i),
             ElError(ccall(($(string("ElMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Cvoid}},), obj))
             A = Matrix{$elty}(obj[])
-            finalizer(A, destroy)
+            finalizer(destroy, A)
             return A
         end
 

@@ -80,7 +80,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
     end
 end
 
-function LinearAlgebra.norm(A::ElementalMatrix, p::Real)
+function LinearAlgebra.opnorm(A::ElementalMatrix, p::Real = 2)
     if p == 1
         return oneNorm(A)
     elseif p == 2

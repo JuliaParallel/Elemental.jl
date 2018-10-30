@@ -61,11 +61,3 @@ eltype(A::ElementalMatrix{T}) where {T} = T
 @enum LeftOrRight LEFT RIGHT
 @enum UnitOrNonUnit NON_UNIT UNIT
 @enum Pencil AXBX=1 ABX=2 BAX=3
-
-# Get MPIWorldComm
-function CommWorldValue()
-    r = Ref{ElComm}(0)
-    ccall((:ElMPICommWorld, libEl), Cuint, (Ref{ElComm},), r)
-    return r[]
-end
-const CommWorld = CommWorldValue()

@@ -1,9 +1,10 @@
 module MPI
 
 using Libdl
-using Elemental: ElComm, ElElementType, ElInt, CommWorld, libEl
+using Elemental: ElComm, ElElementType, ElInt, libEl
 
 const MPIImpl = Ref{Symbol}()
+const CommWorld = Ref{Any}()
 
 function __init__()
     # FixMe! The symbol could probably also be missing for other implementations
@@ -25,6 +26,15 @@ function __init__()
             error("don't know which MPI implemetation you are using here")
         end
     end
+
+    CommWorld[] = CommWorldValue()
+end
+
+# Get MPIWorldComm
+function CommWorldValue()
+    r = Ref{ElComm}(0)
+    ccall((:ElMPICommWorld, libEl), Cuint, (Ref{ElComm},), r)
+    return r[]
 end
 
 function MPIType(t::DataType)
@@ -74,6 +84,15 @@ end
 function commRank(comm::ElComm)
     n = Ref{Cint}()
     err = ccall((:MPI_Comm_rank, libEl), Cint, (ElComm, Ref{Cint}), comm, n)
+    if err != 0
+        error("error value was $err")
+    end
+    return n[]
+end
+
+function commSize(comm::ElComm)
+    n = Ref{Cint}()
+    err = ccall((:MPI_Comm_size, libEl), Cint, (ElComm, Ref{Cint}), comm, n)
     if err != 0
         error("error value was $err")
     end

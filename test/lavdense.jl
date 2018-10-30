@@ -1,12 +1,11 @@
 import Elemental
 const El = Elemental
-
-using MPI
+using LinearAlgebra: mul!
 
 m = 500
 n = 250
 display = true
-worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
+worldRank = El.MPI.commRank(El.MPI.CommWorld[])
 
 function rectang(height::Integer, width::Integer)
     A = El.DistMatrix()
@@ -28,7 +27,7 @@ El.gaussian!(b, m, 1)
 
 # timeLAV = @elapsed x = El.lav(A, b, ctrl)
 timeLAV = @elapsed x = El.lav(A, b)
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("LAV time: $timeLAV seconds")
 end
 
@@ -39,7 +38,7 @@ bTwoNorm = El.nrm2(b)
 bInfNorm = El.maxNorm(b)
 
 r = copy(b)
-A_mul_B!(-1.0, A, x, 1., r)
+mul!(r, A, x, -1.0, 1.)
 
 # if display
     # El.Display(r, "r")
@@ -64,7 +63,7 @@ end
 # end
 
 rLS = copy(b)
-A_mul_B!(-1.0, A, xLS, 1.0, rLS)
+mul!(rLS, A, xLS, -1.0, 1.0)
 
 # if display:
     # El.Display(rLS, "A x_{LS} - b")

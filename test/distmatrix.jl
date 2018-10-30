@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using Elemental
 
 for T in (Float32, Float64, Complex{Float32}, Complex{Float64})

@@ -1,5 +1,6 @@
 module Elemental
 
+using Distributed
 using DistributedArrays
 using LinearAlgebra
 
@@ -30,9 +31,11 @@ function Finalize()
 end
 
 function __init__()
+    # ccall(:jl_, Cvoid, (Any,), "starting up!")
     Init()
     DefaultGrid[] = Grid()
     atexit() do
+        # ccall(:jl_, Cvoid, (Any,), "closing down!")
         Initialized() && Finalize()
     end
 end
