@@ -12,12 +12,13 @@ struct SignCtrl{T<:ElFloatType}
     scaling::ElSignScaling
     progress::ElBool
 end
-function SignCtrl{T<:ElFloatType}(::Type{T};
+function SignCtrl(::Type{T};
     maxIts = 100,
     tol = 0,
     power = 1,
     scaling = SIGN_SCALE_FROB,
-    progress::Bool = false)
+    progress::Bool = false) where {T<:ElFloatType}
+
     SignCtrl{T}(ElInt(maxIts),
         T(tol),
         T(power),
@@ -35,6 +36,7 @@ function HessQRCtrl(
     distAED::Bool = false,
     blockHeight = 32,
     blockWidth = 32)
+
     HessQRCtrl(ElBool(distAED),ElInt(blockHeight),ElInt(blockWidth))
 end
 
@@ -48,7 +50,7 @@ struct SDCCtrl{T<:ElFloatType}
     progress::ElBool
     signCtrl::SignCtrl{T}
 end
-function SDCCtrl{T<:ElFloatType}(::Type{T};
+function SDCCtrl(::Type{T};
     cutoff = 256,
     maxInnerIts = 2,
     maxOuterIts = 10,
@@ -56,7 +58,8 @@ function SDCCtrl{T<:ElFloatType}(::Type{T};
     spreadFactor = 1e-6,
     random::Bool = true,
     progress::Bool = false,
-    signCtrl = SignCtrl(T))
+    signCtrl = SignCtrl(T)) where {T<:ElFloatType}
+
     SDCCtrl{T}(ElInt(cutoff),
         ElInt(maxInnerIts),
         ElInt(maxOuterIts),
@@ -72,10 +75,11 @@ struct SchurCtrl{T<:ElFloatType}
     qrCtrl::HessQRCtrl
     sdcCtrl::SDCCtrl{T}
 end
-function SchurCtrl{T<:ElFloatType}(::Type{T};
+function SchurCtrl(::Type{T};
     useSDC::Bool = false,
     qrCtrl::HessQRCtrl = HessQRCtrl(),
-    sdcCtrl::SDCCtrl{T} = SDCCtrl(T))
+    sdcCtrl::SDCCtrl{T} = SDCCtrl(T)) where {T<:ElFloatType}
+
     SchurCtrl{T}(ElBool(useSDC),
         qrCtrl,
         sdcCtrl)
@@ -111,6 +115,7 @@ function SnapshotCtrl(realSize=0,
     imgFormat=PNG,
     numFormat=ASCII_MATLAB,
     itCounts::Bool=true)
+
     SnapshotCtrl(Cint(realSize),
         Cint(imagSize),
         Cint(imgSaveFreq),
@@ -146,7 +151,7 @@ struct PseudospecCtrl{T<:ElFloatType}
     progress::ElBool
     snapCtrl::SnapshotCtrl
 end
-function PseudospecCtrl{T<:ElFloatType}(::Type{T};
+function PseudospecCtrl(::Type{T};
     norm = PS_TWO_NORM,
     blockWidth = 10,
     schur::Bool = true,
@@ -160,7 +165,7 @@ function PseudospecCtrl{T<:ElFloatType}(::Type{T};
     basisSize = 10,
     reorthog::Bool = true,
     progress::Bool = false,
-    snapCtrl = SnapshotCtrl())
+    snapCtrl = SnapshotCtrl()) where {T<:ElFloatType}
 
     PseudospecCtrl{T}(ElPseudospecNorm(norm),
         ElInt(blockWidth),
@@ -193,13 +198,13 @@ struct SVDCtrl{T<:ElFloatType}
     relative::ElBool
     tol::T
 end
-function SVDCtrl{T<:ElFloatType}(::Type{T};
+function SVDCtrl(::Type{T};
     seqQR = false,
     valChanRatio = 1.2,
     fullChanRatio = 1.5,
     thresholded = false,
     relative = true,
-    tol = 0.0)
+    tol = 0.0) where {T<:ElFloatType}
 
     SVDCtrl{T}(ElBool(seqQR),
         Cdouble(valChanRatio),
@@ -211,8 +216,8 @@ end
 
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
+                    (:ComplexF32, :c),
+                    (:ComplexF64, :z))
     for mattype in ("", "Dist")
         mat = Symbol(mattype, "Matrix")
         @eval begin
@@ -220,7 +225,7 @@ for (elty, ext) in ((:Float32, :s),
             function eigvalsTridiag(d::$mat{real($elty)}, dSub::$mat{$elty}, sort::SortType = ASCENDING)
                 w = $mat(real($elty))
                 ElError(ccall(($(string("ElHermitianTridiagEig", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, SortType),
                     d.obj, dSub.obj, w.obj, sort))
                 return w
             end
@@ -229,7 +234,7 @@ for (elty, ext) in ((:Float32, :s),
                 w = $mat(real($elty))
                 Z = $mat($elty)
                 ElError(ccall(($(string("ElHermitianTridiagEigPair", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, SortType),
                     d.obj, dSub.obj, w.obj, Z.obj, sort))
                 return w, Z
             end
@@ -237,7 +242,7 @@ for (elty, ext) in ((:Float32, :s),
             function eigvalsHermitian(uplo::UpperOrLower, A::$mat{$elty}, sort::SortType = ASCENDING)
                 w = $mat(real($elty))
                 ElError(ccall(($(string("ElHermitianEig", mattype, "_", ext)), libEl), Cuint,
-                    (UpperOrLower, Ptr{Void}, Ptr{Void}, SortType),
+                    (UpperOrLower, Ptr{Cvoid}, Ptr{Cvoid}, SortType),
                     uplo, A.obj, w.obj, sort))
                 return w
             end
@@ -245,7 +250,7 @@ for (elty, ext) in ((:Float32, :s),
             function eigvalsHermitian(pencil::Pencil, uplo::UpperOrLower, A::$mat{$elty}, B::$mat{$elty}, sort::SortType = ASCENDING)
                 w = $mat(real($elty))
                 ElError(ccall(($(string("ElHermitianGenDefEig", mattype, "_", ext)), libEl), Cuint,
-                    (Pencil, UpperOrLower, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    (Pencil, UpperOrLower, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, SortType),
                     pencil, uplo, A.obj, B.obj, w.obj, sort))
                 return w
             end
@@ -254,7 +259,7 @@ for (elty, ext) in ((:Float32, :s),
                 w = $mat(real($elty))
                 Z = $mat($elty)
                 ElError(ccall(($(string("ElHermitianEigPair", mattype, "_", ext)), libEl), Cuint,
-                    (UpperOrLower, Ptr{Void}, Ptr{Void}, Ptr{Void}, SortType),
+                    (UpperOrLower, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, SortType),
                     uplo, A.obj, w.obj, Z.obj, sort))
                 return w, Z
             end
@@ -262,43 +267,43 @@ for (elty, ext) in ((:Float32, :s),
             function eigvalsGeneral(A::$mat{$elty}, fullTriangle = false)
                 w = $mat(complex($elty))
                 ElError(ccall(($(string("ElSchur", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, ElBool),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, ElBool),
                     A.obj, w.obj, fullTriangle))
                 return w
             end
 
-            function svdvals!(A::$mat{$elty})
+            function LinearAlgebra.svdvals!(A::$mat{$elty})
                 s = $mat(real($elty))
                 ElError(ccall(($(string("ElSingularValues", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}),
                     A.obj, s.obj))
                 return s
             end
 
-            function svdvals!(A::$mat{$elty}, ctrl::SVDCtrl{real($elty)})
+            function LinearAlgebra.svdvals!(A::$mat{$elty}, ctrl::SVDCtrl{real($elty)})
                 s = $mat(real($elty))
                 ElError(ccall(($(string("ElSingularValuesX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, SVDCtrl{real($elty)}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, SVDCtrl{real($elty)}),
                     A.obj, s.obj, ctrl))
                 return s
             end
 
-            function svd(A::$mat{$elty})
+            function LinearAlgebra.svd(A::$mat{$elty})
                 U = $mat($elty)
                 s = $mat(real($elty))
                 V = $mat($elty)
                 ElError(ccall(($(string("ElSVD", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
                     A.obj, U.obj, s.obj, V.obj))
                 return U, s, V
             end
 
-            function svd!(A::$mat{$elty}, ctrl::SVDCtrl{real($elty)})
+            function LinearAlgebra.svd!(A::$mat{$elty}, ctrl::SVDCtrl{real($elty)})
                 U = $mat($elty)
                 s = $mat(real($elty))
                 V = $mat($elty)
                 ElError(ccall(($(string("ElSVDX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Void}, SVDCtrl{real($elty)}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, SVDCtrl{real($elty)}),
                     A.obj, U.obj, s.obj, V.obj, ctrl))
                 return U, s, V
             end
@@ -307,7 +312,7 @@ for (elty, ext) in ((:Float32, :s),
                 invNormMap = $mat(real($elty))
                 box = Ref{SpectralBox{real($elty)}}()
                 ElError(ccall(($(string("ElSpectralPortraitX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, ElInt, ElInt, Ref{SpectralBox{real($elty)}},PseudospecCtrl{real($elty)}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, ElInt, ElInt, Ref{SpectralBox{real($elty)}},PseudospecCtrl{real($elty)}),
                     A.obj, invNormMap.obj, realSize, imagSize, box, psCtrl))
                 return invNormMap, box[]
             end
@@ -315,7 +320,7 @@ for (elty, ext) in ((:Float32, :s),
             function spectralWindow(A::$mat{$elty}, center::Complex{real($elty)}, realWidth::real($elty), imagWidth::real($elty), realSize::ElInt, imagSize::ElInt, psCtrl::PseudospecCtrl{real($elty)}=PseudospecCtrl(real($elty)))
                 invNormMap = $mat(real($elty))
                 ElError(ccall(($(string("ElSpectralWindowX", mattype, "_", ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Complex{real($elty)}, real($elty), real($elty), ElInt, ElInt, PseudospecCtrl{real($elty)}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Complex{real($elty)}, real($elty), real($elty), ElInt, ElInt, PseudospecCtrl{real($elty)}),
                     A.obj, invNormMap.obj, center, realWidth, imagWidth, realSize, imagSize, psCtrl))
                 return invNormMap
             end

@@ -1,14 +1,13 @@
 import Elemental
 const El = Elemental
-
-using MPI
+using LinearAlgebra: mul!
 
 n0 = 50
 n1 = 50
 testNative = true
 display = false
-worldRank = MPI.Comm_rank(MPI.COMM_WORLD)
-worldSize = MPI.Comm_size(MPI.COMM_WORLD)
+worldRank = El.MPI.commRank(El.MPI.CommWorld[])
+worldSize = El.MPI.commSize(El.MPI.CommWorld[])
 if worldRank == 0
   print("worldSize=$worldSize\n")
 end
@@ -101,19 +100,19 @@ ctrl = El.LPAffineCtrl(Float64,
 elapsedLAV = @elapsed x = El.lav(A, b)
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("LAV time: $elapsedLAV seconds")
 end
 bTwoNorm = El.nrm2(b)
 bInfNorm = El.maxNorm(b)
 
 r = copy(b)
-A_mul_B!(-1.0, A, x, 1.0, r)
+mul!(r, A, x, -1.0, 1.0)
 
 rTwoNorm = El.nrm2(r)
 rOneNorm = El.entrywiseNorm(r, 1)
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("|| b ||_2       = $bTwoNorm")
     println("|| b ||_oo      = $bInfNorm")
     println("|| A x - b ||_2 = $rTwoNorm")
@@ -122,23 +121,23 @@ end
 
 elapsedLS = @elapsed xLS = El.leastSquares(A, b)
 
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("LS time: $elapsedLAV seconds")
 end
 
 rLS = copy(b)
-A_mul_B!(-1.0, A, xLS, 1., rLS)
+mul!(rLS, A, xLS, -1.0, 1.0)
 if display
     El.Display( rLS, "A x_{LS} - b" )
 end
 
 rLSTwoNorm = El.nrm2(rLS)
 rLSOneNorm = El.entrywiseNorm(rLS, 1)
-if MPI.Comm_rank(MPI.COMM_WORLD) == 0
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("|| A x_{LS} - b ||_2 = $rLSTwoNorm")
     println("|| A x_{LS} - b ||_1 = $rLSOneNorm")
 end
 
 # Require the user to press a button before the figures are closed
 # commSize = El.mpi.Size( El.mpi.COMM_WORLD() )
-El.Finalize()
+# El.Finalize()

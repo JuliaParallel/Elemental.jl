@@ -1,29 +1,29 @@
-type DistMatrix{T} <: ElementalMatrix{T}
-	obj::Ptr{Void}
+mutable struct DistMatrix{T} <: ElementalMatrix{T}
+	obj::Ptr{Cvoid}
     g::Grid # keep the grid around to avoid that it's freed before the matrix
 end
 
 for (elty, ext) in ((:ElInt, :i),
                     (:Float32, :s),
                     (:Float64, :d),
-                    (:Complex64, :c),
-                    (:Complex128, :z))
+                    (:ComplexF32, :c),
+                    (:ComplexF64, :z))
     @eval begin
 
         # destructor to be used in finalizer. Don't call explicitly
         function destroy(A::DistMatrix{$elty})
             ElError(ccall(($(string("ElDistMatrixDestroy_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj))
+                (Ptr{Cvoid},), A.obj))
             return nothing
         end
 
         function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = DefaultGrid[])
-            obj = Ref{Ptr{Void}}(C_NULL)
+            obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
-                (Cint, Cint, Ptr{Void}, Ref{Ptr{Void}}),
+                (Cint, Cint, Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
                 colDist, rowDist, grid.obj, obj))
             A = DistMatrix{$elty}(obj[], grid)
-            finalizer(A, destroy)
+            finalizer(destroy, A)
             return A
         end
 
@@ -31,15 +31,15 @@ for (elty, ext) in ((:ElInt, :i),
         # function Grid(A::DistMatrix{$elty})
         #     g = Grid()
         #     ElError(ccall(($(string("ElDistMatrixGrid_", ext)), libEl), Cuint,
-        #         (Ptr{Void}, Ref{Ptr{Void}}),
-        #         A.obj, Ref{Ptr{Void}}(g.obj)))
+        #         (Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
+        #         A.obj, Ref{Ptr{Cvoid}}(g.obj)))
         #     return g
         # end
 
         function comm(A::DistMatrix{$elty})
             cm = Ref{ElComm}()
             ElError(ccall(($(string("ElDistMatrixDistComm_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElComm}),
+                (Ptr{Cvoid}, Ref{ElComm}),
                 A.obj, cm))
             return cm[]
         end
@@ -47,7 +47,7 @@ for (elty, ext) in ((:ElInt, :i),
         function get(A::DistMatrix{$elty}, i::Integer, j::Integer)
             rv = Ref{$elty}(0)
             ElError(ccall(($(string("ElDistMatrixGet_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                (Ptr{Cvoid}, ElInt, ElInt, Ref{$elty}),
                 A.obj, i - 1, j - 1, rv))
             return rv[]
         end
@@ -55,7 +55,7 @@ for (elty, ext) in ((:ElInt, :i),
         function getLocal(A::DistMatrix{$elty}, i::Integer, j::Integer)
             rv = Ref{$elty}(0)
             ElError(ccall(($(string("ElDistMatrixGetLocal_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt, Ref{$elty}),
+                (Ptr{Cvoid}, ElInt, ElInt, Ref{$elty}),
                 A.obj, i - 1, j - 1, rv))
             return rv[]
         end
@@ -63,7 +63,7 @@ for (elty, ext) in ((:ElInt, :i),
         function globalCol(A::DistMatrix{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixGlobalCol_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, Ref{ElInt}),
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
                 A.obj, i - 1, rv))
             return rv[] + 1
         end
@@ -71,7 +71,7 @@ for (elty, ext) in ((:ElInt, :i),
         function globalRow(A::DistMatrix{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixGlobalRow_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, Ref{ElInt}),
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
                 A.obj, i - 1, rv))
             return rv[] + 1
         end
@@ -79,7 +79,7 @@ for (elty, ext) in ((:ElInt, :i),
         function height(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, rv))
             return rv[]
         end
@@ -87,7 +87,7 @@ for (elty, ext) in ((:ElInt, :i),
         function localHeight(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixLocalHeight_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, rv))
             return rv[]
         end
@@ -95,41 +95,41 @@ for (elty, ext) in ((:ElInt, :i),
         function localWidth(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixLocalWidth_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, rv))
             return rv[]
         end
 
         function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
             ElError(ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ptr{$elty}),
+                (Ptr{Cvoid}, Ptr{$elty}),
                 A.obj, buf))
             return buf
         end
 
         function processQueues(A::DistMatrix{$elty})
             ElError(ccall(($(string("ElDistMatrixProcessQueues_", ext)), libEl), Cuint,
-                (Ptr{Void},), A.obj))
+                (Ptr{Cvoid},), A.obj))
             return A
         end
 
         function queuePull(A::DistMatrix{$elty}, i::Integer, j::Integer)
             ElError(ccall(($(string("ElDistMatrixQueuePull_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt),
+                (Ptr{Cvoid}, ElInt, ElInt),
                 A.obj, i - 1, j - 1))
             return nothing
         end
 
         function queueUpdate(A::DistMatrix{$elty}, i::Integer, j::Integer, value::$elty)
             ElError(ccall(($(string("ElDistMatrixQueueUpdate_", ext)), libEl), Cuint,
-              (Ptr{Void}, ElInt, ElInt, $elty),
+              (Ptr{Cvoid}, ElInt, ElInt, $elty),
               A.obj, i - 1, j - 1, value))
             return nothing
         end
 
         function reserve(A::DistMatrix{$elty}, numEntries::Integer)
             ElError(ccall(($(string("ElDistMatrixReserve_", ext)), libEl), Cuint,
-              (Ptr{Void}, ElInt),
+              (Ptr{Cvoid}, ElInt),
               A.obj, numEntries))
             return nothing
         end
@@ -137,14 +137,14 @@ for (elty, ext) in ((:ElInt, :i),
         function width(A::DistMatrix{$elty})
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixWidth_", ext)), libEl), Cuint,
-                (Ptr{Void}, Ref{ElInt}),
+                (Ptr{Cvoid}, Ref{ElInt}),
                 A.obj, rv))
             return rv[]
         end
 
         function resize!(A::DistMatrix{$elty}, i::Integer, j::Integer = 1) # to mimic vector behavior
             ElError(ccall(($(string("ElDistMatrixResize_", ext)), libEl), Cuint,
-                (Ptr{Void}, ElInt, ElInt),
+                (Ptr{Cvoid}, ElInt, ElInt),
                 A.obj, i, j))
             return A
         end
@@ -156,13 +156,12 @@ DistMatrix() = DistMatrix(Float64)
 #########################
 ### Julia convenience ###
 #########################
-countnz(A::DistMatrix) = length(A)
 
 # Do I want to provide this function? It's an invitation to be slow
 getindex(A::DistMatrix, i::Integer, j::Integer) = get(A, i, j)
 
 # This might be wrong. Should consider how to extract distributions properties of A
-function similar{T}(::DistMatrix, ::Type{T}, sz::Dims)
+function similar(::DistMatrix, ::Type{T}, sz::Dims) where {T}
     A = DistMatrix(T)
     resize!(A, sz...)
     return A
@@ -181,7 +180,7 @@ function getindex(A::DistMatrix, iInd::Colon, jInd::UnitRange)
 end
 
 # FixMe! Should this one handle vectors of matrices?
-function hcat{T}(x::Vector{DistMatrix{T}})
+function hcat(x::Vector{DistMatrix{T}}) where {T}
     l    = length(x)
     if l == 0
         throw(ArgumentError("cannot flatten empty vector"))

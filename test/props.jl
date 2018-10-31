@@ -1,5 +1,6 @@
-using Base.Test
+using Test
 using Elemental
+using LinearAlgebra
 
 m, n = 10, 10
 
@@ -8,9 +9,8 @@ for T in (Float32, Float64, Complex{Float32}, Complex{Float64})
         A = mat(T)
         Elemental.gaussian!(A, m, n)
 
-        @test norm(A, 1) ≈ norm(T[A[i,j] for i = 1:m, j = 1:n], 1)
-        @test norm(A) ≈ norm(T[A[i,j] for i = 1:m, j = 1:n])
-        @test norm(A, Inf) ≈ norm(T[A[i,j] for i = 1:m, j = 1:n], Inf)
-        @test countnz(A) ≈ countnz(T[A[i,j] for i = 1:m, j = 1:n])
+        @test opnorm(A, 1)   ≈ opnorm(T[A[i,j] for i = 1:m, j = 1:n], 1)
+        @test opnorm(A)      ≈ opnorm(T[A[i,j] for i = 1:m, j = 1:n])
+        @test opnorm(A, Inf) ≈ opnorm(T[A[i,j] for i = 1:m, j = 1:n], Inf)
     end
 end

@@ -1,3 +1,3 @@
-type SparseMatrix{T} <: AbstractMatrix{T}
-	obj::Ptr{Void}
+mutable struct SparseMatrix{T} <: AbstractMatrix{T}
+	obj::Ptr{Cvoid}
 end

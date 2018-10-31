@@ -9,14 +9,14 @@ for (elty, ext) in ((:Float32, :s),
 
             function lav!(A::$matA{$elty}, b::$matb{$elty}, x::$matb{$elty})
                 ElError(ccall(($(string("ElLAV", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
                     A.obj, b.obj, x.obj))
                 return x
             end
 
             function lav!(A::$matA{$elty}, b::$matb{$elty}, x::$matb{$elty}, ctrl::LPAffineCtrl{$elty})
                 ElError(ccall(($(string("ElLAVX", sym, ext)), libEl), Cuint,
-                    (Ptr{Void}, Ptr{Void}, Ptr{Void}, LPAffineCtrl{$elty}),
+                    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, LPAffineCtrl{$elty}),
                     A.obj, b.obj, x.obj, ctrl))
                 return x
             end
@@ -24,20 +24,20 @@ for (elty, ext) in ((:Float32, :s),
     end
 end
 
-function lav{T<:Union{Float32,Float64}}(A::Matrix{T}, b::Matrix{T})
+function lav(A::Matrix{T}, b::Matrix{T}) where {T<:Union{Float32,Float64}}
     x = Matrix(T)
     return lav!(A, b, x)
 end
-function lav{T<:Union{Float32,Float64}}(A::DistMatrix{T}, b::DistMatrix{T})
+function lav(A::DistMatrix{T}, b::DistMatrix{T}) where {T<:Union{Float32,Float64}}
     x = DistMatrix(T, MC, MR, A.g)
     return lav!(A, b, x)
 end
-function lav{T<:Union{Float32,Float64}}(A::DistSparseMatrix{T}, b::DistMultiVec{T})
+function lav(A::DistSparseMatrix{T}, b::DistMultiVec{T}) where {T<:Union{Float32,Float64}}
     x = DistMultiVec(T, comm(A))
     return lav!(A, b, x)
 end
 
-function lav{T<:Union{Float32,Float64}}(A::DistSparseMatrix{T}, b::DistMultiVec{T}, ctrl::LPAffineCtrl{T})
+function lav(A::DistSparseMatrix{T}, b::DistMultiVec{T}, ctrl::LPAffineCtrl{T}) where {T<:Union{Float32,Float64}}
     x = DistMultiVec(T, comm(A))
     return lav!(A, b, x, ctrl)
 end

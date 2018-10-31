@@ -10,8 +10,9 @@ os:
   - linux
 
 julia:
-  - 0.6
-  - nightly
+  - 0.7
+  - 1.0
+  # - nightly
 
 matrix:
   allow_failures:
@@ -56,8 +57,9 @@ install:
   - export CPU_CORES=2
   - sh ./mpi.sh $MPI > /dev/null
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("Elemental")'
+  - while sleep 30; do tail ./deps/build.log -f ; done &
+  - julia --check-bounds=yes -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Elemental")'
   - echo `ccache -s`
 
 script:
-  - julia --check-bounds=yes -e 'Pkg.test("Elemental")'
+  - julia --check-bounds=yes -e 'using Pkg; Pkg.test("Elemental")'

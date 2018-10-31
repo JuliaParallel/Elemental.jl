@@ -1,4 +1,6 @@
-using Elemental, Base.Test
+using Elemental
+using Test
+using LinearAlgebra: eigvals
 
 @testset "generel eigenvalues (Schur) with eltype: $elty" for elty in (Float32, Float64, Complex{Float32}, Complex{Float64})
     n = 10

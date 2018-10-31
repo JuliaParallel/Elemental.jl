@@ -14,14 +14,14 @@ The install script will build against any MPI installation that can be detected 
 
 ### Simple example without MPI
 ```jl
-julia> using Elemental
+julia> using LinearAlgebra, Elemental
 
 julia> A = Elemental.Matrix(Float64)
 0x0 Elemental.Matrix{Float64}
 
 julia> Elemental.gaussian!(A, 100, 80);
 
-julia> U, s, V = Elemental.svd(A);
+julia> U, s, V = svd(A);
 
 julia> convert(Matrix{Float64}, s)[1:10]
 10-element Array{Float64,1}:
@@ -46,7 +46,7 @@ julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
 
-julia> using Elemental
+julia> using LinearAlgebra, Elemental
 
 julia> @mpi_do man A = Elemental.DistMatrix(Float64);
 

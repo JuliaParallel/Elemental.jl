@@ -34,7 +34,7 @@ struct MehrotraCtrl{T<:ElFloatType}
     diagEquilTol::T
     checkResiduals::ElBool
 end
-function MehrotraCtrl{T<:ElFloatType}(::Type{T};
+function MehrotraCtrl(::Type{T};
     primalInit::Bool = false,
     dualInit::Bool = false,
     minTol = eps(T)^0.3,
@@ -55,7 +55,7 @@ function MehrotraCtrl{T<:ElFloatType}(::Type{T};
     ruizEquilTol = eps(T)^(-0.25),
     ruizMaxIter = 3,
     diagEquilTol = eps(T)^(-0.15),
-    checkResiduals = false)
+    checkResiduals = false) where {T<:ElFloatType}
 
     MehrotraCtrl{T}(ElBool(primalInit),
                     ElBool(dualInit),
@@ -85,36 +85,36 @@ struct LPAffineCtrl{T<:ElFloatType}
     mehrotraCtrl::MehrotraCtrl{T}
 end
 
-function LPAffineCtrl{T<:ElFloatType}(::Type{T};
+function LPAffineCtrl(::Type{T};
     approach::Cuint = LP_MEHROTRA,
-    mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
+    mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T)) where {T<:ElFloatType}
 
     LPAffineCtrl{T}(approach, mehrotraCtrl)
 end
 
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
-  @eval begin
-    function LPAffine(
-      A::DistSparseMatrix{$elty},
-      G::DistSparseMatrix{$elty},
-      b::DistMultiVec{$elty},
-      c::DistMultiVec{$elty},
-      h::DistMultiVec{$elty},
-      x::DistMultiVec{$elty},
-      y::DistMultiVec{$elty},
-      z::DistMultiVec{$elty},
-      s::DistMultiVec{$elty},
-      ctrl::LPAffineCtrl=SOCPAffineCtrl($elty))
-      ElError(ccall(($(string("ElLPAffine_", ext)), libEl), Cuint,
-        (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
-         Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
-         LPAffineCtrl{$elty}),
-        A.obj, G.obj, b.obj, c.obj, h.obj,
-        x.obj, y.obj, z.obj, s.obj, ctrl))
-      return nothing
+    @eval begin
+        function LPAffine(
+            A::DistSparseMatrix{$elty},
+            G::DistSparseMatrix{$elty},
+            b::DistMultiVec{$elty},
+            c::DistMultiVec{$elty},
+            h::DistMultiVec{$elty},
+            x::DistMultiVec{$elty},
+            y::DistMultiVec{$elty},
+            z::DistMultiVec{$elty},
+            s::DistMultiVec{$elty},
+            ctrl::LPAffineCtrl=SOCPAffineCtrl($elty))
+            ElError(ccall(($(string("ElLPAffine_", ext)), libEl), Cuint,
+                (Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},
+                 Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},
+                 LPAffineCtrl{$elty}),
+                A.obj, G.obj, b.obj, c.obj, h.obj,
+                x.obj, y.obj, z.obj, s.obj, ctrl))
+            return nothing
+        end
     end
-  end
 end
 
 # Second-Order Cone Programming
@@ -129,38 +129,40 @@ struct SOCPAffineCtrl{T<:ElFloatType}
     approach::Cuint
     mehrotraCtrl::MehrotraCtrl{T}
 end
-function SOCPAffineCtrl{T<:ElFloatType}(::Type{T};
+function SOCPAffineCtrl(::Type{T};
                       approach::Cuint = SOCP_MEHROTRA,
-                      mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T))
+                      mehrotraCtrl::MehrotraCtrl = MehrotraCtrl(T)) where {T<:ElFloatType}
+
     SOCPAffineCtrl{T}(approach, mehrotraCtrl)
 end
 
 for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d))
-  @eval begin
-    function SOCPAffine(
-      A::DistSparseMatrix{$elty},
-      G::DistSparseMatrix{$elty},
-      b::DistMultiVec{$elty},
-      c::DistMultiVec{$elty},
-      h::DistMultiVec{$elty},
-      orders::DistMultiVec{ElInt},
-      firstInds::DistMultiVec{ElInt},
-      labels::DistMultiVec{ElInt},
-      x::DistMultiVec{$elty},
-      y::DistMultiVec{$elty},
-      z::DistMultiVec{$elty},
-      s::DistMultiVec{$elty},
-      ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))
-      ElError(ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
-        (Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
-         Ptr{Void},Ptr{Void},Ptr{Void},
-         Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void},
-         SOCPAffineCtrl{$elty}),
-        A.obj, G.obj, b.obj, c.obj, h.obj,
-        orders.obj, firstInds.obj, labels.obj,
-        x.obj, y.obj, z.obj, s.obj, ctrl))
-      return nothing
+    @eval begin
+        function SOCPAffine(
+            A::DistSparseMatrix{$elty},
+            G::DistSparseMatrix{$elty},
+            b::DistMultiVec{$elty},
+            c::DistMultiVec{$elty},
+            h::DistMultiVec{$elty},
+            orders::DistMultiVec{ElInt},
+            firstInds::DistMultiVec{ElInt},
+            labels::DistMultiVec{ElInt},
+            x::DistMultiVec{$elty},
+            y::DistMultiVec{$elty},
+            z::DistMultiVec{$elty},
+            s::DistMultiVec{$elty},
+            ctrl::SOCPAffineCtrl=SOCPAffineCtrl($elty))
+
+            ElError(ccall(($(string("ElSOCPAffine_", ext)), libEl), Cuint,
+                (Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},
+                 Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},
+                 Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},Ptr{Cvoid},
+                 SOCPAffineCtrl{$elty}),
+                A.obj, G.obj, b.obj, c.obj, h.obj,
+                orders.obj, firstInds.obj, labels.obj,
+                x.obj, y.obj, z.obj, s.obj, ctrl))
+            return nothing
+        end
     end
-  end
 end
