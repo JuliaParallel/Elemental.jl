@@ -57,6 +57,7 @@ install:
   - export CPU_CORES=2
   - sh ./mpi.sh $MPI > /dev/null
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - while sleep 30; do tail ./deps/build.log -f ; done &
   - julia --check-bounds=yes -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Elemental")'
   - echo `ccache -s`
 
