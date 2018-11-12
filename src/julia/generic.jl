@@ -169,4 +169,7 @@ LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
 #     end
 # end
 
-LinearAlgebra.cholesky!(A::Hermitian{<:Any,<:ElementalMatrix}, ::Type{Val{false}}) = LinearAlgebra.Cholesky(cholesky(A.uplo == 'U' ? UPPER : LOWER, A.data), A.uplo)
+LinearAlgebra.cholesky!(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) = LinearAlgebra.Cholesky(_cholesky!(A.uplo == 'U' ? UPPER : LOWER, A.data), A.uplo, 0)
+LinearAlgebra.cholesky(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) = cholesky!(copy(A))
+
+LinearAlgebra.lu(A::ElementalMatrix) = _lu!(copy(A))
