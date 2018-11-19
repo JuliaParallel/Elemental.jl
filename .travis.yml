@@ -11,7 +11,6 @@ os:
   - osx
 
 julia:
-  - 0.7
   - 1.0
   # - nightly
 
@@ -19,15 +18,31 @@ matrix:
   allow_failures:
     - julia: nightly
 
+# env:
+#   global:
+#     - PATH=/usr/lib/ccache/:$HOME/OpenMPI/bin:$PATH
+#   matrix:
+#     - CC=gcc       CXX=g++         FC=gfortran   MPI=mpich   CACHE_NAME=JOB1
+#     - CC=gcc       CXX=g++         FC=gfortran   MPI=openmpi CACHE_NAME=JOB2
+#     - CC=gcc-5     CXX=g++-5       FC=gfortran-5 MPI=mpich   CACHE_NAME=JOB3
+#     - CC=gcc-5     CXX=g++-5       FC=gfortran-5 MPI=openmpi CACHE_NAME=JOB4
+#     - CC=clang=3.8 CXX=clang++-3.8 FC=gfortran-5 MPI=mpich   CACHE_NAME=JOB5
+#     - CC=clang=3.8 CXX=clang++-3.8 FC=gfortran-5 MPI=openmpi CACHE_NAME=JOB6
+
 env:
-  global:
-    - PATH=/usr/lib/ccache/:$HOME/OpenMPI/bin:$PATH
-    - FC=gfortran-5
-  matrix:
-    - MPI=mpich   CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB1
-    - MPI=mpich   CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB2
-    - MPI=openmpi CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB3
-    - MPI=openmpi CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB4
+  - CC=gcc       CXX=g++         FC=gfortran   MPI=mpich
+  - CC=gcc       CXX=g++         FC=gfortran   MPI=openmpi
+  - CC=gcc-5     CXX=g++-5       FC=gfortran-5 MPI=mpich
+  - CC=gcc-5     CXX=g++-5       FC=gfortran-5 MPI=openmpi
+  - CC=clang=3.8 CXX=clang++-3.8 FC=gfortran-5 MPI=mpich
+  - CC=clang=3.8 CXX=clang++-3.8 FC=gfortran-5 MPI=openmpi
+
+matrix:
+  include:
+    - os: osx
+      env: CC=gcc       CXX=g++         FC=gfortran   MPI=mpich
+    - os: osx
+      env: CC=gcc       CXX=g++         FC=gfortran   MPI=openmpi
 
 cache:
   directories:
