@@ -34,19 +34,71 @@ function RegSolveCtrl(::Type{T};
         ElBool(time))
 end
 
-for (elty, ext) in ((:Float32, :s),
-                    (:Float64, :d),
-                    (:ComplexF32, :c),
-                    (:ComplexF64, :z))
-    for mattype in ("", "Dist")
-        mat = Symbol(mattype, "Matrix")
+mutable struct Permutation
+    obj::Ptr{Cvoid}
+end
+
+function destroy(P::Permutation)
+    ElError(ccall(("ElPermutationDestroy", libEl), Cuint,
+        (Ptr{Cvoid},),
+        P.obj))
+    return nothing
+end
+
+function Permutation()
+    obj = Ref{Ptr{Cvoid}}(0)
+    ElError(ccall(("ElPermutationCreate", libEl), Cuint,
+        (Ref{Ptr{Cvoid}},),
+        obj))
+    P = Permutation(obj[])
+    finalizer(destroy, P)
+    return P
+end
+
+mutable struct DistPermutation
+    obj::Ptr{Cvoid}
+end
+
+function destroy(P::DistPermutation)
+    ElError(ccall(("ElDistPermutationDestroy", libEl), Cuint,
+        (Ptr{Cvoid},),
+        P.obj))
+    return nothing
+end
+
+function DistPermutation(grid::Grid = DefaultGrid[])
+    obj = Ref{Ptr{Cvoid}}(0)
+    ElError(ccall(("ElDistPermutationCreate", libEl), Cuint,
+        (Ref{Ptr{Cvoid}}, Ptr{Cvoid}),
+        obj, grid.obj))
+    P = DistPermutation(obj[])
+    finalizer(destroy, P)
+    return P
+end
+
+for mattype in ("", "Dist")
+    mat = Symbol(mattype, "Matrix")
+    _p  = Symbol(mattype, "Permutation")
+
+    for (elty, ext) in ((:Float32, :s),
+                        (:Float64, :d),
+                        (:ComplexF32, :c),
+                        (:ComplexF64, :z))
         @eval begin
 
-            function _cholesky(uplo::UpperOrLower, A::$mat{$elty})
+            function _cholesky!(uplo::UpperOrLower, A::$mat{$elty})
                 ElError(ccall(($(string("ElCholesky", mattype, "_", ext)), libEl), Cuint,
                     (UpperOrLower, Ptr{Cvoid}),
                     uplo, A.obj))
                 return A
+            end
+
+            function _lu!(A::$mat{$elty})
+                p = $_p()
+                ElError(ccall(($(string("ElLUPartialPiv", mattype, "_", ext)), libEl), Cuint,
+                    (Ptr{Cvoid}, Ptr{Cvoid}),
+                    A.obj, p.obj))
+                return A, p
             end
         end
     end

@@ -8,6 +8,7 @@ notifications:
 
 os:
   - linux
+  - osx
 
 julia:
   - 0.7
@@ -48,14 +49,17 @@ addons:
       - clang-3.8
 
 install:
-  - echo `ccache -s`
-  - sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang-3.8
-  - sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++-3.8
+  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH" ; fi
+  - echo `${ccache -s}`
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang-3.8 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++-3.8 ; fi
   - echo `which $CC`
   - echo `which $CXX`
-  - curl https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then curl https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr ; fi
   - export CPU_CORES=2
-  - sh ./mpi.sh $MPI > /dev/null
+  - sh ./mpi.sh $MPI
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - while sleep 30; do tail ./deps/build.log -f ; done &
   - julia --check-bounds=yes -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Elemental")'
