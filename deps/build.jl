@@ -1,7 +1,7 @@
 import Libdl, LibGit2, LinearAlgebra
 
-# Use this version of Elemental
-Elsha = "79987d38b04838acf6b6195be1967177521ee908"
+# Use Elemental version 0.87.7
+Elsha = "477e503a7a840cc1a75173552711b980505a0b06"
 
 if Sys.iswindows()
     error("Elemental only works on Unix Platforms")
@@ -49,6 +49,7 @@ cd(builddir) do
                -D MATH_LIBS=$mathlib
                -D EL_BLAS_SUFFIX=$blas_suffix
                -D EL_LAPACK_SUFFIX=$blas_suffix
+               -D CMAKE_INSTALL_LIBDIR=$prefix/lib
                -D CMAKE_INSTALL_RPATH=$prefix/lib
                $srcdir`)
     run(`make -j $build_procs`)
