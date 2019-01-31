@@ -22,6 +22,8 @@ function randDArray(m,n,sparsity=0.01)
     return A
 end
 
+# Stack two 2D finite-difference matrices on top of each other
+# and make the last column dense
 function stackedFD2D(n0, n1)
     height = 2*n0*n1
     width = n0*n1
@@ -67,7 +69,7 @@ function stackedFD2D(n0, n1)
         end
 
         # The dense last column
-        El.queueUpdate(A, s, width, -div(10.0, height))
+        El.queueUpdate(A, s, width, floor(-10/height))
     end
     El.processQueues(A)
     return A
@@ -88,16 +90,20 @@ bHeight = El.height(b)
 bWidth = El.width(b)
 
 if display
-    show(IO, A)
+    El.print(A, "A")
+    # El.print(b, "b")
 end
-ctrl = El.LPAffineCtrl(Float64,
-            mehrotraCtrl = El.MehrotraCtrl(Float64,
-                            solveCtrl = El.RegSolveCtrl(Float64, progress = true),
-                            print = true,
-                            outerEquil = true,
-                            time = true))
 
-elapsedLAV = @elapsed x = El.lav(A, b)
+ctrl = El.LPAffineCtrl(Float64,
+    mehrotraCtrl=El.MehrotraCtrl(Float64,
+        solveCtrl=El.RegSolveCtrl(Float64,
+                                  progress=true),
+        print=true,
+        outerEquil=true,
+        time=true)
+    )
+
+# elapsedLAV = @elapsed x = El.lav(A, b);#Elemental.print(A, "Matrix A")
 elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
 
 if El.MPI.commRank(El.MPI.CommWorld[]) == 0
@@ -128,7 +134,7 @@ end
 rLS = copy(b)
 mul!(rLS, A, xLS, -1.0, 1.0)
 if display
-    El.Display( rLS, "A x_{LS} - b" )
+    El.print( rLS, "A x_{LS} - b" )
 end
 
 rLSTwoNorm = El.nrm2(rLS)

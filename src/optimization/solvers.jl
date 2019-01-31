@@ -33,6 +33,13 @@ struct MehrotraCtrl{T<:ElFloatType}
     ruizMaxIter::ElInt
     diagEquilTol::T
     checkResiduals::ElBool
+
+    reg0Tmp::T
+    reg1Tmp::T
+    reg2Tmp::T
+    reg0Perm::T
+    reg1Perm::T
+    reg2Perm::T
 end
 function MehrotraCtrl(::Type{T};
     primalInit::Bool = false,
@@ -55,7 +62,15 @@ function MehrotraCtrl(::Type{T};
     ruizEquilTol = eps(T)^(-0.25),
     ruizMaxIter = 3,
     diagEquilTol = eps(T)^(-0.15),
-    checkResiduals = false) where {T<:ElFloatType}
+    checkResiduals = false,
+
+    reg0Tmp = eps(T)^0.25,
+    reg1Tmp = eps(T)^0.25,
+    reg2Tmp = eps(T)^0.25,
+
+    reg0Perm = eps(T)^0.35,
+    reg1Perm = eps(T)^0.35,
+    reg2Perm = eps(T)^0.35) where {T<:ElFloatType}
 
     MehrotraCtrl{T}(ElBool(primalInit),
                     ElBool(dualInit),
@@ -77,7 +92,13 @@ function MehrotraCtrl(::Type{T};
                     T(ruizEquilTol),
                     ElInt(ruizMaxIter),
                     T(diagEquilTol),
-                    ElBool(checkResiduals))
+                    ElBool(checkResiduals),
+                    T(reg0Tmp),
+                    T(reg1Tmp),
+                    T(reg2Tmp),
+                    T(reg0Perm),
+                    T(reg1Perm),
+                    T(reg2Perm))
 end
 
 struct LPAffineCtrl{T<:ElFloatType}
