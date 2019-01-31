@@ -12,7 +12,6 @@ case "$os" in
     Darwin)
         brew update
         brew upgrade cmake
-        brew cask uninstall oclint
         brew install gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
