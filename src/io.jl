@@ -4,7 +4,7 @@ for (elty, ext) in ((:Float32, :s),
                     (:Float64, :d),
                     (:ComplexF32, :c),
                     (:ComplexF64, :z))
-    for mattype in ("", "Dist")
+    for mattype in ("", "Dist", "Sparse", "DistSparse")
         mat = Symbol(mattype, "Matrix")
         @eval begin
             function print(A::$mat{$elty}, title::String)
