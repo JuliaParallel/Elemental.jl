@@ -106,7 +106,7 @@ Base.copy!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
 
 function Base.copy!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
     m, n = size(src, 1), size(src, 2)
-    if commRank(comm(src)) == 0
+    if MPI.commRank(comm(src)) == 0
         for j = 1:n
             for i = 1:m
                 queuePull(src, i, j)
@@ -177,7 +177,7 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
 end
 
 Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} = 
-    Base.copy!(zeros(T, size(xd)), xd)
+    Base.copy!(Base.zeros(T, size(xd)), xd)
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
