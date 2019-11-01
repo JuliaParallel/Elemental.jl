@@ -88,7 +88,7 @@ LinearAlgebra.svdvals(A::ElementalMatrix, ctrl::SVDCtrl) = svdvals!(copy(A), ctr
 #     return dest
 # end
 
-function Base.copy!(dest::DistMatrix{T}, src::Base.VecOrMat) where {T}
+function Base.copy!(dest::DistMatrix{T}, src::Base.AbstractVecOrMat) where {T}
     m, n = size(src, 1), size(src, 2)
     zeros!(dest, m, n)
     if MPI.commRank(comm(dest)) == 0
@@ -102,9 +102,9 @@ function Base.copy!(dest::DistMatrix{T}, src::Base.VecOrMat) where {T}
     return dest
 end
 
-Base.copyto!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
+Base.copy!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
 
-function Base.copyto!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
+function Base.copy!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
     m, n = size(src, 1), size(src, 2)
     if commRank(comm(src)) == 0
         for j = 1:n
@@ -176,10 +176,8 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
     return B
 end
 
-function Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T}
-    x = zeros(T, size(xd))
-    copyto!(x, xd)
-end
+Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} = 
+    Base.copy!(zeros(T, size(xd)), xd)
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
