@@ -102,6 +102,22 @@ function Base.copy!(dest::DistMatrix{T}, src::Base.VecOrMat) where {T}
     return dest
 end
 
+Base.copyto!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
+
+function Base.copyto!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
+    m, n = size(src, 1), size(src, 2)
+    if commRank(comm(src)) == 0
+        for j = 1:n
+            for i = 1:m
+                queuePull(src, i, j)
+            end
+        end
+    end
+    dest_mat = ndims(dest) == 1 ? reshape(dest, :, 1) : dest
+    processPullQueue(src, dest_mat)
+    return dest
+end
+
 function Base.convert(::Type{Matrix{T}}, A::Base.VecOrMat{T}) where {T}
     m, n = size(A, 1), size(A, 2)
     B = Matrix(T)
@@ -159,6 +175,13 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
     processQueues(B)
     return B
 end
+
+function Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T}
+    x = zeros(T, size(xd))
+    copyto!(x, xd)
+end
+
+Base.Array(xd::DistMatrix) = convert(Array, xd)
 
 LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
 # function LinearAlgebra.norm(x::ElementalMatrix)
