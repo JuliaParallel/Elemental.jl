@@ -88,7 +88,7 @@ LinearAlgebra.svdvals(A::ElementalMatrix, ctrl::SVDCtrl) = svdvals!(copy(A), ctr
 #     return dest
 # end
 
-function Base.copy!(dest::DistMatrix{T}, src::Base.VecOrMat) where {T}
+function Base.copy!(dest::DistMatrix{T}, src::Base.AbstractVecOrMat) where {T}
     m, n = size(src, 1), size(src, 2)
     zeros!(dest, m, n)
     if MPI.commRank(comm(dest)) == 0
@@ -99,6 +99,22 @@ function Base.copy!(dest::DistMatrix{T}, src::Base.VecOrMat) where {T}
         end
     end
     processQueues(dest)
+    return dest
+end
+
+Base.copy!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
+
+function Base.copy!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
+    m, n = size(src, 1), size(src, 2)
+    if MPI.commRank(comm(src)) == 0
+        for j = 1:n
+            for i = 1:m
+                queuePull(src, i, j)
+            end
+        end
+    end
+    dest_mat = ndims(dest) == 1 ? reshape(dest, :, 1) : dest
+    processPullQueue(src, dest_mat)
     return dest
 end
 
@@ -159,6 +175,11 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
     processQueues(B)
     return B
 end
+
+Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} = 
+    Base.copy!(Base.zeros(T, size(xd)), xd)
+
+Base.Array(xd::DistMatrix) = convert(Array, xd)
 
 LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
 # function LinearAlgebra.norm(x::ElementalMatrix)

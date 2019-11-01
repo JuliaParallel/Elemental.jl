@@ -144,6 +144,25 @@ if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("|| A x_{LS} - b ||_1 = $rLSOneNorm")
 end
 
+elapsedRidge = @elapsed xRidge = El.ridge(A, b, 0.0)
+
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
+    println("Ridge time: $elapsedRidge seconds")
+end
+
+rRidge = copy(b)
+mul!(rRidge, A, xRidge, -1.0, 1.0)
+if display
+    El.print( rRidge, "A x_{Ridge} - b" )
+end
+
+rRidgeTwoNorm = El.nrm2(rRidge)
+rRidgeOneNorm = El.entrywiseNorm(rRidge, 1)
+if El.MPI.commRank(El.MPI.CommWorld[]) == 0
+    println("|| A x_{Ridge} - b ||_2 = $rRidgeTwoNorm")
+    println("|| A x_{Ridge} - b ||_1 = $rRidgeOneNorm")
+end
+
 # Require the user to press a button before the figures are closed
 # commSize = El.mpi.Size( El.mpi.COMM_WORLD() )
 # El.Finalize()

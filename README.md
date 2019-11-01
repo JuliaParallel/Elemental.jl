@@ -114,5 +114,26 @@ julia> @mpi_do man println(r[2][1:5])
     From worker 4:  [1069.6059089732858,115.44260091060129,115.08319164529792,114.87007788947226,114.48092348847719]
 ```
 
+### Linear Regression
+
+```jl
+@mpi_do man A = Elemental.DistMatrix(Float32)
+@mpi_do man B = Elemental.DistMatrix(Float32)
+@mpi_do man copy!(A, Float32[2 1; 1 2])
+@mpi_do man copy!(B, Float32[4, 5])
+```
+
+Run distributed ridge regression ` ½|A*X-B|₂² + λ|X|₂²`
+
+```jl
+@mpi_do man X = Elemental.ridge(A, B, 0f0)
+```
+
+Run distributed lasso regression ` ½|A*X-B|₂² + λ|X|₁` (only supported in recent versions of Elemental)
+
+```jl
+@mpi_do man X = Elemental.bpdn(A, B, 0.1f0)
+```
+
 ### Coverage
 We continually add functionality from *Elemental* to `Elemental.jl` so, right now, the best way to see if a specific function is available, is to look through the source code.
