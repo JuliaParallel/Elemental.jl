@@ -116,7 +116,7 @@ julia> @mpi_do man println(r[2][1:5])
 
 ### Linear Regression
 
-```
+```jl
 @mpi_do man A = Elemental.DistMatrix(Float32)
 @mpi_do man B = Elemental.DistMatrix(Float32)
 @mpi_do man copyto!(A, Float32[2 1; 1 2])
@@ -125,13 +125,13 @@ julia> @mpi_do man println(r[2][1:5])
 
 Run distributed ridge regression ` ½|A*X-B|₂² + λ|X|₂²`
 
-```
+```jl
 @mpi_do man X = Elemental.ridge(A, B, 0f0)
 ```
 
 Run distributed lasso regression ` ½|A*X-B|₂² + λ|X|₁` (only supported in recent versions of Elemental)
 
-```
+```jl
 @mpi_do man X = Elemental.bpdn(A, B, 0.1f0)
 ```
 
