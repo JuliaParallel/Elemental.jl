@@ -87,7 +87,7 @@ julia> Elemental.svdvals(A)[1:5]
 The iterative SVD algorithm is implemented in pure Julia, but the factorized matrix as well as the Lanczos vectors are stored as distributed matrices in Elemental. Notice, that `TSVD.jl` doesn't depend on Elemental and is only using `Elemental.jl`'s through generic function calls.
 
 ```jl
-julia> using MPI
+julia> using MPI, MPIClusterManagers, Distributed
 
 julia> man = MPIManager(np = 4);
 
