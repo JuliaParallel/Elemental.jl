@@ -11,12 +11,15 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
 DistributedArrays = "0.5, 0.6"
+MPI = "0.11"
+MPIClusterManagers = "0.1"
 julia = "1"
 
 [extras]
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+MPIClusterManagers = "e7922434-ae4b-11e9-05c5-9780451d2c66"
 Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "MPI", "Primes"]
+test = ["Test", "MPI", "MPIClusterManagers", "Primes"]
