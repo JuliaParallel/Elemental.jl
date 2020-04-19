@@ -54,8 +54,8 @@ install:
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache ; fi
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH" ; fi
   - echo `${ccache -s}`
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang-3.8 ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++-3.8 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++ ; fi
   - echo `which $CC`
   - echo `which $CXX`
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then curl https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr ; fi
