@@ -64,15 +64,17 @@ julia> @mpi_do man println(s[1])
 ### Simple example with DArrays
 
 ```jl
-julia> using MPI, MPIClusterManagers, Distributed, DistributedArrays, Elemental
+julia> using MPI, MPIClusterManagers, Distributed
 
 julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
 
+julia> using DistributedArrays, Elemental
+
 julia> A = drandn(1000, 800);
 
-julia> svdvals(A)[1:5]
+julia> Elemental.svdvals(A)[1:5]
 5-element SubArray{Float64,1,DistributedArrays.DArray{Float64,2,Array{Float64,2}},Tuple{UnitRange{Int64}},0}:
  59.4649
  59.1984
