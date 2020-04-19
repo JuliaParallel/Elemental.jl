@@ -40,13 +40,13 @@ julia> convert(Matrix{Float64}, s)[1:10]
 ### Simple example with MPI
 
 ```jl
-julia> using MPI
+julia> using MPI, MPIClusterManagers, Distributed
 
 julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
 
-julia> using LinearAlgebra, Elemental
+julia> @everywhere using LinearAlgebra, Elemental
 
 julia> @mpi_do man A = Elemental.DistMatrix(Float64);
 
