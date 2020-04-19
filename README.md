@@ -93,11 +93,7 @@ julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
 
-julia> using Elemental
-
-julia> Pkg.clone("TSVD")
-
-julia> @everywhere using TSVD
+julia> @mpi_do man using Elemental, TSVD
 
 julia> @mpi_do man A = Elemental.DistMatrix(Float64);
 

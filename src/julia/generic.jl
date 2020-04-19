@@ -88,7 +88,7 @@ LinearAlgebra.svdvals(A::ElementalMatrix, ctrl::SVDCtrl) = svdvals!(copy(A), ctr
 #     return dest
 # end
 
-function Base.copy!(dest::DistMatrix{T}, src::Base.AbstractVecOrMat) where {T}
+function Base.copyto!(dest::DistMatrix{T}, src::Base.AbstractVecOrMat) where {T}
     m, n = size(src, 1), size(src, 2)
     zeros!(dest, m, n)
     if MPI.commRank(comm(dest)) == 0
@@ -102,9 +102,9 @@ function Base.copy!(dest::DistMatrix{T}, src::Base.AbstractVecOrMat) where {T}
     return dest
 end
 
-Base.copy!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
+Base.copyto!(dest::DistMatrix, src::ElementalMatrix) = _copy!(src, dest)
 
-function Base.copy!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
+function Base.copyto!(dest::Base.VecOrMat, src::DistMatrix{T}) where {T}
     m, n = size(src, 1), size(src, 2)
     if MPI.commRank(comm(src)) == 0
         for j = 1:n
@@ -177,7 +177,7 @@ function Base.convert(::Type{DistMatrix{T}}, A::DistMultiVec{T}) where {T}
 end
 
 Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} = 
-    Base.copy!(Base.zeros(T, size(xd)), xd)
+    Base.copyto!(Base.zeros(T, size(xd)), xd)
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
@@ -194,3 +194,11 @@ LinearAlgebra.cholesky!(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) =
 LinearAlgebra.cholesky(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) = cholesky!(copy(A))
 
 LinearAlgebra.lu(A::ElementalMatrix) = _lu!(copy(A))
+
+# Mixed multiplication with Julia Arrays
+(*)(A::DistMatrix{T}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMatrix{T}, B)
+(*)(A::DistMultiVec{T}, B::StridedVecOrMat{T}) where {T} = convert(DistMatrix{T}, A)*convert(DistMatrix{T}, B)
+(*)(A::DistSparseMatrix{T}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMultiVec{T}, B)
+(*)(A::Adjoint{T,DistMatrix{T}}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMatrix{T}, B)
+(*)(A::Adjoint{T,DistMultiVec{T}}, B::Base.VecOrMat{T}) where {T} = convert(DistMatrix{T}, parent(A))'*convert(DistMatrix{T}, B)
+(*)(A::Adjoint{T,DistSparseMatrix{T}}, B::Base.VecOrMat{T}) where {T} = A*convert(DistMultiVec{T}, B)

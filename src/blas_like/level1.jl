@@ -54,7 +54,7 @@ for (elty, relty, ext) in ((:Float32, :Float32, :s),
                 return rval[]
             end
 
-            function scale!(x::$mat{$elty}, val::Number)
+            function LinearAlgebra.rmul!(x::$mat{$elty}, val::Number)
                 ElError(ccall(($(string("ElScale", sym, ext)), libEl), Cuint,
                     (Ptr{Cvoid}, $elty),
                     x.obj, $elty(val)))
