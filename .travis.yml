@@ -8,7 +8,7 @@ notifications:
 
 os:
   - linux
-  - osx
+  # - osx
 
 julia:
   - 1.0
