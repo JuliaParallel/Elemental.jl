@@ -64,15 +64,11 @@ julia> @mpi_do man println(s[1])
 ### Simple example with DArrays
 
 ```jl
-julia> using MPI
+julia> using MPI, MPIClusterManagers, Distributed, DistributedArrays, Elemental
 
 julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
-
-julia> using DistributedArrays
-
-julia> using Elemental
 
 julia> A = drandn(1000, 800);
 
