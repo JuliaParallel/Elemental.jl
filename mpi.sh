@@ -11,9 +11,8 @@ os=`uname`
 case "$os" in
     Darwin)
         brew update
+        brew install gcc@5
         brew upgrade cmake
-        brew cask uninstall oclint
-        brew install gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
                 brew install mpich
@@ -46,7 +45,7 @@ case "$os" in
                 cd openmpi-1.10.2
                 sh ./configure --prefix=$HOME/OpenMPI
                 make -j
-                sudo make install
+                make install
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"

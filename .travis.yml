@@ -8,11 +8,11 @@ notifications:
 
 os:
   - linux
-  - osx
+  # - osx
 
 julia:
-  - 0.7
   - 1.0
+  - 1.4
   # - nightly
 
 matrix:
@@ -23,11 +23,12 @@ env:
   global:
     - PATH=/usr/lib/ccache/:$HOME/OpenMPI/bin:$PATH
     - FC=gfortran-5
+    - JL_PKG=Elemental
   matrix:
-    - MPI=mpich   CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB1
-    - MPI=mpich   CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB2
-    - MPI=openmpi CC=gcc-5     CXX=g++-5       CACHE_NAME=JOB3
-    - MPI=openmpi CC=clang-3.8 CXX=clang++-3.8 CACHE_NAME=JOB4
+    - MPI=mpich   CC=gcc-5 CXX=g++-5   CACHE_NAME=JOB1
+    - MPI=mpich   CC=clang CXX=clang++ CACHE_NAME=JOB2
+    - MPI=openmpi CC=gcc-5 CXX=g++-5   CACHE_NAME=JOB3 JULIA_MPI_PATH=$HOME/OpenMPI
+    - MPI=openmpi CC=clang CXX=clang++ CACHE_NAME=JOB4 JULIA_MPI_PATH=$HOME/OpenMPI
 
 cache:
   directories:
@@ -53,8 +54,8 @@ install:
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install ccache ; fi
   # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH" ; fi
   - echo `${ccache -s}`
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang-3.8 ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++-3.8 ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo ln -s /usr/bin/ccache /usr/lib/ccache/clang++ ; fi
   - echo `which $CC`
   - echo `which $CXX`
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then curl https://cmake.org/files/v3.6/cmake-3.6.1-Linux-x86_64.tar.gz | sudo tar -x -z --strip-components 1 -C /usr ; fi
@@ -62,8 +63,8 @@ install:
   - sh ./mpi.sh $MPI
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - while sleep 30; do tail ./deps/build.log -f ; done &
-  - julia --check-bounds=yes -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("Elemental")'
+  - julia --check-bounds=yes --color=yes -e 'using Pkg; if VERSION >= v"1.1.0-rc1"; Pkg.build(verbose=true); else Pkg.build(); end;'
   - echo `ccache -s`
 
 script:
-  - julia --check-bounds=yes -e 'using Pkg; Pkg.test("Elemental")'
+  - julia --compiled-modules=no --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test("Elemental")'

@@ -34,7 +34,7 @@ function runtests_repl()
         try
             # FixMe! We temporarily run Finalize() explictly on the workers because the atexit hook
             # doesn't seem to be correctly triggered on workers as of 31 October 2018.
-            cmdstr = "using Distributed, MPI; man = MPIManager(np = $nprocs); addprocs(man); include(\"$(joinpath(testdir, f))\"); asyncmap(p -> remotecall_fetch(() -> Elemental.Finalize(), p), workers())"
+            cmdstr = "using Distributed, MPI, MPIClusterManagers; man = MPIManager(np = $nprocs); addprocs(man); include(\"$(joinpath(testdir, f))\"); asyncmap(p -> remotecall_fetch(() -> Elemental.Finalize(), p), workers())"
             run(`$exename -e $cmdstr`)
             Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
