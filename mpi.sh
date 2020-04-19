@@ -45,7 +45,7 @@ case "$os" in
                 cd openmpi-1.10.2
                 sh ./configure --prefix=$HOME/OpenMPI
                 make -j
-                sudo make install
+                make install
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"
