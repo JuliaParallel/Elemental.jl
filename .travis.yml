@@ -67,4 +67,4 @@ install:
   - echo `ccache -s`
 
 script:
-  - julia --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test("Elemental")'
+  - julia --compiled-modules=no --check-bounds=yes --color=yes -e 'using Pkg; Pkg.test("Elemental")'
