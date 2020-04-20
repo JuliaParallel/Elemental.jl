@@ -3,7 +3,7 @@ using Test
 function runtests_mpirun()
     nprocs = min(4, Sys.CPU_THREADS)
     testdir = dirname(@__FILE__)
-    testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl", "spectral.jl", "tsvd.jl"]
+    testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl", "spectral.jl", "tsvd.jl", "svd.jl"]
     nfail = 0
     @info "Running Elemental.jl tests"
     for f in testfiles

@@ -122,13 +122,13 @@ function Base.convert(::Type{Matrix{T}}, A::Base.VecOrMat{T}) where {T}
     m, n = size(A, 1), size(A, 2)
     B = Matrix(T)
     resize!(B, m, n)
-    Base.unsafe_copy!(pointer(B), pointer(A), m*n)
+    Base.unsafe_copyto!(pointer(B), pointer(A), m*n)
     return B
 end
 function Base.convert(::Type{Base.Matrix{T}}, A::Matrix{T}) where {T}
     m, n = size(A)
-    B = Base.Matrix{T}(m, n)
-    Base.unsafe_copy!(pointer(B), pointer(A), m*n)
+    B = Base.Matrix{T}(undef, m, n)
+    Base.unsafe_copyto!(pointer(B), pointer(A), m*n)
     return B
 end
 
