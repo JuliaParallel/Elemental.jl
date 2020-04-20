@@ -7,11 +7,11 @@ notifications:
   email: false
 
 os:
-  - linux
-  # - osx
+  # - linux
+  - osx
 
 julia:
-  - 1.0
+  # - 1.0
   - 1.4
   # - nightly
 
@@ -22,13 +22,15 @@ matrix:
 env:
   global:
     - PATH=/usr/lib/ccache/:$HOME/OpenMPI/bin:$PATH
-    - FC=gfortran-5
+    - FC=gfortran-9
     - JL_PKG=Elemental
   matrix:
-    - MPI=mpich   CC=gcc-5 CXX=g++-5   CACHE_NAME=JOB1
-    - MPI=mpich   CC=clang CXX=clang++ CACHE_NAME=JOB2
-    - MPI=openmpi CC=gcc-5 CXX=g++-5   CACHE_NAME=JOB3 JULIA_MPI_PATH=$HOME/OpenMPI
-    - MPI=openmpi CC=clang CXX=clang++ CACHE_NAME=JOB4 JULIA_MPI_PATH=$HOME/OpenMPI
+    # - MPI=mpich   CC=gcc-5 CXX=g++-5   CACHE_NAME=JOB1
+    # - MPI=mpich   CC=clang CXX=clang++ CACHE_NAME=JOB2
+    # - MPI=openmpi CC=gcc-9 CXX=g++-9   CACHE_NAME=JOB3
+    # JULIA_MPI_PATH=$HOME/OpenMPI
+    - MPI=openmpi CC=clang CXX=clang++ CACHE_NAME=JOB4
+    # JULIA_MPI_PATH=$HOME/OpenMPI
 
 cache:
   directories:

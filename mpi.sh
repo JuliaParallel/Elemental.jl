@@ -10,9 +10,9 @@ os=`uname`
 
 case "$os" in
     Darwin)
-        brew update
-        brew install gcc@5
-        brew upgrade cmake
+        # brew update
+        # brew install gcc@5
+        # brew upgrade cmake
         case "$MPI_IMPL" in
             mpich|mpich3)
                 brew install mpich
