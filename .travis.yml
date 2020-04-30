@@ -13,7 +13,7 @@ matrix:
 addons:
   apt:
     packages:
-      - mpich
+      - libmpich-dev
   homebrew:
     packages:
       - mpich
