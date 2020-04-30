@@ -1,16 +1,17 @@
 name = "Elemental"
 uuid = "902c3f28-d1ec-5e7e-8399-a24c3845ee38"
-version = "0.5.1"
+version = "0.6.0"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 DistributedArrays = "aaf54ef3-cdf8-58ed-94cc-d582ad619b94"
-LibGit2 = "76f85450-5226-5b5a-8eaa-529ad045b433"
+Elemental_jll = "c2e960f2-a21d-557e-aa36-859d46eed7e8"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
 DistributedArrays = "0.5, 0.6"
+Elemental_jll = "< 1"
 MPI = "0.11"
 MPIClusterManagers = "0.1"
 TSVD = "0.4"
@@ -18,10 +19,11 @@ julia = "1"
 
 [extras]
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 MPIClusterManagers = "e7922434-ae4b-11e9-05c5-9780451d2c66"
 Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 TSVD = "9449cd9e-2762-5aa3-a617-5413e99d722e"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "MPI", "MPIClusterManagers", "Primes", "TSVD"]
+test = ["Test", "MPI", "MPICH_jll", "MPIClusterManagers", "Primes", "TSVD"]
