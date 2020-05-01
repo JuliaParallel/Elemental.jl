@@ -22,8 +22,9 @@ MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 MPIClusterManagers = "e7922434-ae4b-11e9-05c5-9780451d2c66"
 Primes = "27ebfcd6-29c5-5fa9-bf4b-fb8fc14df3ae"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 TSVD = "9449cd9e-2762-5aa3-a617-5413e99d722e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "MPI", "MPICH_jll", "MPIClusterManagers", "Primes", "TSVD"]
+test = ["Test", "MPI", "MPICH_jll", "MPIClusterManagers", "Primes", "TSVD",  "Random"]
