@@ -51,7 +51,7 @@ function runtests_repl()
 end
 
 function runtests()
-    return runtests_mpirun() & runtests_repl()
+    return runtests_mpirun() + runtests_repl()
 end
 
 exit(runtests())
