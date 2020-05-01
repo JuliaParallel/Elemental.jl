@@ -1,4 +1,4 @@
-using Elemental, TSVD, LinearAlgebra
+using Elemental, TSVD, LinearAlgebra, Test
 
 A = Elemental.DistMatrix(Float64)
 Elemental.gaussian!(A, 500, 200)

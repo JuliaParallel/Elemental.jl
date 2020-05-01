@@ -104,8 +104,8 @@ end
 for T in (Float32, Float64)
     A = El.DistMatrix(T)
     b = El.DistMatrix(T)
-    copy!(A, T[2 1; 1 2])
-    copy!(b, T[4, 5])
+    copyto!(A, T[2 1; 1 2])
+    copyto!(b, T[4, 5])
     x = Array(El.leastSquares(A, b))
     if worldRank == 0
         @test isapprox(x, T[1, 2])
