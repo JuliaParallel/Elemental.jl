@@ -93,11 +93,13 @@ julia> man = MPIManager(np = 4);
 
 julia> addprocs(man);
 
-julia> @mpi_do man using Elemental, TSVD
+julia> @mpi_do man using Elemental, TSVD, Random
 
 julia> @mpi_do man A = Elemental.DistMatrix(Float64);
 
 julia> @mpi_do man Elemental.gaussian!(A, 5000, 2000);
+
+julia> @mpi_do man Random.seed!(123) # to avoid different initial vectors on the workers
 
 julia> @mpi_do man r = tsvd(A, 5);
 
