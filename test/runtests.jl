@@ -1,6 +1,12 @@
 using Test
 using Elemental_jll.MPICH_jll: mpiexec
 
+# Import all of our external dependencies to make sure they're compiled serially.
+using DistributedArrays
+using TSVD
+using Primes
+using MPIClusterManagers
+
 function runtests_mpirun()
     nprocs = min(4, Sys.CPU_THREADS)
     testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl", "spectral.jl", "tsvd.jl", "svd.jl"]
