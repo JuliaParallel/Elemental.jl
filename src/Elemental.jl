@@ -7,7 +7,7 @@ using LinearAlgebra
 import Base: *, \
 import Base: convert, copy, copy!, eltype, fill!, getindex, hcat, inv, length, pointer, print, setindex!, similar, size
 
-const libEl = abspath(joinpath(dirname(@__FILE__), "..", "deps", "usr", "lib", "libEl"))
+using Elemental_jll: libEl
 
 include("error.jl")
 
