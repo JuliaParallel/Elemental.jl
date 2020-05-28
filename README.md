@@ -134,4 +134,4 @@ Run distributed lasso regression ` ½|A*X-B|₂² + λ|X|₁` (only supported in
 ```
 
 ### Coverage
-We continually add functionality from *Elemental* to `Elemental.jl` so, right now, the best way to see if a specific function is available, is to look through the source code.
+Right now, the best way to see if a specific function is available, is to look through the source code. We are looking for help to prepare Documenter.jl based documentation for this package, and also to add more functionality from the Elemental library.
