@@ -5,14 +5,13 @@
 A package for dense and sparse distributed linear algebra and optimization. The underlying functionality is provided by the C++ library [Elemental](https://github.com/LLNL/Elemental) written originally by [Jack Poulson](http://web.stanford.edu/~poulson/) and now maintained by LLNL.
 
 ## Installation
-The package is installed with `Pkg.add("Elemental")`. Priort to Julia 1.3, the install script automatically downloads *Elemental* and will try build against the BLAS library used by Julia. The library is now being prepared to ship Elemental with Julia's BinaryBuilder.
+The package is installed with `Pkg.add("Elemental")`. For Julia versions 1.3 and later, Elemental uses the binaries provided by BinaryBuilder, which are linked against the MPI (mpich) provided through BinaryBuilder.
 
-### MPI
-The install script will build against any MPI installation that can be detected from calling `mpirun`. The package is tested with MPICH and OpenMPI but be aware that for OpenMPI at least version 1.8 is required because earlier versions of had bugs for complex data types. If you are using Linux and have installed OpenMPI from the repositories the version is (as always on Linux distributions) likely to be too old. Currently, MPICH isn't supported on macOS, see [this comment](https://github.com/pmodels/mpich/commit/2999a0ab3abc7a113d35d6117a9d1db8fa0ffa44#commitcomment-31131644) for details.
+## Examples
 
-## Examples - SVD
+Each of these examples should be run in a separate Julia session.
 
-### Simple example without MPI
+### Simple SVD example without MPI (single processor)
 ```jl
 julia> using LinearAlgebra, Elemental
 
