@@ -11,7 +11,10 @@ The package is installed with `Pkg.add("Elemental")`. For Julia versions 1.3 and
 
 Each of these examples should be run in a separate Julia session.
 
-### Simple SVD example without MPI (single processor)
+### Simple SVD example
+
+This example runs on a single processor, and initializes MPI under the hood. However, explicit use of MPI.jl is not required in this case, compared to the other examples below.
+
 ```jl
 julia> using LinearAlgebra, Elemental
 
