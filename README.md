@@ -11,7 +11,7 @@ The package is installed with `Pkg.add("Elemental")`. For Julia versions 1.3 and
 
 Each of these examples should be run in a separate Julia session.
 
-### Simple SVD example
+### SVD example
 
 This example runs on a single processor, and initializes MPI under the hood. However, explicit use of MPI.jl is not required in this case, compared to the other examples below.
 
@@ -39,7 +39,9 @@ julia> convert(Matrix{Float64}, s)[1:10]
  15.5079
 ```
 
-### Simple example with MPI
+### SVD example using MPI to parallelize on 4 processors
+
+In this example, `@mpi_do` has to be used to send the parallel instructions to all processors.
 
 ```jl
 julia> using MPI, MPIClusterManagers, Distributed
@@ -63,7 +65,11 @@ julia> @mpi_do man println(s[1])
     From worker 3:  59.639990420817696
 ```
 
-### Simple example with DArrays
+### SVD example with DistributedArrays on 4 processors
+
+This example is slightly different from the ones above in that it only calculates the singular values. However,
+it uses the DistributedArrays.jl package, and has a single thread of control. Note, we do not need to use `@mpi_do`
+explicitly in this case.
 
 ```jl
 julia> using MPI, MPIClusterManagers, Distributed
@@ -86,7 +92,7 @@ julia> Elemental.svdvals(A)[1:5]
 ```
 
 ### Truncated SVD
-The iterative SVD algorithm is implemented in pure Julia, but the factorized matrix as well as the Lanczos vectors are stored as distributed matrices in Elemental. Notice, that `TSVD.jl` doesn't depend on Elemental and is only using `Elemental.jl`'s through generic function calls.
+The iterative SVD algorithm is implemented in pure Julia, but the factorized matrix as well as the Lanczos vectors are stored as distributed matrices in Elemental. Notice, that [`TSVD.jl`](https://github.com/JuliaLinearAlgebra/TSVD.jl) doesn't depend on Elemental and is only using `Elemental.jl` through generic function calls.
 
 ```jl
 julia> using MPI, MPIClusterManagers, Distributed
