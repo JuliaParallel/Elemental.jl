@@ -1,7 +1,5 @@
 # Elemental.jl
 
-[![Build Status](https://travis-ci.org/JuliaParallel/Elemental.jl.svg?branch=master)](https://travis-ci.org/JuliaParallel/Elemental.jl)
-
 A package for dense and sparse distributed linear algebra and optimization. The underlying functionality is provided by the C++ library [Elemental](https://github.com/LLNL/Elemental) written originally by [Jack Poulson](http://web.stanford.edu/~poulson/) and now maintained by LLNL.
 
 ## Installation
