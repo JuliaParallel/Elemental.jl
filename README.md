@@ -121,8 +121,8 @@ julia> @mpi_do man println(r[2][1:5])
 ```jl
 @mpi_do man A = Elemental.DistMatrix(Float32)
 @mpi_do man B = Elemental.DistMatrix(Float32)
-@mpi_do man copy!(A, Float32[2 1; 1 2])
-@mpi_do man copy!(B, Float32[4, 5])
+@mpi_do man copyto!(A, Float32[2 1; 1 2])
+@mpi_do man copyto!(B, Float32[4, 5])
 ```
 
 Run distributed ridge regression ` ½|A*X-B|₂² + λ|X|₂²`
