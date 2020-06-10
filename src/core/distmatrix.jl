@@ -100,7 +100,7 @@ for (elty, ext) in ((:ElInt, :i),
             return rv[]
         end
 
-        function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
+        function processPullQueue(A::DistMatrix{$elty}, buf)
             ElError(ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
                 (Ptr{Cvoid}, Ptr{$elty}),
                 A.obj, buf))
