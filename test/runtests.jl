@@ -6,6 +6,7 @@ using DistributedArrays
 using TSVD
 using Primes
 using MPIClusterManagers
+using Elemental
 
 function runtests_mpirun()
     nprocs = min(4, Sys.CPU_THREADS)
