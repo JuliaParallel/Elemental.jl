@@ -22,8 +22,10 @@ function __init__()
             global MPIImpl[] = :OpenMPI
         elseif occursin(r"MPICH", versionString)
             global MPIImpl[] = :MPICH3
+        elseif occursin("Intel(R) MPI", versionString)
+            global MPIImpl[] = :IntelMPI
         else
-            error("don't know which MPI implemetation you are using here")
+            error("don't know which MPI implemetation you are using here: ", versionString)
         end
     end
 
