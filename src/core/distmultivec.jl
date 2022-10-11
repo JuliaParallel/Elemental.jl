@@ -16,10 +16,10 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function DistMultiVec(::Type{$elty}, cm::ElComm = MPI.CommWorld[])
+        function DistMultiVec(::Type{$elty}, cm::MPI.Comm = MPI.COMM_WORLD)
             obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
-                (Ref{Ptr{Cvoid}}, ElComm),
+                (Ref{Ptr{Cvoid}}, MPI.API.MPI_Comm),
                 obj, cm))
             A = DistMultiVec{$elty}(obj[])
             finalizer(destroy, A)
@@ -27,11 +27,11 @@ for (elty, ext) in ((:ElInt, :i),
         end
 
         function comm(A::DistMultiVec{$elty})
-            cm = Ref{ElComm}()
+            cm = Ref{MPI.API.MPI_Comm}()
             ElError(ccall(($(string("ElDistMultiVecComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
+                (Ptr{Cvoid}, Ref{MPI.API.MPI_Comm}),
                 A.obj, cm))
-            return cm[]
+            return MPI.Comm(cm[])
         end
 
         function get(x::DistMultiVec{$elty}, i::Integer = size(x, 1), j::Integer = 1)
@@ -117,7 +117,7 @@ end
 
 getindex(x::DistMultiVec, i, j) = get(x, i, j)
 
-function similar(::DistMultiVec, ::Type{T}, sz::Dims, cm::ElComm = MPI.CommWorld[]) where {T}
+function similar(::DistMultiVec, ::Type{T}, sz::Dims, cm::MPI.Comm = MPI.COMM_WORLD) where {T}
     A = DistMultiVec(T, cm)
     resize!(A, sz...)
     return A
