@@ -16,10 +16,10 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function DistSparseMatrix(::Type{$elty}, comm::ElComm = MPI.CommWorld[])
+        function DistSparseMatrix(::Type{$elty}, comm::MPI.COMM_WORLD = MPI.COMM_WORLD)
             obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
-                (Ref{Ptr{Cvoid}}, ElComm),
+                (Ref{Ptr{Cvoid}}, MPI.API.MPI_Comm),
                 obj, comm))
             A = DistSparseMatrix{$elty}(obj[])
             finalizer(destroy, A)
@@ -27,9 +27,9 @@ for (elty, ext) in ((:ElInt, :i),
         end
 
         function comm(A::DistSparseMatrix{$elty})
-            cm = Ref{ElComm}()
+            cm = Ref{MPI.API.MPI_Comm}()
             ElError(ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
+                (Ptr{Cvoid}, Ref{MPI.API.MPI_Comm}),
                 A.obj, cm))
             return cm[]
         end
@@ -112,7 +112,7 @@ for (elty, ext) in ((:ElInt, :i),
 end
 
 # The other constructors don't have a version with dimensions. Should they, or should this one go?
-function DistSparseMatrix(::Type{T}, m::Integer, n::Integer, comm::ElComm = MPI.CommWorld[]) where {T}
+function DistSparseMatrix(::Type{T}, m::Integer, n::Integer, comm::MPI.Comm = MPI.COMM_WORLD) where {T}
     A = DistSparseMatrix(T, comm)
     resize!(A, m, n)
     return A

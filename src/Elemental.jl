@@ -1,5 +1,6 @@
 module Elemental
 
+import MPI
 using Distributed
 using DistributedArrays
 using LinearAlgebra
@@ -41,7 +42,6 @@ function __init__()
 end
 
 include("core/types.jl")
-include("mpi.jl")
 include("core/matrix.jl")
 include("core/grid.jl")
 include("core/sparsematrix.jl")

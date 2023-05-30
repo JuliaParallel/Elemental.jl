@@ -37,11 +37,11 @@ for (elty, ext) in ((:ElInt, :i),
         # end
 
         function comm(A::DistMatrix{$elty})
-            cm = Ref{ElComm}()
+            cm = Ref{MPI.API.MPI_Comm}()
             ElError(ccall(($(string("ElDistMatrixDistComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
+                (Ptr{Cvoid}, Ref{MPI.API.MPI_Comm}),
                 A.obj, cm))
-            return cm[]
+            return MPI.Comm(cm[])
         end
 
         function get(A::DistMatrix{$elty}, i::Integer, j::Integer)
