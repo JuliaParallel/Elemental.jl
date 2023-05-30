@@ -3,6 +3,7 @@ uuid = "902c3f28-d1ec-5e7e-8399-a24c3845ee38"
 version = "0.6.0"
 
 [deps]
+CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 DistributedArrays = "aaf54ef3-cdf8-58ed-94cc-d582ad619b94"
 Elemental_jll = "c2e960f2-a21d-557e-aa36-859d46eed7e8"
