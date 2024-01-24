@@ -194,6 +194,11 @@ LinearAlgebra.cholesky!(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) =
 LinearAlgebra.cholesky(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) = cholesky!(copy(A))
 
 LinearAlgebra.lu(A::ElementalMatrix) = _lu!(copy(A))
+LinearAlgebra.lu!(A::ElementalMatrix) = _lu!(A)
+LinearAlgebra.qr(A::ElementalMatrix) = _qr!(copy(A))
+LinearAlgebra.qr!(A::ElementalMatrix) = _qr!(A)
+LinearAlgebra.lq(A::ElementalMatrix) = _lq!(copy(A))
+LinearAlgebra.lq!(A::ElementalMatrix) = _lq!(A)
 
 # Mixed multiplication with Julia Arrays
 (*)(A::DistMatrix{T}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMatrix{T}, B)
