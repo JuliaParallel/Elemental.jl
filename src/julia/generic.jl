@@ -199,6 +199,7 @@ LinearAlgebra.qr(A::ElementalMatrix) = _qr!(copy(A))
 LinearAlgebra.qr!(A::ElementalMatrix) = _qr!(A)
 LinearAlgebra.lq(A::ElementalMatrix) = _lq!(copy(A))
 LinearAlgebra.lq!(A::ElementalMatrix) = _lq!(A)
+LinearAlgebra.cholesky!(A::ElementalMatrix) = _cholesky!(A)
 
 # Mixed multiplication with Julia Arrays
 (*)(A::DistMatrix{T}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMatrix{T}, B)

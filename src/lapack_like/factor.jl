@@ -105,6 +105,7 @@ for mattype in ("", "Dist")
   QRStructName = Symbol("QR$(string(mattype))")
   LQStructName = Symbol("LQ$(string(mattype))")
   LUStructName = Symbol("LU$(string(mattype))")
+  CHStructName = Symbol("CH$(string(mattype))")
 
   @eval begin
   #struct $QRColPivStructName{T,U<:Real}
@@ -147,6 +148,15 @@ for mattype in ("", "Dist")
     return $LUStructName(A, p, Ref(NORMAL::Orientation))
   end
 
+  struct $CHStructName{T,U<:Real}
+    uplo::UpperOrLower
+    A::$mat{T}
+    orientation::Ref{Orientation}
+  end
+  function $QRStructName(uplo::UpperOrLower, A)
+    return $QRStructName(uplo, A, Ref(NORMAL::Orientation))
+  end
+
   end
 
   for (elty, ext) in ((:Float32, :s),
@@ -158,11 +168,12 @@ for mattype in ("", "Dist")
 
     function _lu!(A::$mat{$elty})
       p = $_p()
-      ElError(ccall(($(string("ElLUPartialPiv", mattype, "_", ext)), libEl), Cuint,
+      ElError(ccall(($(string("ElLU", mattype, "_", ext)), libEl), Cuint,
         (Ptr{Cvoid}, Ptr{Cvoid}),
         A.obj, p.obj))
       return $LUStructName(A, p)
     end
+
     function LinearAlgebra.:\(lu::$LUStructName{$elty}, b::$mat{$elty})
       x = deepcopy(b)#$mat($elty)
       ElError(ccall(($(string("ElSolveAfterLU", mattype, "_", ext)), libEl), Cuint,
@@ -180,6 +191,7 @@ for mattype in ("", "Dist")
     #    A.obj, t.obj, d.obj, p.obj))
     #  return $QRColPivStructName(A, t, d, p)
     #end
+    #
     #function LinearAlgebra.:\(qr::$QRColPivStructName{$elty}, b::$mat{$elty})
     #  x = $mat($elty)
     #  ElError(ccall(($(string("ElSolveAfterQR", mattype, "_", ext)), libEl), Cuint,
@@ -223,6 +235,21 @@ for mattype in ("", "Dist")
         (Orientation, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
         lq.orientation[], lq.A.obj, lq.householderscalars.obj,
         lq.signature.obj, b.obj, x.obj))
+      return x
+    end
+
+    function _cholesky!(A::$mat{$elty}, uplo::UpperOrLower=UPPER::UpperOrLower)
+      ElError(ccall(($(string("ElCholesky", mattype, "_", ext)), libEl), Cuint,
+        (UpperOrLower, Ptr{Cvoid}),
+        uplo, A.obj))
+      return $CHStructName(uplo, A)
+    end
+
+    function LinearAlgebra.:\(ch::$CHStructName{$elty}, b::$mat{$elty})
+      x = deepcopy(b)#$mat($elty)
+      ElError(ccall(($(string("ElSolveAfterCholeksy", mattype, "_", ext)), libEl), Cuint,
+        (UpperOrLower, Orientation, Ptr{Cvoid}, Ptr{Cvoid}),
+        lu.uplo, lu.orientation[], lu.A.obj, x.obj))
       return x
     end
 

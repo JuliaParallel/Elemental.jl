@@ -68,12 +68,39 @@ Random.seed!(1)
     b0 .= b
     
     x = A \ b
-    @show size(x)
     #@show A'*A * x .- A' *b
     x1 = Vector(Matrix(luA \ b0)[:])
     @show size(x1)
     @test isapprox(x1, x)
   end
+  @testset "cholesky!" begin
+    N = 10 
+    M = 10
+    
+    A = rand(ComplexF64, N, M)
+    A .+= A'
+    A .+= 10 .* I(N)
+    b = rand(ComplexF64, N)
+    
+    A1 = Elemental.Matrix(ComplexF64)
+    Elemental.resize!(A1, size(A)...);
+    A1 .= A
+    
+    chA = Elemental._cholesky!(A1)
+    
+    b0 = Elemental.Matrix(ComplexF64)
+    
+    Elemental.resize!(b0, length(b), 1);
+    b0 .= b
+    
+    x = A \ b
+    #@show A'*A * x .- A' *b
+    x1 = Vector(Matrix(chA \ b0)[:])
+    @show size(x1)
+    @test isapprox(x1, x)
+  end
+
+
 end
 
 #A2 = Elemental.Matrix(ComplexF64)
