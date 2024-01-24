@@ -1,5 +1,5 @@
 
-using Elemental, Test, Random
+using Elemental, Test, Random, LinearAlgebra
 Random.seed!(1)
 
 @testset "factor" begin
@@ -70,7 +70,6 @@ Random.seed!(1)
     x = A \ b
     #@show A'*A * x .- A' *b
     x1 = Vector(Matrix(luA \ b0)[:])
-    @show size(x1)
     @test isapprox(x1, x)
   end
   @testset "cholesky!" begin
@@ -96,7 +95,6 @@ Random.seed!(1)
     x = A \ b
     #@show A'*A * x .- A' *b
     x1 = Vector(Matrix(chA \ b0)[:])
-    @show size(x1)
     @test isapprox(x1, x)
   end
 

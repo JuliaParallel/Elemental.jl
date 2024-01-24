@@ -105,7 +105,7 @@ for mattype in ("", "Dist")
   QRStructName = Symbol("QR$(string(mattype))")
   LQStructName = Symbol("LQ$(string(mattype))")
   LUStructName = Symbol("LU$(string(mattype))")
-  CHStructName = Symbol("CH$(string(mattype))")
+  CHStructName = Symbol("Cholesky$(string(mattype))")
 
   @eval begin
   #struct $QRColPivStructName{T,U<:Real}
@@ -148,13 +148,13 @@ for mattype in ("", "Dist")
     return $LUStructName(A, p, Ref(NORMAL::Orientation))
   end
 
-  struct $CHStructName{T,U<:Real}
+  struct $CHStructName{T}
     uplo::UpperOrLower
     A::$mat{T}
     orientation::Ref{Orientation}
   end
-  function $QRStructName(uplo::UpperOrLower, A)
-    return $QRStructName(uplo, A, Ref(NORMAL::Orientation))
+  function $CHStructName(uplo::UpperOrLower, A)
+    return $CHStructName(uplo, A, Ref(NORMAL::Orientation))
   end
 
   end
@@ -247,9 +247,9 @@ for mattype in ("", "Dist")
 
     function LinearAlgebra.:\(ch::$CHStructName{$elty}, b::$mat{$elty})
       x = deepcopy(b)#$mat($elty)
-      ElError(ccall(($(string("ElSolveAfterCholeksy", mattype, "_", ext)), libEl), Cuint,
+      ElError(ccall(($(string("ElSolveAfterCholesky", mattype, "_", ext)), libEl), Cuint,
         (UpperOrLower, Orientation, Ptr{Cvoid}, Ptr{Cvoid}),
-        lu.uplo, lu.orientation[], lu.A.obj, x.obj))
+        ch.uplo, ch.orientation[], ch.A.obj, x.obj))
       return x
     end
 
