@@ -181,6 +181,21 @@ Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} =
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
+# super slow, but handy?
+function Base.setindex!(A::DistMatrix,
+                        values,
+                        globalis,
+                        globaljs)
+  if typeof(values) <: Number
+    @warn "setindex! with scalars won't perform well"
+  end
+  for (cj, globalj) in enumerate(globaljs), (ci, globali) in enumerate(globalis)
+    queueUpdate(A, globali, globalj, values[ci, cj])
+  end
+  processQueues(A)
+end
+
+
 LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
 # function LinearAlgebra.norm(x::ElementalMatrix)
 #     if size(x, 2) == 1
