@@ -148,7 +148,7 @@ for (elty, ext) in ((:ElInt, :i),
                 A.obj, i, j))
             return A
         end
-        
+
         function isLocalRow(A::DistMatrix{$elty}, i::Integer)
             rv = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistMatrixIsLocalRow_", ext)), libEl), Cuint,
