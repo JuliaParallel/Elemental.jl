@@ -31,21 +31,8 @@ const bhost = rand(Float64, M)
 
 @mpi_do man x = qrA \ b;
 
-@everywhere function localpart(A::Elemental.DistMatrix{T}) where T
-  buffer = zeros(T, Elemental.localHeight(A), Elemental.localWidth(A))
-  return localpart!(buffer, A)
-end
-
-@everywhere function localpart!(buffer, A::Elemental.DistMatrix)
-  @assert size(buffer) == (Elemental.localHeight(A), Elemental.localWidth(A))
-  for j in 1:Elemental.localWidth(A), i in 1:Elemental.localHeight(A)
-    buffer[i, j] = Elemental.getLocal(A, i, j)
-  end
-  return buffer
-end
-
 @mpi_do man localx = zeros(Float64, Elemental.localHeight(x), Elemental.localWidth(x))
-@mpi_do man copyto!(localx, localpart(x))
+@mpi_do man copyto!(localx, Elemental.localpart(x))
 
 using Test
 x = vcat((fetch(@spawnat p localx)[:] for p in workers())...)

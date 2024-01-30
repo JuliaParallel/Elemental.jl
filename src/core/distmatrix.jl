@@ -222,3 +222,19 @@ function hcat(x::Vector{DistMatrix{T}}) where {T}
         return A
     end
 end
+
+import DistributedArrays.localpart
+# used in testing
+function localpart(A::Elemental.DistMatrix{T}) where T
+  buffer = Base.zeros(T, Elemental.localHeight(A), Elemental.localWidth(A))
+  return localpart!(buffer, A)
+end
+
+function localpart!(buffer, A::Elemental.DistMatrix)
+  @assert size(buffer) == (Elemental.localHeight(A), Elemental.localWidth(A))
+  for j in 1:Elemental.localWidth(A), i in 1:Elemental.localHeight(A)
+    buffer[i, j] = Elemental.getLocal(A, i, j)
+  end
+  return buffer
+end
+
