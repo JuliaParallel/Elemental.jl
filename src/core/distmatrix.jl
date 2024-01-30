@@ -100,7 +100,7 @@ for (elty, ext) in ((:ElInt, :i),
             return rv[]
         end
 
-        function processPullQueue(A::DistMatrix{$elty}, buf::Array{$elty,2})
+        function processPullQueue(A::DistMatrix{$elty}, buf::AbstractArray{$elty,2})
             ElError(ccall(($(string("ElDistMatrixProcessPullQueue_", ext)), libEl), Cuint,
                 (Ptr{Cvoid}, Ptr{$elty}),
                 A.obj, buf))
@@ -148,6 +148,23 @@ for (elty, ext) in ((:ElInt, :i),
                 A.obj, i, j))
             return A
         end
+        
+        function isLocalRow(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixIsLocalRow_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return Bool(rv[])
+        end
+
+        function isLocalCol(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixIsLocalCol_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return Bool(rv[])
+        end
+
     end
 end
 
