@@ -165,6 +165,30 @@ for (elty, ext) in ((:ElInt, :i),
             return Bool(rv[])
         end
 
+        function owner(A::DistMatrix{$elty})
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixRowOwner_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, Ref{ElInt}),
+                A.obj, rv))
+            return rv[]
+        end
+
+        function rowOwner(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixRowOwner_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return rv[]
+        end
+
+        function colOwner(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixColOwner_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return rv[]
+        end
+
     end
 end
 
@@ -226,15 +250,24 @@ end
 import DistributedArrays.localpart
 # used in testing
 function localpart(A::Elemental.DistMatrix{T}) where T
-  buffer = Base.zeros(T, Elemental.localHeight(A), Elemental.localWidth(A))
+  buffer = Base.zeros(T, localHeight(A), localWidth(A))
   return localpart!(buffer, A)
 end
 
 function localpart!(buffer, A::Elemental.DistMatrix)
-  @assert size(buffer) == (Elemental.localHeight(A), Elemental.localWidth(A))
-  for j in 1:Elemental.localWidth(A), i in 1:Elemental.localHeight(A)
-    buffer[i, j] = Elemental.getLocal(A, i, j)
+  @assert size(buffer) == (localHeight(A), localWidth(A))
+  for j in 1:localWidth(A), i in 1:localHeight(A)
+    buffer[i, j] = getLocal(A, i, j)
   end
   return buffer
+end
+
+import DistributedArrays.localindices
+# used in testing
+function localindices(A::Elemental.DistMatrix{T}) where T
+  # sometimes they aren't contigous so cant do start:start+length
+  rows = findall(isLocalRow(A, i) for i in 1:height(A))
+  cols = findall(isLocalCol(A, i) for i in 1:width(A))
+  return (rows, cols)
 end
 
