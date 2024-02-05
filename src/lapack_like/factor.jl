@@ -108,16 +108,6 @@ for mattype in ("", "Dist")
   CHStructName = Symbol("Cholesky$(string(mattype))")
 
   @eval begin
-  #struct $QRColPivStructName{T,U<:Real}
-  #  A::$mat{T}
-  #  t::$mat{T}
-  #  d::$mat{U}
-  #  p::$_p
-  #  orientation::Ref{Orientation}
-  #end
-  #function $QRColPivStructName(A, t, d, p)
-  #  return $QRColPivStructName(A, t, d, p, Ref(NORMAL::Orientation))
-  #end
 
   struct $QRStructName{T,U<:Real}
     A::$mat{T}
@@ -181,27 +171,6 @@ for mattype in ("", "Dist")
         lu.orientation[], lu.A.obj, x.obj))
       return x
     end
-
-    #function _qrcp!(A::$mat{$elty})
-    #  t = $mat($elty)
-    #  d = $mat(real($elty))
-    #  p = $_p()
-    #  ElError(ccall(($(string("ElQRColPiv", mattype, "_", ext)), libEl), Cuint,
-    #    (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
-    #    A.obj, t.obj, d.obj, p.obj))
-    #  return $QRColPivStructName(A, t, d, p)
-    #end
-    #
-    #function LinearAlgebra.:\(qr::$QRColPivStructName{$elty}, b::$mat{$elty})
-    #  x = $mat($elty)
-    #  ElError(ccall(($(string("ElSolveAfterQR", mattype, "_", ext)), libEl), Cuint,
-    #    (Orientation, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}),
-    #    qr.orientation[], qr.A.obj, qr.t.obj, qr.d.obj, b.obj, x.obj))
-    #  ElError(ccall(($(string("El", mattype, "PermutationPermuteRows", "_", ext)), libEl), Cuint,
-    #    (Ptr{Cvoid}, Ptr{Cvoid}, ElInt),
-    #     qr.p.obj, x.obj, 0))
-    #  return x
-    #end
 
     function _qr!(A::$mat{$elty})
       t = $mat($elty)
