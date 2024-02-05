@@ -101,19 +101,3 @@ Random.seed!(1)
 
 end
 
-#A2 = Elemental.Matrix(ComplexF64)
-#Elemental.resize!(A2, size(A)...);
-#A2 .= A
-#b1 = Elemental.Matrix(ComplexF64)
-#Elemental.resize!(b1, length(b), 1);
-#b1 .= b
-#qrcp = Elemental._qrcp!(A2)
-#
-#x2 = Vector(Matrix(qrcp \ b1)[:])
-#@show x
-#y = real.(x2)
-#@show y
-#@test isapprox(x2, x)
-
-
-
