@@ -165,30 +165,6 @@ for (elty, ext) in ((:ElInt, :i),
             return Bool(rv[])
         end
 
-        function owner(A::DistMatrix{$elty})
-            rv = Ref{ElInt}(0)
-            ElError(ccall(($(string("ElDistMatrixRowOwner_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElInt}),
-                A.obj, rv))
-            return rv[]
-        end
-
-        function rowOwner(A::DistMatrix{$elty}, i::Integer)
-            rv = Ref{ElInt}(0)
-            ElError(ccall(($(string("ElDistMatrixRowOwner_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
-                A.obj, i - 1, rv))
-            return rv[]
-        end
-
-        function colOwner(A::DistMatrix{$elty}, i::Integer)
-            rv = Ref{ElInt}(0)
-            ElError(ccall(($(string("ElDistMatrixColOwner_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
-                A.obj, i - 1, rv))
-            return rv[]
-        end
-
     end
 end
 
