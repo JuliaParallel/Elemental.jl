@@ -226,24 +226,24 @@ end
 import DistributedArrays.localpart
 # used in testing
 function localpart(A::Elemental.DistMatrix{T}) where T
-  buffer = Base.zeros(T, localHeight(A), localWidth(A))
-  return localpart!(buffer, A)
+    buffer = Base.zeros(T, localHeight(A), localWidth(A))
+    return localpart!(buffer, A)
 end
 
 function localpart!(buffer, A::Elemental.DistMatrix)
-  @assert size(buffer) == (localHeight(A), localWidth(A))
-  for j in 1:localWidth(A), i in 1:localHeight(A)
-    buffer[i, j] = getLocal(A, i, j)
-  end
-  return buffer
+    @assert size(buffer) == (localHeight(A), localWidth(A))
+    for j in 1:localWidth(A), i in 1:localHeight(A)
+        buffer[i, j] = getLocal(A, i, j)
+    end
+    return buffer
 end
 
 import DistributedArrays.localindices
 # used in testing
 function localindices(A::Elemental.DistMatrix{T}) where T
-  # sometimes they aren't contigous so cant do start:start+length
-  rows = findall(isLocalRow(A, i) for i in 1:height(A))
-  cols = findall(isLocalCol(A, i) for i in 1:width(A))
-  return (rows, cols)
+    # sometimes they aren't contigous so cant do start:start+length
+    rows = findall(isLocalRow(A, i) for i in 1:height(A))
+    cols = findall(isLocalCol(A, i) for i in 1:width(A))
+    return (rows, cols)
 end
 

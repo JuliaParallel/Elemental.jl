@@ -186,13 +186,13 @@ function Base.setindex!(A::DistMatrix,
                         values,
                         globalis,
                         globaljs)
-  if typeof(values) <: Number
-    @warn "setindex! with scalars won't perform well"
-  end
-  for (cj, globalj) in enumerate(globaljs), (ci, globali) in enumerate(globalis)
-    queueUpdate(A, globali, globalj, values[ci, cj])
-  end
-  processQueues(A)
+    if typeof(values) <: Number
+        @warn "setindex! with scalars won't perform well"
+    end
+    for (cj, globalj) in enumerate(globaljs), (ci, globali) in enumerate(globalis)
+        queueUpdate(A, globali, globalj, values[ci, cj])
+    end
+    processQueues(A)
 end
 
 

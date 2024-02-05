@@ -37,5 +37,5 @@ const bhost = rand(Float64, M)
 using Test
 x = vcat((fetch(@spawnat p localx)[:] for p in workers())...)
 @testset "lu" begin
-  @test x ≈ Ahost \ bhost
+    @test x ≈ Ahost \ bhost
 end
