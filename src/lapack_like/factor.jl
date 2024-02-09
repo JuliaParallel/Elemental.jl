@@ -96,6 +96,8 @@ for mattype in ("", "Dist")
     end
 end
 
+# These are the number types that Elemental supports
+
 for mattype in ("", "Dist")
     mat = Symbol(mattype, "Matrix")
     _p  = Symbol(mattype, "Permutation")
@@ -115,7 +117,8 @@ for mattype in ("", "Dist")
             d::$mat{U}
             orientation::Ref{Orientation}
         end
-        function $QRStructName(A, t, d)
+        function $QRStructName(A::$mat{T}, t::$mat{T}, d::$mat{U}
+                ) where {U<:Union{Float32, Float64}, T<:Union{Complex{U}, U}}
             return $QRStructName(A, t, d, Ref(NORMAL::Orientation))
         end
 
@@ -125,7 +128,8 @@ for mattype in ("", "Dist")
             signature::$mat{U}
             orientation::Ref{Orientation}
         end
-        function $LQStructName(A, householderscalars, signature)
+        function $LQStructName(A::$mat{T}, householderscalars::$mat{T}, signature::$mat{U}
+                ) where {U<:Union{Float32, Float64}, T<:Union{Complex{U}, U}}
             return $LQStructName(A, householderscalars, signature, Ref(NORMAL::Orientation))
         end
 
@@ -134,7 +138,8 @@ for mattype in ("", "Dist")
             p::$_p
             orientation::Ref{Orientation}
         end
-        function $LUStructName(A, p)
+        function $LUStructName(A::$mat{T}, p::$_p
+                ) where {T<:Union{Float32, Float64, ComplexF32, ComplexF64}}
             return $LUStructName(A, p, Ref(NORMAL::Orientation))
         end
 
@@ -143,7 +148,8 @@ for mattype in ("", "Dist")
             A::$mat{T}
             orientation::Ref{Orientation}
         end
-        function $CHStructName(uplo::UpperOrLower, A)
+        function $CHStructName(uplo::UpperOrLower, A::$mat{T}
+                ) where {T<:Union{Float32, Float64, ComplexF32, ComplexF64}}
             return $CHStructName(uplo, A, Ref(NORMAL::Orientation))
         end
 
