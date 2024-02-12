@@ -181,8 +181,6 @@ Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} =
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
-# super slow, but handy?
-
 function Base.setindex!(A::DistMatrix, values::Number, _, _)
   throw(ArgumentError("setindex! with scalars is disallowed.
     Use a large collection to setindex! in bulk."))
