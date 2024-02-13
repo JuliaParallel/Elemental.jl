@@ -14,7 +14,7 @@ Random.seed!(1)
         Elemental.resize!(A1, size(A)...);
         A1 .= A
 
-        qrA = Elemental._qr!(A1)
+        qrA = Elemental.qr!(A1)
 
         b0 = Elemental.Matrix(ComplexF64)
 
@@ -37,7 +37,7 @@ Random.seed!(1)
         Elemental.resize!(A1, size(A)...);
         A1 .= A
 
-        lqA = Elemental._lq!(A1)
+        lqA = Elemental.lq!(A1)
 
         b0 = Elemental.Matrix(ComplexF64)
 
@@ -60,7 +60,7 @@ Random.seed!(1)
         Elemental.resize!(A1, size(A)...);
         A1 .= A
 
-        luA = Elemental._lu!(A1)
+        luA = Elemental.lu!(A1)
 
         b0 = Elemental.Matrix(ComplexF64)
 
@@ -85,7 +85,7 @@ Random.seed!(1)
         Elemental.resize!(A1, size(A)...);
         A1 .= A
 
-        chA = Elemental._cholesky!(A1)
+        chA = Elemental.cholesky!(A1)
 
         b0 = Elemental.Matrix(ComplexF64)
 
