@@ -250,5 +250,46 @@ for (elty, ext) in ((:ElInt, :i),
             processQueues(A)
             return A
         end
+
+        function convert(::Type{DistMatrix{$elty}}, DA::DistributedArrays.DArray)
+            npr, npc = size(procs(DA))
+            if npr*npc != MPI.Comm_size(MPI.COMM_WORLD)
+                error("Used non MPI.COMM_WORLD DArray for DistMatrix, ",
+                      "as procs(DA)=($npr,$npc) is incompatible with ",
+                      "MPI.Comm_size(MPI.COMM_WORLD)=$(MPI.Comm_size(MPI.COMM_WORLD))")
+            end
+
+            m, n = size(DA)
+            A = DistMatrix($elty, m, n)
+            @sync begin
+                for id in workers()
+                    let A = A, DA = DA
+                        @async remotecall_fetch(id) do
+                            rows, cols = DistributedArrays.localindices(DA)
+                            reserve(A,length(rows) * length(cols))
+                            for j in cols, i in rows
+                              queueUpdate(A, i - 1, j - 1, DA[i, j])
+                            end
+                        end
+                    end
+                end
+            end
+            processQueues(A)
+            return A
+        end
+
+        function copyto!(DA::DistributedArrays.DArray{$elty}, A::DistMatrix{$elty} )
+            @sync begin
+              ijs = localindices(DA)
+              for j in ijs[2], i in ijs[1]
+                  queuePull(A, i, j)
+              end
+              DAlocal = DA[:L]
+
+              DAlocal_mat = ndims(DAlocal) == 1 ? reshape(DAlocal, :, 1) : DAlocal
+              processPullQueue(A, DAlocal_mat)
+            end
+            return DA
+        end
     end
 end
