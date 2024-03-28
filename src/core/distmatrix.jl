@@ -148,6 +148,23 @@ for (elty, ext) in ((:ElInt, :i),
                 A.obj, i, j))
             return A
         end
+
+        function isLocalRow(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixIsLocalRow_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return Bool(rv[])
+        end
+
+        function isLocalCol(A::DistMatrix{$elty}, i::Integer)
+            rv = Ref{ElInt}(0)
+            ElError(ccall(($(string("ElDistMatrixIsLocalCol_", ext)), libEl), Cuint,
+                (Ptr{Cvoid}, ElInt, Ref{ElInt}),
+                A.obj, i - 1, rv))
+            return Bool(rv[])
+        end
+
     end
 end
 
@@ -205,3 +222,28 @@ function hcat(x::Vector{DistMatrix{T}}) where {T}
         return A
     end
 end
+
+import DistributedArrays.localpart
+# used in testing
+function localpart(A::Elemental.DistMatrix{T}) where T
+    buffer = Base.zeros(T, localHeight(A), localWidth(A))
+    return localpart!(buffer, A)
+end
+
+function localpart!(buffer, A::Elemental.DistMatrix)
+    @assert size(buffer) == (localHeight(A), localWidth(A))
+    for j in 1:localWidth(A), i in 1:localHeight(A)
+        buffer[i, j] = getLocal(A, i, j)
+    end
+    return buffer
+end
+
+import DistributedArrays.localindices
+# used in testing
+function localindices(A::Elemental.DistMatrix{T}) where T
+    # sometimes they aren't contigous so cant do start:start+length
+    rows = findall(isLocalRow(A, i) for i in 1:height(A))
+    cols = findall(isLocalCol(A, i) for i in 1:width(A))
+    return (rows, cols)
+end
+

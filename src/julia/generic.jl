@@ -181,6 +181,21 @@ Base.convert(::Type{Array}, xd::DistMatrix{T}) where {T} =
 
 Base.Array(xd::DistMatrix) = convert(Array, xd)
 
+function Base.setindex!(A::DistMatrix, values::Number, i::Integer, j::Integer)
+  throw(ArgumentError("setindex! with scalars is disallowed.
+    Use a large collection to setindex! in bulk."))
+end
+function Base.setindex!(A::DistMatrix,
+                        values,
+                        globalis,
+                        globaljs)
+    for (cj, globalj) in enumerate(globaljs), (ci, globali) in enumerate(globalis)
+        queueUpdate(A, globali, globalj, values[ci, cj])
+    end
+    processQueues(A)
+end
+
+
 LinearAlgebra.norm(x::ElementalMatrix) = nrm2(x)
 # function LinearAlgebra.norm(x::ElementalMatrix)
 #     if size(x, 2) == 1
@@ -194,6 +209,12 @@ LinearAlgebra.cholesky!(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) =
 LinearAlgebra.cholesky(A::Hermitian{<:Union{Real,Complex},<:ElementalMatrix}) = cholesky!(copy(A))
 
 LinearAlgebra.lu(A::ElementalMatrix) = _lu!(copy(A))
+LinearAlgebra.lu!(A::ElementalMatrix) = _lu!(A)
+LinearAlgebra.qr(A::ElementalMatrix) = _qr!(copy(A))
+LinearAlgebra.qr!(A::ElementalMatrix) = _qr!(A)
+LinearAlgebra.lq(A::ElementalMatrix) = _lq!(copy(A))
+LinearAlgebra.lq!(A::ElementalMatrix) = _lq!(A)
+LinearAlgebra.cholesky!(A::ElementalMatrix) = _cholesky!(A)
 
 # Mixed multiplication with Julia Arrays
 (*)(A::DistMatrix{T}, B::StridedVecOrMat{T}) where {T} = A*convert(DistMatrix{T}, B)
