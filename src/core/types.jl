@@ -6,14 +6,6 @@ function ElIntType()
 end
 const ElInt = ElIntType()
 
-function ElCommType()
-    sameSizeAsInt = Cint[0]
-    ElError(ccall((:ElMPICommSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
-      sameSizeAsInt))
-    return sameSizeAsInt[1] == 1 ? Cint : Ptr{Cvoid}
-end
-const ElComm = ElCommType()
-
 function ElGroupType()
     sameSizeAsInt = Cint[0]
     ElError(ccall((:ElMPIGroupSameSizeAsInteger, libEl), Cuint, (Ptr{Cint},),
