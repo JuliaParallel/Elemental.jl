@@ -66,7 +66,7 @@ function destroy(P::DistPermutation)
     return nothing
 end
 
-function DistPermutation(grid::Grid = DefaultGrid[])
+function DistPermutation(grid::Grid = DefaultGrid())
     obj = Ref{Ptr{Cvoid}}(0)
     ElError(ccall(("ElDistPermutationCreate", libEl), Cuint,
         (Ref{Ptr{Cvoid}}, Ptr{Cvoid}),

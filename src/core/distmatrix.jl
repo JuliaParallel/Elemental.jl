@@ -17,7 +17,7 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = DefaultGrid[])
+        function DistMatrix(::Type{$elty}, colDist::Dist = MC, rowDist::Dist = MR, grid::Grid = DefaultGrid())
             obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistMatrixCreateSpecific_", ext)), libEl), Cuint,
                 (Cint, Cint, Ptr{Cvoid}, Ref{Ptr{Cvoid}}),
