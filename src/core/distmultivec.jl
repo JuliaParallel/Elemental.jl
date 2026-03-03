@@ -1,5 +1,6 @@
 mutable struct DistMultiVec{T} <: ElementalMatrix{T}
     obj::Ptr{Cvoid}
+    grid::Grid # keep the grid around to avoid that it's freed before the matrix
 end
 
 for (elty, ext) in ((:ElInt, :i),
@@ -21,7 +22,7 @@ for (elty, ext) in ((:ElInt, :i),
             ElError(ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Cvoid}}, ElComm),
                 obj, cm))
-            A = DistMultiVec{$elty}(obj[])
+            A = DistMultiVec{$elty}(obj[], DefaultGrid[])
             finalizer(destroy, A)
             return A
         end

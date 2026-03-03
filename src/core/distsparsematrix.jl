@@ -1,5 +1,6 @@
 mutable struct DistSparseMatrix{T} <: ElementalMatrix{T}
     obj::Ptr{Cvoid}
+    grid::Grid # keep the grid around to avoid that it's freed before the matrix
 end
 
 for (elty, ext) in ((:ElInt, :i),
@@ -21,7 +22,7 @@ for (elty, ext) in ((:ElInt, :i),
             ElError(ccall(($(string("ElDistSparseMatrixCreate_", ext)), libEl), Cuint,
                 (Ref{Ptr{Cvoid}}, ElComm),
                 obj, comm))
-            A = DistSparseMatrix{$elty}(obj[])
+            A = DistSparseMatrix{$elty}(obj[], DefaultGrid[])
             finalizer(destroy, A)
             return A
         end
