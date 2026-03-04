@@ -27,14 +27,6 @@ for (elty, ext) in ((:ElInt, :i),
             return A
         end
 
-        function comm(A::DistSparseMatrix{$elty})
-            cm = Ref{ElComm}()
-            ElError(ccall(($(string("ElDistSparseMatrixComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
-                A.obj, cm))
-            return cm[]
-        end
-
         function globalRow(A::DistSparseMatrix{$elty}, iLoc::Integer)
             i = Ref{ElInt}(0)
             ElError(ccall(($(string("ElDistSparseMatrixGlobalRow_", ext)), libEl), Cuint,

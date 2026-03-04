@@ -33,11 +33,11 @@ function lav(A::DistMatrix{T}, b::DistMatrix{T}) where {T<:Union{Float32,Float64
     return lav!(A, b, x)
 end
 function lav(A::DistSparseMatrix{T}, b::DistMultiVec{T}) where {T<:Union{Float32,Float64}}
-    x = DistMultiVec(T, comm(A))
+    x = DistMultiVec(T, A.grid)
     return lav!(A, b, x)
 end
 
 function lav(A::DistSparseMatrix{T}, b::DistMultiVec{T}, ctrl::LPAffineCtrl{T}) where {T<:Union{Float32,Float64}}
-    x = DistMultiVec(T, comm(A))
+    x = DistMultiVec(T, A.grid)
     return lav!(A, b, x, ctrl)
 end

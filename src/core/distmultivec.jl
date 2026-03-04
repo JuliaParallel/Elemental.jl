@@ -27,14 +27,6 @@ for (elty, ext) in ((:ElInt, :i),
             return A
         end
 
-        function comm(A::DistMultiVec{$elty})
-            cm = Ref{ElComm}()
-            ElError(ccall(($(string("ElDistMultiVecComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
-                A.obj, cm))
-            return cm[]
-        end
-
         function get(x::DistMultiVec{$elty}, i::Integer = size(x, 1), j::Integer = 1)
             v = Ref{$elty}()
             ElError(ccall(($(string("ElDistMultiVecGet_", ext)), libEl), Cuint,
