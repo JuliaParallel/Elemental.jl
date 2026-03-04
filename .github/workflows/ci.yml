@@ -12,6 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - '1.10'
           - '1'
         os:
           - ubuntu-latest
@@ -22,6 +23,9 @@ jobs:
           - os: macos-latest
             arch: x64
         include:
+          - os: macos-latest
+            arch: aarch64
+            version: '1.10'
           - os: macos-latest
             arch: aarch64
             version: '1'
