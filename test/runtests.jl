@@ -1,5 +1,5 @@
 using Test
-import Elemental_jll.MPICH_jll
+using MPI: mpiexec
 
 # Import all of our external dependencies to make sure they're compiled serially.
 using DistributedArrays
@@ -13,10 +13,9 @@ function runtests_mpirun()
     testfiles = ["lav.jl", "lavdense.jl", "matrix.jl", "distmatrix.jl", "props.jl", "generic.jl", "spectral.jl", "tsvd.jl", "svd.jl"]
     nfail = 0
     @info "Running Elemental.jl tests"
-    mpiexec = MPICH_jll.mpiexec_path
     for f in testfiles
         try
-            proc = run(`$mpiexec -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`, wait=false)
+            proc = run(`$(mpiexec()) -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`, wait=false)
             if timedwait(() -> !process_running(proc), 300.0) === :timed_out
                 kill(proc)
                 error("Test $f timed out after 5 minutes")
