@@ -16,7 +16,12 @@ function runtests_mpirun()
     for f in testfiles
         try
             mpiexec() do exec
-                run(`$exec -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`)
+                proc = run(`$exec -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`, wait=false)
+                if timedwait(() -> !process_running(proc), 300.0) === :timed_out
+                    kill(proc)
+                    error("Test $f timed out after 5 minutes")
+                end
+                wait(proc)
             end
             Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
