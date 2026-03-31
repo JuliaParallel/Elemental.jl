@@ -2,7 +2,6 @@ using Test
 using MPI: mpiexec
 
 # Import all of our external dependencies to make sure they're compiled serially.
-using DistributedArrays
 using TSVD
 using Primes
 using MPIClusterManagers
