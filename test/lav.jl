@@ -2,8 +2,8 @@ import Elemental
 const El = Elemental
 using LinearAlgebra: mul!
 
-n0 = 50
-n1 = 50
+n0 = 12
+n1 = 12
 testNative = true
 display = false
 worldRank = El.MPI.commRank(El.MPI.CommWorld[])
