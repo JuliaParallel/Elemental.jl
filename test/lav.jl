@@ -2,8 +2,8 @@ import Elemental
 const El = Elemental
 using LinearAlgebra: mul!
 
-n0 = 12
-n1 = 12
+n0 = 50
+n1 = 50
 testNative = true
 display = false
 worldRank = El.MPI.commRank(El.MPI.CommWorld[])
@@ -94,17 +94,7 @@ if display
     # El.print(b, "b")
 end
 
-ctrl = El.LPAffineCtrl(Float64,
-    mehrotraCtrl=El.MehrotraCtrl(Float64,
-        solveCtrl=El.RegSolveCtrl(Float64,
-                                  progress=true),
-        print=true,
-        outerEquil=true,
-        time=true)
-    )
-
-# elapsedLAV = @elapsed x = El.lav(A, b);#Elemental.print(A, "Matrix A")
-elapsedLAV = @elapsed x = El.lav(A, b, ctrl)
+elapsedLAV = @elapsed x = El.lav(A, b)
 
 if El.MPI.commRank(El.MPI.CommWorld[]) == 0
     println("LAV time: $elapsedLAV seconds")
@@ -165,4 +155,4 @@ end
 
 # Require the user to press a button before the figures are closed
 # commSize = El.mpi.Size( El.mpi.COMM_WORLD() )
-# El.Finalize()
+El.Finalize()
