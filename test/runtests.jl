@@ -1,8 +1,7 @@
 using Test
-using Elemental_jll.MPICH_jll: mpiexec
+using MPI: mpiexec
 
 # Import all of our external dependencies to make sure they're compiled serially.
-using DistributedArrays
 using TSVD
 using Primes
 using MPIClusterManagers
@@ -15,9 +14,12 @@ function runtests_mpirun()
     @info "Running Elemental.jl tests"
     for f in testfiles
         try
-            mpiexec() do exec
-                run(`$exec -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`)
+            proc = run(`$(mpiexec()) -np $nprocs $(Base.julia_cmd()) $(joinpath(@__DIR__, f))`, wait=false)
+            if timedwait(() -> !process_running(proc), 300.0) === :timed_out
+                kill(proc)
+                error("Test $f timed out after 5 minutes")
             end
+            wait(proc)
             Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
@@ -43,7 +45,12 @@ function runtests_repl()
             # FixMe! We temporarily run Finalize() explictly on the workers because the atexit hook
             # doesn't seem to be correctly triggered on workers as of 31 October 2018.
             cmdstr = "using Distributed, MPIClusterManagers; man = MPIManager(np = $nprocs); addprocs(man); include(\"$(joinpath(@__DIR__, f))\"); asyncmap(p -> remotecall_fetch(() -> Elemental.Finalize(), p), workers())"
-            run(`$exename -e $cmdstr`)
+            proc = run(`$exename -e $cmdstr`, wait=false)
+            if timedwait(() -> !process_running(proc), 300.0) === :timed_out
+                kill(proc)
+                error("Test $f timed out after 5 minutes")
+            end
+            wait(proc)
             Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end

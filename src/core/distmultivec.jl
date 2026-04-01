@@ -1,5 +1,6 @@
 mutable struct DistMultiVec{T} <: ElementalMatrix{T}
     obj::Ptr{Cvoid}
+    grid::Grid # keep the grid around to avoid that it's freed before the matrix
 end
 
 for (elty, ext) in ((:ElInt, :i),
@@ -16,22 +17,14 @@ for (elty, ext) in ((:ElInt, :i),
             return nothing
         end
 
-        function DistMultiVec(::Type{$elty}, cm::ElComm = MPI.CommWorld[])
+        function DistMultiVec(::Type{$elty}, grid::Grid = DefaultGrid[])
             obj = Ref{Ptr{Cvoid}}(C_NULL)
             ElError(ccall(($(string("ElDistMultiVecCreate_", ext)), libEl), Cuint,
-                (Ref{Ptr{Cvoid}}, ElComm),
-                obj, cm))
-            A = DistMultiVec{$elty}(obj[])
+                (Ref{Ptr{Cvoid}}, Ptr{Cvoid}),
+                obj, grid.obj))
+            A = DistMultiVec{$elty}(obj[], grid)
             finalizer(destroy, A)
             return A
-        end
-
-        function comm(A::DistMultiVec{$elty})
-            cm = Ref{ElComm}()
-            ElError(ccall(($(string("ElDistMultiVecComm_", ext)), libEl), Cuint,
-                (Ptr{Cvoid}, Ref{ElComm}),
-                A.obj, cm))
-            return cm[]
         end
 
         function get(x::DistMultiVec{$elty}, i::Integer = size(x, 1), j::Integer = 1)
@@ -117,8 +110,8 @@ end
 
 getindex(x::DistMultiVec, i, j) = get(x, i, j)
 
-function similar(::DistMultiVec, ::Type{T}, sz::Dims, cm::ElComm = MPI.CommWorld[]) where {T}
-    A = DistMultiVec(T, cm)
+function similar(::DistMultiVec, ::Type{T}, sz::Dims, grid::Grid = DefaultGrid[]) where {T}
+    A = DistMultiVec(T, grid)
     resize!(A, sz...)
     return A
 end

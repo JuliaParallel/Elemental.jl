@@ -23,7 +23,7 @@ function leastSquares(A::DistMatrix{T}, B::DistMatrix{T};
 end
 function leastSquares(A::DistSparseMatrix{T}, B::DistMultiVec{T};
     orientation::Orientation = NORMAL) where {T}
-    X = DistMultiVec(T, comm(A))
+    X = DistMultiVec(T, A.grid)
     return leastSquares!(A, B, X, orientation = orientation)
 end
 
@@ -49,7 +49,7 @@ function bpdn(A::DistMatrix{T}, B::DistMatrix{T}, lambda::T) where {T}
     return bpdn!(A, B, lambda, X)
 end
 function bpdn(A::DistSparseMatrix{T}, B::DistMultiVec{T}, lambda) where {T}
-    X = DistMultiVec(T, comm(A))
+    X = DistMultiVec(T, A.grid)
     return bpdn!(A, B, lambda, X)
 end
 
@@ -78,6 +78,6 @@ function ridge(A::DistMatrix{T}, B::DistMatrix{T}, gamma::T; ka...) where {T}
     return ridge!(A, B, gamma, X; ka...)
 end
 function ridge(A::DistSparseMatrix{T}, B::DistMultiVec{T}, gamma::T; ka...) where {T}
-    X = DistMultiVec(T, comm(A))
+    X = DistMultiVec(T, A.grid)
     return ridge!(A, B, gamma, X; ka...)
 end
