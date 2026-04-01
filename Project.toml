@@ -1,6 +1,6 @@
 name = "Elemental"
 uuid = "902c3f28-d1ec-5e7e-8399-a24c3845ee38"
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
